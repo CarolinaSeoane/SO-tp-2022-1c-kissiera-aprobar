@@ -48,7 +48,7 @@ t_log* iniciar_logger(char* modulo)
 
 t_config* leer_config(void)
 {
-	return config_create("/home/utnso/workspace/tp-2021-1c-Grupo-X/shared/src/conexiones.config");
+	return config_create("/home/utnso/workspace/tp-2022-1c-kissiera-aprobar/shared/src/conexiones.config");
 
 }
 
