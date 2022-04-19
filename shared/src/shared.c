@@ -1,8 +1,5 @@
 #include <stdio.h>
-#include "shared.h"
-
-
-
+#include "../include/shared.h"
 
 void prueba2()
 {
