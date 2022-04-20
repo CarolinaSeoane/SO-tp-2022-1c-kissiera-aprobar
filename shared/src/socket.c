@@ -86,7 +86,6 @@ void terminar_programa(int conexion, t_log* logger, t_config* config) {
 	close(conexion);
 }
 
-
 void log_info_sh(t_log* logger, char* editor) {
 	// log_info(logger,editor);
 }

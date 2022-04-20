@@ -1,7 +1,23 @@
 #include "include/main.h"
 
-int main()
-{
+int main() {
+	logger = log_create("cpu.log", "Cpu", 1, LOG_LEVEL_DEBUG);
+	Config config;
+	cargarConfig("cpu.config", &config);
+
+	int dispatch = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_DISPATCH, 1);
+	int interrupt = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_INTERRUPT, 1);
+
+	if(!dispatch || !interrupt) {
+		log_info(logger, "Error al iniciar la conexión dispatch o interrupt\nCerrando el programa");
+		return 1;
+	}
+
+	log_info(logger, "CPU esperando conexión de Kernel");
+
+	int cliente_dispatch = esperar_cliente(dispatch, logger);
+	int cliente_interrupt = esperar_cliente(interrupt, logger);
+	
 	// return 0;
 
 }

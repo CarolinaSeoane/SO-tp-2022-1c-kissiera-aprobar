@@ -17,6 +17,9 @@ int main(void) {
 
     log_info(logger, "Kernel listo para recibir clientes");
 
+	int conexion_dispatch = crear_conexion(config.IP_CPU, config.PUERTO_CPU_DISPATCH, logger);
+	int conexion_interrupt = crear_conexion(config.IP_CPU, config.PUERTO_CPU_INTERRUPT, logger);
+
 	/*
 	while(1) {
 		int kernel_cliente = esperar_cliente(kernel_server, logger);

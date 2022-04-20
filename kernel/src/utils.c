@@ -16,10 +16,10 @@ void cargarConfig(char* path, Config* config) {
         (*config).GRADO_MULTIPROGRAMACION      = config_get_int_value(t_config, "GRADO_MULTIPROGRAMACION");
 
         log_info(logger, "Configuración cargada correctamente");
+        config_destroy(t_config);
 
     } else {
         log_info(logger, "No se encontró el archivo de configuración");
         exit(0);
     }
-    config_destroy(t_config);
 }

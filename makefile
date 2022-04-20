@@ -1,8 +1,8 @@
 all:
+	make -C cpu
 	make -C kernel
 	make -C consola
 	make -C memoria
-	make -C cpu
 	./ejecutar.sh
 
 clean:
