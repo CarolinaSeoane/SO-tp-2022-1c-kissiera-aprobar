@@ -4,7 +4,16 @@
 
 int main(void) {
 
-	int kernel_server = iniciar_modulo();
+	logger = log_create("kernel.log", "Kernel", 1, LOG_LEVEL_DEBUG);
+	Config config;
+	cargarConfig("kernel.config", &config);
+
+	int kernel_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, SOMAXCONN);
+
+	if(!kernel_server) {
+		log_info(logger, "Error al iniciar el servidor Kernel\nCerrando el programa");
+		return 1;
+	}
 
     log_info(logger, "Kernel listo para recibir clientes");
 
@@ -75,7 +84,7 @@ void imprimir_valor(t_buffer* buffer)
 	int variable_rara;
 	memcpy(&variable_rara, stream, sizeof(uint32_t));
 	printf("el dato enviado y desempaquetado es: %d\n", variable_rara);
-	
+
 }
 
 /*

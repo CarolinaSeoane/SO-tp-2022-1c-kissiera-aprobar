@@ -22,10 +22,8 @@ typedef struct {
 	int GRADO_MULTIPROGRAMACION;
 } Config;
 
-Config config;
 t_log* logger;
 
-void cargarConfig(char*);
-int iniciar_modulo();
+void cargarConfig(char*, Config*);
 
 #endif
