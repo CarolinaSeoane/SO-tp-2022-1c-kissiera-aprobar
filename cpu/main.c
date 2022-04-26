@@ -18,6 +18,8 @@ int main() {
 	int cliente_dispatch = esperar_cliente(dispatch, logger);
 	int cliente_interrupt = esperar_cliente(interrupt, logger);
 	
+	int conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
+	
 	// return 0;
 
 }
