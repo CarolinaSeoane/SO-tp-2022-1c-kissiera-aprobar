@@ -11,18 +11,30 @@
 #include<netdb.h>
 #include"protocolo.h"
 
-typedef struct {
-    uint32_t size; // Tamaño del payload
-    void* stream; // Payload
-} t_buffer;
+// Operacion de instruccion
+typedef enum {
+	NO_OP,
+	IO,
+	READ,
+	WRITE,
+	COPY,
+	EXIT
+} operacion;
 
+// La instruccion en si
+typedef struct {
+	operacion id_operacion;
+	uint32_t operando1;
+	uint32_t operando2;
+} instruccion;
+
+// Paquete para mandar instrucciones. Consola a Kernel
 typedef struct
 {
-	int socket;
-	id_modulo modulo;
-	op_code codigo_operacion;
-	t_buffer* buffer;
-} t_paquete;
+	accion id_accion;
+	int length_instrucciones;
+	void* stream;
+} t_paquete_instrucciones;
 
 
 #endif

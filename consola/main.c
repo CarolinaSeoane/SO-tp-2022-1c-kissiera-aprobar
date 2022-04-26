@@ -1,267 +1,282 @@
 #include "include/main.h"
 
-int main(void)
-{
 /*
-	pthread_t hilo_menu;
-	pthread_create( &hilo_menu, NULL,menu_principal,NULL);
-	pthread_join(hilo_menu,NULL);
-	exit(0);
+
+----- COSAS QUE DEBERIA HACER EL MODULO CONSOLA -------
+
+	Validar que recibe dos parametros: el tamanio y el path ---> Hecho
+	Abrir el archivo que me indica el path                  ---> Hecho
+	Empezar a leer las instrucciones y validar la sintaxis  ---> Hecho
+	A medida que leo, agregar la instruccion a una lista    ---> Hecho
+	Conectarse a Kernel 									---> Hecho
+	Enviar Lista y tamaño									---> Hecho
+	Esperar respuesta										---> Falta
+	Finalizar												---> Falta
+
+---- PROBLEMAS A SOLUCIONAR -----
+- Evitar repeticion de codigo
 */
+
+instruccion* armar_y_devolver_instruccion (char* linea_leida){
+
+	instruccion* nuevo = malloc(sizeof(instruccion));
+
+    char* codigo = strtok(linea_leida, " ");
+    nuevo->id_operacion = traer_identificador(codigo);
+    if(!strcmp("NO_OP", codigo) || !strcmp("I/O", codigo) || !strcmp("READ", codigo)) {
+
+    	nuevo->operando1 = atoi(strtok(NULL, "\n"));
+
+    } else if (!strcmp("COPY", codigo) || !strcmp("WRITE", codigo)) {
+
+    	nuevo->operando1 = atoi(strtok(NULL, " "));
+    	nuevo->operando2 = atoi(strtok(NULL, "\n"));
+
+    }
+    return nuevo;
 }
-/*
-void* menu_principal(){
-		t_log* logger;
-		char* modulo = "Consola";
-		logger = iniciar_logger(modulo);
-		mostrar_menu();
-		leer_consola(logger);
-		return NULL ;
+
+int main(int argc, char** argv) {
+
+	printf("-------- COMIENZO --------\n");
+    printf("Inicia el módulo Consola \n");
+
+
+    if(argc != 3) {
+    	printf("Está iniciando mal este proceso. Tiene %d parámetros cuando deberia tener 2\n", argc-1);
+    	return EXIT_FAILURE;
+    }
+
+    printf("El proceso tiene tamanio %s\n", argv[2]);
+    printf("Sus instrucciones estan en %s\n", argv[1]);
+
+    printf("------ PASAJE DE INSTRUCCIONES -------\n");
+    char* contenido = malloc(sizeof(char*));
+    int len = 0;
+    int cantidad_de_instrucciones = devolver_cantidad_de_instrucciones(argv[1]);
+    printf("------ CANTIDAD DE INSTRUCCIONES EN ARCHIVO %d-------\n", cantidad_de_instrucciones);
+
+    printf("----- APERTURA DE ARCHIVO ------\n");
+    FILE* archivo = fopen(argv[1], "r");
+
+    if(archivo == NULL) {
+    	printf("El archivo no es correcto\n");
+    	return EXIT_FAILURE;
+    }
+    printf("------ ARMANDO STREAM CON TODAS LAS INSTRUCCIONES -------\n");
+
+    void* stream = malloc(cantidad_de_instrucciones*sizeof(instruccion));
+    int offset=0;
+    char* aux = malloc(sizeof(char*));
+    while (getline(&contenido, &len, archivo) != -1)
+        {
+    		strcpy(aux, contenido);
+    		instruccion* instr = armar_y_devolver_instruccion(aux);
+
+    		if(instr->id_operacion == 0){
+    			char* oper_string = sizeof(char*);
+    			oper_string = strtok(contenido, " ");
+    			int limit = atoi(strtok(NULL, "\n"));
+    		    printf("------ INICIO DE REPETICIONES ------- %d\n", limit);
+
+    		    for (int i = 0; i < limit; i++)
+    		    {
+    				instr->operando1 = 0;
+    				instr->operando2 = 0;
+    				printf("id_operacion: %d - operando1: %d - operando2: %d\n", instr->id_operacion, instr->operando1, instr->operando2 );
+    		    	memcpy(stream+offset, &(instr->id_operacion), sizeof(operacion));
+    				offset += sizeof(operacion);
+    				memcpy(stream+offset, &(instr->operando1), sizeof(uint32_t));
+    				offset += sizeof(uint32_t);
+    				memcpy(stream+offset, &(instr->operando2), sizeof(uint32_t));
+    				offset += sizeof(uint32_t);
+    			}
+
+
+    		    printf("------ INICIO DE OPERACIONES NORMALES ------- \n");
+    		}else
+    		{
+
+    			printf("id_operacion: %d - operando1: %d - operando2: %d\n", instr->id_operacion, instr->operando1, instr->operando2 );
+    			memcpy(stream+offset, &(instr->id_operacion), sizeof(operacion));
+				offset += sizeof(operacion);
+				memcpy(stream+offset, &(instr->operando1), sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+				memcpy(stream+offset, &(instr->operando2), sizeof(uint32_t));
+				offset += sizeof(uint32_t);
+    		}
+        }
+    fclose(archivo);
+    printf("------ ARMANDO PAQUETE PARA USAR EN VOID* A_ENVIAR -------\n");
+
+    t_paquete_instrucciones* paquete = malloc(sizeof(accion)+sizeof(int)+sizeof(stream));
+    paquete->id_accion = ENVIAR_INSTRUCCIONES;
+    paquete->length_instrucciones = cantidad_de_instrucciones;
+    paquete->stream = stream;
+
+    printf("------ ARMANDO VOID* A_ENVIAR -------\n");
+
+
+    offset = 0;
+    void* a_enviar = malloc(sizeof(accion)+sizeof(int)+cantidad_de_instrucciones*sizeof(instruccion));
+    memcpy(a_enviar, &(paquete->id_accion), sizeof(accion));
+	offset += sizeof(accion);
+	memcpy(a_enviar+offset, &(paquete->length_instrucciones), sizeof(int));
+	offset += sizeof(int);
+	memcpy(a_enviar+offset, stream, cantidad_de_instrucciones*sizeof(instruccion));
+
+	//int primera_operacion;
+	//memcpy(&primera_operacion, paquete->stream, sizeof(Identificador));
+	//printf("identificador: %d", primera_operacion);
+
+
+
+    printf("------ ABRO CONFIG ---------\n");
+	logger = log_create("consola.log", "Consola", 1, LOG_LEVEL_DEBUG);
+	Config config;
+	cargarConfig("consola.config", &config);
+
+	printf("------ CONECTO A KERNEL Y ENVIO POR SOCKET -----\n");
+
+	int conexion_kernel = crear_conexion(config.IP_KERNEL, config.PUERTO_KERNEL, logger);
+	send(conexion_kernel, a_enviar, sizeof(accion)+sizeof(int)+cantidad_de_instrucciones*sizeof(instruccion), 0);
+
+
+	//libero punteros
+	//free(a_enviar);
+	free(contenido);
+	free(stream);
+	free(aux);
+	free(paquete);
+
+//	printf("------COMPROBACION DEL LAS INSTRUCCIONES EN EL VOID* A ENVIAR--------\n");
+
+	offset = sizeof(accion)+sizeof(int);
+	operacion id_operacion;
+	uint32_t operando1;
+	uint32_t operando2;
+
+	for(int i=0; i<cantidad_de_instrucciones; i++) {
+		memcpy(&id_operacion, a_enviar+offset, sizeof(operacion));
+		offset+=sizeof(operacion);
+		memcpy(&operando1, a_enviar+offset, sizeof(uint32_t));
+		offset+=sizeof(uint32_t);
+		memcpy(&operando2, a_enviar+offset, sizeof(uint32_t));
+		offset+=sizeof(uint32_t);
+		//printf("id_operacion: %d - operando1: %d - operando2: %d\n", id_operacion, operando1, operando2 );
+	}
+
+	//printf("------------------ DONE ---------------\n\n");
+
+	//printf("------COMPROBACION DEL LAS INSTRUCCIONES EN EL STREAM A ENVIAR--------\n");
+
+	offset = 0;
+	for(int i=0; i<cantidad_de_instrucciones; i++) {
+		memcpy(&id_operacion, stream+offset, sizeof(operacion));
+		offset+=sizeof(operacion);
+		memcpy(&operando1, stream+offset, sizeof(uint32_t));
+		offset+=sizeof(uint32_t);
+		memcpy(&operando2, stream+offset, sizeof(uint32_t));
+		offset+=sizeof(uint32_t);
+		//printf("id_operacion: %d - operando1: %d - operando2: %d\n", id_operacion, operando1, operando2 );
+	}
+	printf("------------------ DONE ---------------\n\n");
+
+	return EXIT_SUCCESS;
+
 }
 
-void mostrar_menu(){
 
-	printf("1-Opción enviar un id.\n");
-	printf("2-Opción enviar un string sin respuesta.\n");
-	printf("3-Opción enviar un string con respuesta.\n");
+int devolver_cantidad_de_instrucciones(char* path){
+	FILE* archivo = fopen(path, "r");
+	char* contenido = malloc(sizeof(char*));
+	char* codigo_operacion = malloc(sizeof(char*));
+	int len = 0;
+	int lines=0;
+	int adic;
+	while (getline(&contenido, &len, archivo) != -1)
+	{
+		adic=0;
+		codigo_operacion = strtok(contenido, " ");
+		if (!strcmp("NO_OP", codigo_operacion)){
+			adic = atoi(strtok(NULL, "\n"));
+			lines = lines + adic;
 
-}
-
-void leer_consola(t_log* logger)
-{
-
-	int leido;
-	char *leido_string;
-	char *mensaje = malloc(sizeof(char));
-	leido_string = readline(">");
-	leido = atoi(leido_string);
-
-		while(leido != 0)
-		{
-				switch(leido)
-				{
-						case 1:
-							log_info_sh(logger, "Opción enviar un id inresado por pantalla");
-							int valor;
-							printf("Ingrese el ID a enviar:");
-							scanf("%d", &valor);
-							enviar_un_id(logger,valor);
-							mostrar_menu();
-							break;
-						case 2:
-							log_info_sh(logger, "Opción enviar un string sin respuesta.");
-							printf("Ingrese el valor a enviar:");
-							scanf("%[^\n]%*c", mensaje);
-							enviar_un_string(logger,mensaje);
-							mostrar_menu();
-							break;
-						case 3:
-							log_info_sh(logger, "Opción enviar un string con respuesta.");
-							int server_fd = iniciar_servidor_del_modulo("consola");
-							printf("Ingrese el valor a enviar:");
-							scanf("%[^\n]%*c", mensaje);
-							enviar_un_string_y_recibir_respuesta(logger,mensaje, server_fd);
-							close(server_fd);
-							mostrar_menu();
-							break;
-
-						default:
-							log_warning_sh(logger, "Opción no codeada. Volver a intentar más tarde.");
-							break;
-
-				}
-
-			leido_string = readline(">");
-			leido = atoi(leido_string);
-
+		}else{
+			lines++;
 		}
 
-
-	free(leido_string);
-	free(mensaje);
-
-
-}
-
-void enviar_un_id(t_log* logger,uint32_t id)
-{
-	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = sizeof(uint32_t); // id_triuplante
-	void* stream = malloc(buffer->size);
-
-	memcpy(stream,&id, sizeof(uint32_t));
-
-	buffer->stream = stream;
-
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-	int conexion = crear_conexion_al_modulo("kernel");
-
-
-	paquete->codigo_operacion= ENVIAR_ID;
-	paquete->socket = conexion;
-	paquete->modulo = CONSOLA;
-	paquete->buffer=buffer;
-
-
-	void* a_enviar = malloc(buffer->size + sizeof(int)*3 + sizeof(uint32_t));
-	int offset2 = 0;
-
-
-	memcpy(a_enviar + offset2, &(paquete->codigo_operacion), sizeof(int));
-	offset2 += sizeof(int);
-	memcpy(a_enviar + offset2, &(paquete->socket), sizeof(int));
-	offset2 += sizeof(int);
-	memcpy(a_enviar + offset2, &(paquete->modulo), sizeof(int));
-	offset2 += sizeof(int);
-	memcpy(a_enviar + offset2, &(paquete->buffer->size), sizeof(uint32_t));
-	offset2 += sizeof(uint32_t);
-	memcpy(a_enviar + offset2, paquete->buffer->stream, paquete->buffer->size);
-
-
-	// Por último enviamos//No estoy segundo del tamaño del send()
-	send(conexion, a_enviar, buffer->size + sizeof(int)*3 + sizeof(uint32_t), 0);
-
-	// No nos olvidamos de liberar la memoria que ya no usaremos
-	free(a_enviar);
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
-}
-
-void enviar_un_string(t_log* logger,char* palabra)
-{
-	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = sizeof(uint32_t) + strlen(palabra) + 1;
-	void* stream = malloc(buffer->size);
-
-	int offset=0;
-	uint32_t tamanio_palabra =  strlen(palabra);
-	memcpy(stream, &tamanio_palabra, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-	memcpy(stream + offset, palabra, strlen(palabra) + 1);
-
-	buffer->stream = stream;
-
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-
-	int conexion = crear_conexion_al_modulo("kernel");
-
-
-	paquete->codigo_operacion= STR_SIN_RESPUESTA;
-	paquete->socket = conexion;
-	paquete->modulo = CONSOLA;
-	paquete->buffer=buffer;
-
-
-	void* a_enviar = malloc(buffer->size + sizeof(int)*3 + sizeof(uint32_t));
-	int offset2 = 0;
-
-
-	memcpy(a_enviar + offset2, &(paquete->codigo_operacion), sizeof(int));
-	offset2 += sizeof(int);
-	memcpy(a_enviar + offset2, &(paquete->socket), sizeof(int));
-	offset2 += sizeof(int);
-	memcpy(a_enviar + offset2, &(paquete->modulo), sizeof(int));
-	offset2 += sizeof(int);
-	memcpy(a_enviar + offset2, &(paquete->buffer->size), sizeof(uint32_t));
-	offset2 += sizeof(uint32_t);
-	memcpy(a_enviar + offset2, paquete->buffer->stream, paquete->buffer->size);
-
-	// Por último enviamos
-	send(conexion, a_enviar, buffer->size + sizeof(int)*3 + sizeof(uint32_t), 0);
-
-	// No nos olvidamos de liberar la memoria que ya no usaremos
-	free(a_enviar);
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
-	close(conexion);
+	}
+	fclose(archivo);
+	return lines;
 
 }
 
-void enviar_un_string_y_recibir_respuesta(t_log* logger,char* palabra, int server_fd)
-{
-	t_buffer* buffer = malloc(sizeof(t_buffer));
-	buffer->size = sizeof(uint32_t) + strlen(palabra) + 1;
-	void* stream = malloc(buffer->size);
+int es_una_instruccion_valida(char* instruccion) {
+	char* codigo_operacion = malloc(sizeof(char*));
+	codigo_operacion = strtok(instruccion, " ");
 
-	int offset=0;
-	uint32_t tamanio_palabra =  strlen(palabra);
-	memcpy(stream, &tamanio_palabra, sizeof(uint32_t));
-	offset += sizeof(uint32_t);
-	memcpy(stream + offset, palabra, strlen(palabra) + 1);
+	if(!strcmp("NO_OP", codigo_operacion) || !strcmp("I/O", codigo_operacion) || !strcmp("READ", codigo_operacion)) {
 
-	buffer->stream = stream;
+		char* operando = malloc(sizeof(char*));
+		operando = strtok(NULL, "\n");
 
-	t_paquete* paquete = malloc(sizeof(t_paquete));
+		for(int i=0; i<strlen(operando); i++) {
+			if(!isdigit(operando[i])){
+				return 0;
+			}
+		}
+		return 1;
 
-	int conexion = crear_conexion_al_modulo("kernel");
-	paquete->codigo_operacion= STR_CON_RESPUESTA;
-	paquete->socket = conexion;
-	paquete->modulo = CONSOLA;
-	paquete->buffer=buffer;
+	} else if(!strcmp("COPY", codigo_operacion) || !strcmp("WRITE", codigo_operacion)) {
 
+		char* operando1 = malloc(sizeof(char*));
+		operando1 = strtok(NULL, " ");
 
-	void* a_enviar = malloc(buffer->size + sizeof(int)*3 + sizeof(uint32_t));
-	int offset2 = 0;
+		if(operando1 == NULL) {
+			return 0;
+		}
 
+		char* operando2 = malloc(sizeof(char*));
+		operando2 = strtok(NULL, "\n");
 
-	memcpy(a_enviar + offset2, &(paquete->codigo_operacion), sizeof(int));
-	offset2 += sizeof(int);
-	memcpy(a_enviar + offset2, &(paquete->socket), sizeof(int));
-	offset2 += sizeof(int);
-	memcpy(a_enviar + offset2, &(paquete->modulo), sizeof(int));
-	offset2 += sizeof(int);
-	memcpy(a_enviar + offset2, &(paquete->buffer->size), sizeof(uint32_t));
-	offset2 += sizeof(uint32_t);
-	memcpy(a_enviar + offset2, paquete->buffer->stream, paquete->buffer->size);
+		if(operando2 == NULL) {
+			return 0;
+		}
 
-	// Por último enviamos
-	send(conexion, a_enviar, buffer->size + sizeof(int)*3 + sizeof(uint32_t), 0);
+		for(int i=0; i<strlen(operando1); i++) {
+			if(!isdigit(operando1[i])){
+				return 0;
+			}
+		}
 
-	// No nos olvidamos de liberar la memoria que ya no usaremos
-	free(a_enviar);
-	free(paquete->buffer->stream);
-	free(paquete->buffer);
-	free(paquete);
-	close(conexion);
+		for(int i=0; i<strlen(operando2); i++) {
+			if(!isdigit(operando2[i])){
+				return 0;
+			}
+		}
+		return 1;
 
-	///////////// Deserializar /////////////////
+	} else {
 
-	// Levanto server para escuchar respuesta
-	//int server_fd = iniciar_servidor_consola();
-	// Espero cliente
-	int cliente_fd = esperar_cliente(server_fd);
+		return !strcmp("EXIT\n", instruccion);
 
-	t_paquete* paquete2 = malloc(sizeof(t_paquete));
-	paquete2->buffer = malloc(sizeof(t_buffer));
-
-	// Primero recibimos el codigo de operacion
-	recv(cliente_fd, &(paquete2->codigo_operacion), sizeof(int), 0);
-	printf("Operation: %d\n", paquete2->codigo_operacion);
-
-	// Recibo socket
-	recv(cliente_fd, &(paquete2->socket), sizeof(int), 0);
-	printf("Socket: %d\n", paquete2->socket);
-
-	// Recibo modulo
-	recv(cliente_fd, &(paquete2->modulo), sizeof(int), 0);
-	printf("Module: %d\n", paquete2->modulo);
-
-	// Después ya podemos recibir el buffer. Primero su tamaño seguido del contenido
-	recv(cliente_fd, &(paquete2->buffer->size), sizeof(uint32_t), 0);
-	paquete2->buffer->stream = malloc(paquete2->buffer->size);
-	recv(cliente_fd, paquete2->buffer->stream, paquete2->buffer->size, 0);
-
-	void* stream2 = paquete2->buffer->stream;
-	uint32_t tamanio;
-	memcpy(&tamanio, stream2, sizeof(uint32_t));
-	stream2 += sizeof(uint32_t);
-	char *palabra2 = malloc(tamanio+1);
-	memcpy(palabra2, stream2, tamanio);
-	printf("%s\n", palabra2);
-	close(cliente_fd);
-
-}*/
+	}
+}
 
 
+int traer_identificador(char* codigo) {
+	if(!strcmp("NO_OP", codigo)){
+		return 0;
+	} else if(!strcmp("I/O", codigo)) {
+		return 1;
+	} else if(!strcmp("READ", codigo)) {
+		return 2;
+	} else if(!strcmp("WRITE", codigo)) {
+		return 3;
+	} else if(!strcmp("COPY", codigo)) {
+		return 4;
+	} else {
+		return 5;
+	}
+}

@@ -95,7 +95,7 @@ void log_warning_sh(t_log* logger, char* editor) {
 	// log_warning(logger,editor);
 }
 
-
+/*
 int recibir_operacion(int socket_cliente)
 {
 	t_paquete* paquete = malloc(sizeof(t_paquete));
@@ -108,5 +108,5 @@ int recibir_operacion(int socket_cliente)
 		return -1;
 	}
 
-}
+}*/
 

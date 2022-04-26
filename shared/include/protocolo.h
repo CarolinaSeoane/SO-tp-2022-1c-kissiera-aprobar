@@ -3,19 +3,9 @@
 
 typedef enum
 {
-	STR_SIN_RESPUESTA,
-	ENVIAR_ID,
-	STR_CON_RESPUESTA
+	ENVIAR_INSTRUCCIONES
+}accion;
 
-}op_code;
-
-typedef enum
-{
-	CONSOLA,
-	KERNEL,
-	CPU,
-	MEMORIA_Y_SWAP
-}id_modulo;
 
 #endif
 

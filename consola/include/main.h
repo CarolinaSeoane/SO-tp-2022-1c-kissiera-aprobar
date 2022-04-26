@@ -1,8 +1,7 @@
 #ifndef CONSOLA_H_
 #define CONSOLA_H_
-/*
-#include "../../shared/include/shared.h"
-#include <stdint.h>
+#include <stdlib.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <commons/log.h>
@@ -10,8 +9,10 @@
 #include <commons/config.h>
 #include <readline/readline.h>
 #include <string.h>
+#include <commons/log.h>
 #include <pthread.h>
-
+#include "utils.h"
+/*
 
 void  mostrar_menu();
 int atender_conexion(int);
@@ -27,5 +28,9 @@ void enviar_un_id(t_log*,uint32_t);
 void enviar_un_string(t_log*, char*);
 void enviar_un_string_y_recibir_respuesta(t_log*, char*, int);*/
 
+instruccion* armar_y_devolver_instruccion (char*);
+int devolver_cantidad_de_instrucciones(char*);
+int es_una_instruccion_valida(char*);
+int traer_identificador(char* codigo);
 
 #endif /* CONSOLA_H_ */
