@@ -13,14 +13,17 @@ int atender_pedido(int cliente_fd)
 	recv(cliente_fd, &len_instrucciones, sizeof(int), 0);
 	printf("Cantidad Instrucciones: %d\n", len_instrucciones);
 
+	int tamanio_proceso;
+	recv(cliente_fd, &tamanio_proceso, sizeof(int), 0);
+	printf("Tamanio del proceso: %d\n", tamanio_proceso);
+
 	void* stream = malloc(len_instrucciones*sizeof(instruccion));
-	printf("cantidad alocada para stream %d", len_instrucciones*sizeof(instruccion));
+	printf("Cantidad reservada para stream %d\n", len_instrucciones*sizeof(instruccion));
 	recv(cliente_fd, stream, len_instrucciones*sizeof(instruccion), 0);
 
 	switch(accion)
 	{
 		case ENVIAR_INSTRUCCIONES:
-			printf("Me están llegando instrucciones\n");
 			mostrar_instrucciones(stream, len_instrucciones);
 			break;
 		default:
@@ -71,8 +74,6 @@ int mostrar_instrucciones(void* stream, int len_instrucciones){
 	operacion id_operacion;
 	uint32_t operando1;
 	uint32_t operando2;
-
-	printf("------------------ LOOP ---------------\n\n");
 
 	for(int i=0; i<len_instrucciones; i++) {
 		memcpy(&id_operacion, stream+offset, sizeof(operacion));

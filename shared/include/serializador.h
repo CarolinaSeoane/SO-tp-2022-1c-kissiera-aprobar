@@ -33,6 +33,7 @@ typedef struct
 {
 	accion id_accion;
 	int length_instrucciones;
+	int tamanio_proceso;
 	void* stream;
 } t_paquete_instrucciones;
 

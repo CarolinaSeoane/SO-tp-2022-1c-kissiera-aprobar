@@ -109,19 +109,22 @@ int main(int argc, char** argv) {
     fclose(archivo);
     printf("------ ARMANDO PAQUETE PARA USAR EN VOID* A_ENVIAR -------\n");
 
-    t_paquete_instrucciones* paquete = malloc(sizeof(accion)+sizeof(int)+sizeof(stream));
+    t_paquete_instrucciones* paquete = malloc(sizeof(accion)+sizeof(int)*2+sizeof(stream));
     paquete->id_accion = ENVIAR_INSTRUCCIONES;
     paquete->length_instrucciones = cantidad_de_instrucciones;
+    paquete->tamanio_proceso = atoi(argv[2]);
     paquete->stream = stream;
 
     printf("------ ARMANDO VOID* A_ENVIAR -------\n");
 
 
     offset = 0;
-    void* a_enviar = malloc(sizeof(accion)+sizeof(int)+cantidad_de_instrucciones*sizeof(instruccion));
+    void* a_enviar = malloc(sizeof(accion)+sizeof(int)*2+cantidad_de_instrucciones*sizeof(instruccion));
     memcpy(a_enviar, &(paquete->id_accion), sizeof(accion));
 	offset += sizeof(accion);
 	memcpy(a_enviar+offset, &(paquete->length_instrucciones), sizeof(int));
+	offset += sizeof(int);
+	memcpy(a_enviar+offset, &(paquete->tamanio_proceso), sizeof(int));
 	offset += sizeof(int);
 	memcpy(a_enviar+offset, stream, cantidad_de_instrucciones*sizeof(instruccion));
 
@@ -149,12 +152,17 @@ int main(int argc, char** argv) {
 	free(aux);
 	free(paquete);
 
-//	printf("------COMPROBACION DEL LAS INSTRUCCIONES EN EL VOID* A ENVIAR--------\n");
+	printf("------COMPROBACION DEL tamanio +  INSTRUCCIONES EN EL VOID* A ENVIAR--------\n");
 
 	offset = sizeof(accion)+sizeof(int);
+	int tamanio_proceso;
 	operacion id_operacion;
 	uint32_t operando1;
 	uint32_t operando2;
+	// copio el tamanio primero
+	memcpy(&tamanio_proceso, a_enviar+offset, sizeof(int));
+	offset+=sizeof(int);
+	printf("TAMANIO DEL PROCESO: %d\n", tamanio_proceso);
 
 	for(int i=0; i<cantidad_de_instrucciones; i++) {
 		memcpy(&id_operacion, a_enviar+offset, sizeof(operacion));
@@ -163,7 +171,7 @@ int main(int argc, char** argv) {
 		offset+=sizeof(uint32_t);
 		memcpy(&operando2, a_enviar+offset, sizeof(uint32_t));
 		offset+=sizeof(uint32_t);
-		//printf("id_operacion: %d - operando1: %d - operando2: %d\n", id_operacion, operando1, operando2 );
+		printf("id_operacion: %d - operando1: %d - operando2: %d\n", id_operacion, operando1, operando2 );
 	}
 
 	//printf("------------------ DONE ---------------\n\n");
@@ -180,7 +188,9 @@ int main(int argc, char** argv) {
 		offset+=sizeof(uint32_t);
 		//printf("id_operacion: %d - operando1: %d - operando2: %d\n", id_operacion, operando1, operando2 );
 	}
-	printf("------------------ DONE ---------------\n\n");
+	printf("------------------ ESCUCHANDO PARA ESPERAR LA RESPUESTA ---------------\n\n");
+
+	//int consola_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, SOMAXCONN);
 
 	return EXIT_SUCCESS;
 
