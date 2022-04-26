@@ -188,11 +188,12 @@ int main(int argc, char** argv) {
 		offset+=sizeof(uint32_t);
 		//printf("id_operacion: %d - operando1: %d - operando2: %d\n", id_operacion, operando1, operando2 );
 	}
-	printf("------------------ ESCUCHANDO PARA ESPERAR LA RESPUESTA ---------------\n\n");
+	free(a_enviar);
 
-	//int consola_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, SOMAXCONN);
+	printf("------------------ ESCUCHANDO CON RECV POR LA FINALIZACION DEL PROCESO ---------------\n\n");
+	int proceso_finalizado;
+	recv(conexion_kernel, &proceso_finalizado, sizeof(int), MSG_WAITALL);
 
-	return EXIT_SUCCESS;
 
 }
 

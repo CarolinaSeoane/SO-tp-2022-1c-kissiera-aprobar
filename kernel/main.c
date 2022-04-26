@@ -28,10 +28,10 @@ int atender_pedido(int cliente_fd)
 			break;
 		default:
 			log_warning_sh(logger, "Operacion desconocida.");
+			close(cliente_fd);
 			break;
 	}
 
-	close(cliente_fd);
 	return EXIT_SUCCESS;
 }
 
