@@ -9,22 +9,29 @@ int atender_pedido(int cliente_fd)
 	recv(cliente_fd, &accion, sizeof(accion), 0);
 	printf("Acción: %d\n", accion);
 
-	int len_instrucciones;
-	recv(cliente_fd, &len_instrucciones, sizeof(int), 0);
-	printf("Cantidad Instrucciones: %d\n", len_instrucciones);
-
-	int tamanio_proceso;
-	recv(cliente_fd, &tamanio_proceso, sizeof(int), 0);
-	printf("Tamanio del proceso: %d\n", tamanio_proceso);
-
-	void* stream = malloc(len_instrucciones*sizeof(instruccion));
-	printf("Cantidad reservada para stream %d\n", len_instrucciones*sizeof(instruccion));
-	recv(cliente_fd, stream, len_instrucciones*sizeof(instruccion), 0);
 
 	switch(accion)
 	{
 		case ENVIAR_INSTRUCCIONES:
+			int len_instrucciones;
+			recv(cliente_fd, &len_instrucciones, sizeof(int), 0);
+			printf("Cantidad Instrucciones: %d\n", len_instrucciones);
+
+			int tamanio_proceso;
+			recv(cliente_fd, &tamanio_proceso, sizeof(int), 0);
+			printf("Tamaño del proceso: %d\n", tamanio_proceso);
+
+			void* stream = malloc(len_instrucciones*sizeof(instruccion));
+			printf("Cantidad reservada para stream %d\n", len_instrucciones*sizeof(instruccion));
+			recv(cliente_fd, stream, len_instrucciones*sizeof(instruccion), 0);
 			mostrar_instrucciones(stream, len_instrucciones);
+			//Planificador Corto Plazo  enviar a CPU por el puerto dispatch en el momento de ejecutar
+			//Planificador Mediano Plazo - Este planificador se encargará de gestionar las transiciones
+			//Planificador Largo
+					// Armar PCB
+					// Llevar el proceso al estado New;
+					// Mover a Ready si el grado de multiprogramacion lo admite y en ese caso pedir a memoria iniciar las estructuras
+
 			break;
 		default:
 			log_warning_sh(logger, "Operacion desconocida.");
