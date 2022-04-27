@@ -11,7 +11,9 @@
 #include<netdb.h>
 #include"protocolo.h"
 
-// Operacion de instruccion
+
+
+
 typedef enum {
 	NO_OP,
 	IO,
@@ -19,23 +21,36 @@ typedef enum {
 	WRITE,
 	COPY,
 	EXIT
-} operacion;
+} operacion; // Operacion de instruccion.
 
-// La instruccion en si
+
 typedef struct {
 	operacion id_operacion;
 	uint32_t operando1;
 	uint32_t operando2;
-} instruccion;
+} instruccion // La instruccion en si.
 
-// Paquete para mandar instrucciones. Consola a Kernel
+
 typedef struct
 {
 	accion id_accion;
 	int length_instrucciones;
 	int tamanio_proceso;
 	void* stream;
-} t_paquete_instrucciones;
+} t_paquete_instrucciones; // Paquete para mandar instrucciones. Consola a Kernel.
+
+
+typedef struct
+{
+	int id_proceso;
+	int tamanio_proceso;
+	void* stream;
+	int program_counter;
+	int tabla_paginas;
+	int estimacion_rafaga;
+} PCB; // Estructura de un proceso.
+
+
 
 
 #endif
