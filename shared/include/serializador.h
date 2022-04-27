@@ -11,9 +11,6 @@
 #include<netdb.h>
 #include"protocolo.h"
 
-
-
-
 typedef enum {
 	NO_OP,
 	IO,
@@ -42,7 +39,7 @@ typedef struct
 
 typedef struct
 {
-	int id_proceso;
+	int pid;
 	int tamanio_proceso;
 	void* stream;
 	int program_counter;

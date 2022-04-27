@@ -1,12 +1,12 @@
 #include "include/main.h"
 
 
-int atender_pedido(int cliente_fd)
+int atender_pedido(void* void_args)
 {
-
+    args_thread* args = (args_thread*) void_args;
 
 	int accion;
-	recv(cliente_fd, &accion, sizeof(accion), 0);
+	recv(args->cliente_fd, &accion, sizeof(accion), 0);
 	printf("Acción: %d\n", accion);
 
 
@@ -14,17 +14,18 @@ int atender_pedido(int cliente_fd)
 	{
 		case ENVIAR_INSTRUCCIONES: ; //soluciona error de label
 			int len_instrucciones;
-			recv(cliente_fd, &len_instrucciones, sizeof(int), 0);
+			recv(args->cliente_fd, &len_instrucciones, sizeof(int), 0);
 			printf("Cantidad Instrucciones: %d\n", len_instrucciones);
 
 			int tamanio_proceso;
-			recv(cliente_fd, &tamanio_proceso, sizeof(int), 0);
+			recv(args->cliente_fd, &tamanio_proceso, sizeof(int), 0);
 			printf("Tamaño del proceso: %d\n", tamanio_proceso);
 
 			void* stream = malloc(len_instrucciones*sizeof(instruccion));
 			printf("Cantidad reservada para stream %d\n", len_instrucciones*sizeof(instruccion));
-			recv(cliente_fd, stream, len_instrucciones*sizeof(instruccion), 0);
-			mostrar_instrucciones(stream, len_instrucciones);
+			recv(args->cliente_fd, stream, len_instrucciones*sizeof(instruccion), 0);
+			// mostrar_instrucciones(stream, len_instrucciones);
+			log_info(logger, "Termine de loguear instrucciones");
 			//Planificador Corto Plazo  enviar a CPU por el puerto dispatch en el momento de ejecutar
 			//Planificador Mediano Plazo - Este planificador se encargará de gestionar las transiciones
 			//Planificador Largo
@@ -32,12 +33,26 @@ int atender_pedido(int cliente_fd)
 					// Llevar el proceso al estado New;
 					// Mover a Ready si el grado de multiprogramacion lo admite y en ese caso pedir a memoria iniciar las estructuras
 
+			/* Creo PCB cuando recibo las instrucciones */
+			
+			/* Hay que pedir la tabla de paginas a la memoria*/
+			PCB pcb;		
+			crear_pcb(&pcb, tamanio_proceso, stream, len_instrucciones, args->config.ESTIMACION_INICIAL);
+			printf("Se crea PID\n");
+			printf("El PID es %d\n", pcb.pid);
+			printf("El tamaño es %d\n", pcb.tamanio_proceso);
+			mostrar_instrucciones(pcb.stream, len_instrucciones);
+			printf("El PC es %d\n", pcb.program_counter);
+			printf("Tabla de paginas es %d\n", pcb.tabla_paginas);
+			printf("Estimacion inicial %d\n", pcb.estimacion_rafaga);
+
 			break;
 		default:
 			log_warning_sh(logger, "Operacion desconocida.");
-			close(cliente_fd);
+			close(args->cliente_fd);
 			break;
 	}
+	free(args);
 
 	return EXIT_SUCCESS;
 }
@@ -64,9 +79,13 @@ int main(void) {
 	pthread_t hilo_atender_pedido;
 
 	while(1) {
-
 		int kernel_cliente = esperar_cliente(kernel_server, logger);
-		pthread_create( &hilo_atender_pedido, NULL,atender_pedido,kernel_cliente);
+		/* Parametros que necesita atender_pedido */
+		args_thread *args = malloc(sizeof(args_thread));
+        args->cliente_fd = kernel_cliente;
+		args->conexion_memoria = conexion_memoria;
+    	args->config = config;
+		pthread_create( &hilo_atender_pedido, NULL, atender_pedido, (void*) args);
 		pthread_join(hilo_atender_pedido,NULL);
 	}
 
@@ -94,15 +113,4 @@ int mostrar_instrucciones(void* stream, int len_instrucciones){
 	}
 	printf("------------------ DONE ---------------\n\n");
 	free(stream);
-
 }
-
-
-
-
-
-
-
-
-
-

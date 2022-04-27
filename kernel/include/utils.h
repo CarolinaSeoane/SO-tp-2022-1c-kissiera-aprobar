@@ -22,6 +22,12 @@ typedef struct {
 	int GRADO_MULTIPROGRAMACION;
 } Config;
 
+typedef struct {
+    int cliente_fd;
+	int conexion_memoria;
+    Config config;
+} args_thread;
+
 t_log* logger;
 
 void cargarConfig(char*, Config*);

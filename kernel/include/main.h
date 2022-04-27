@@ -11,6 +11,7 @@
 #include <commons/log.h>
 #include <pthread.h>
 #include "utils.h"
+#include "pcb.h"
 
 // int atender_pedido(int);
 // int escuchar_conexiones();

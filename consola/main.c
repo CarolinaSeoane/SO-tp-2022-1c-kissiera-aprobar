@@ -74,8 +74,7 @@ int main(int argc, char** argv) {
     		instruccion* instr = armar_y_devolver_instruccion(aux);
 
     		if(instr->id_operacion == 0){
-    			char* oper_string = malloc(sizeof(char*));
-    			oper_string = strtok(contenido, " ");
+    			char* oper_string = strtok(contenido, " ");
     			int limit = atoi(strtok(NULL, "\n"));
     		    printf("------ INICIO DE REPETICIONES ------- %d\n", limit);
 
@@ -91,7 +90,6 @@ int main(int argc, char** argv) {
     				memcpy(stream+offset, &(instr->operando2), sizeof(uint32_t));
     				offset += sizeof(uint32_t);
     			}
-
 
     		    printf("------ INICIO DE OPERACIONES NORMALES ------- \n");
     		}else
