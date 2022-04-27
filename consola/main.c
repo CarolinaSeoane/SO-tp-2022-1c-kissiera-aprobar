@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
     		instruccion* instr = armar_y_devolver_instruccion(aux);
 
     		if(instr->id_operacion == 0){
-    			char* oper_string = sizeof(char*);
+    			char* oper_string = malloc(sizeof(char*));
     			oper_string = strtok(contenido, " ");
     			int limit = atoi(strtok(NULL, "\n"));
     		    printf("------ INICIO DE REPETICIONES ------- %d\n", limit);

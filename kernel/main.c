@@ -12,7 +12,7 @@ int atender_pedido(int cliente_fd)
 
 	switch(accion)
 	{
-		case ENVIAR_INSTRUCCIONES:
+		case ENVIAR_INSTRUCCIONES: ; //soluciona error de label
 			int len_instrucciones;
 			recv(cliente_fd, &len_instrucciones, sizeof(int), 0);
 			printf("Cantidad Instrucciones: %d\n", len_instrucciones);

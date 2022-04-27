@@ -28,7 +28,7 @@ typedef struct {
 	operacion id_operacion;
 	uint32_t operando1;
 	uint32_t operando2;
-} instruccion // La instruccion en si.
+} instruccion; // La instruccion en si.
 
 
 typedef struct
