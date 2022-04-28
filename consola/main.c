@@ -21,16 +21,22 @@ instruccion* armar_y_devolver_instruccion (char* linea_leida){
 
 	instruccion* nuevo = malloc(sizeof(instruccion));
 
-    char* codigo = strtok(linea_leida, " ");
-    nuevo->id_operacion = traer_identificador(codigo);
-    if(!strcmp("NO_OP", codigo) || !strcmp("I/O", codigo) || !strcmp("READ", codigo)) {
+	char** tokens_string = string_split(linea_leida, " ");
+    nuevo->id_operacion = traer_identificador(tokens_string[0]);
+    if(!strcmp("NO_OP", tokens_string[0]) || !strcmp("I/O", tokens_string[0]) || !strcmp("READ", tokens_string[0])) {
 
-    	nuevo->operando1 = atoi(strtok(NULL, "\n"));
+    	nuevo->operando1 = atoi(tokens_string[1]);
+    	nuevo->operando2 = 0;
 
-    } else if (!strcmp("COPY", codigo) || !strcmp("WRITE", codigo)) {
+    } else if (!strcmp("COPY", tokens_string[0]) || !strcmp("WRITE", tokens_string[0])) {
 
-    	nuevo->operando1 = atoi(strtok(NULL, " "));
-    	nuevo->operando2 = atoi(strtok(NULL, "\n"));
+    	nuevo->operando1 = atoi(tokens_string[1]);
+    	nuevo->operando2 = atoi(tokens_string[2]);
+
+    } else {
+
+    	nuevo->operando1 = 0;
+    	nuevo->operando2 = 0;
 
     }
     return nuevo;
@@ -74,11 +80,11 @@ int main(int argc, char** argv) {
     		instruccion* instr = armar_y_devolver_instruccion(aux);
 
     		if(instr->id_operacion == 0){
-    			char* oper_string = strtok(contenido, " ");
-    			int limit = atoi(strtok(NULL, "\n"));
-    		    printf("------ INICIO DE REPETICIONES ------- %d\n", limit);
 
-    		    for (int i = 0; i < limit; i++)
+    			char** tokens_string = string_split(contenido, " ");
+    		    printf("------ INICIO DE REPETICIONES ------- %d\n", atoi(tokens_string[1]));
+
+    		    for (int i = 0; i < atoi(tokens_string[1]); i++)
     		    {
     				instr->operando1 = 0;
     				instr->operando2 = 0;
@@ -200,16 +206,16 @@ int main(int argc, char** argv) {
 int devolver_cantidad_de_instrucciones(char* path){
 	FILE* archivo = fopen(path, "r");
 	char* contenido = malloc(sizeof(char*));
-	char* codigo_operacion = malloc(sizeof(char*));
 	int len = 0;
 	int lines=0;
 	int adic;
 	while (getline(&contenido, &len, archivo) != -1)
 	{
+
 		adic=0;
-		codigo_operacion = strtok(contenido, " ");
-		if (!strcmp("NO_OP", codigo_operacion)){
-			adic = atoi(strtok(NULL, "\n"));
+		char** tokens_string = string_split(contenido, " ");
+		if (!strcmp("NO_OP", tokens_string[0])){
+			adic = atoi(tokens_string[1]);
 			lines = lines + adic;
 
 		}else{
@@ -223,45 +229,35 @@ int devolver_cantidad_de_instrucciones(char* path){
 }
 
 int es_una_instruccion_valida(char* instruccion) {
-	char* codigo_operacion = malloc(sizeof(char*));
-	codigo_operacion = strtok(instruccion, " ");
 
-	if(!strcmp("NO_OP", codigo_operacion) || !strcmp("I/O", codigo_operacion) || !strcmp("READ", codigo_operacion)) {
+	char** tokens_string = string_split(instruccion, " ");
+	if(!strcmp("NO_OP", tokens_string[0]) || !strcmp("I/O", tokens_string[0]) || !strcmp("READ", tokens_string[0])) {
 
-		char* operando = malloc(sizeof(char*));
-		operando = strtok(NULL, "\n");
-
-		for(int i=0; i<strlen(operando); i++) {
-			if(!isdigit(operando[i])){
+		for(int i=0; i<strlen(tokens_string[1]); i++) {
+			if(!isdigit(tokens_string[1][i])){
 				return 0;
 			}
 		}
 		return 1;
 
-	} else if(!strcmp("COPY", codigo_operacion) || !strcmp("WRITE", codigo_operacion)) {
+	} else if(!strcmp("COPY", tokens_string[0]) || !strcmp("WRITE", tokens_string[0])) {
 
-		char* operando1 = malloc(sizeof(char*));
-		operando1 = strtok(NULL, " ");
-
-		if(operando1 == NULL) {
+		if(tokens_string[1] == NULL) {
 			return 0;
 		}
 
-		char* operando2 = malloc(sizeof(char*));
-		operando2 = strtok(NULL, "\n");
-
-		if(operando2 == NULL) {
+		if(tokens_string[2] == NULL) {
 			return 0;
 		}
 
-		for(int i=0; i<strlen(operando1); i++) {
-			if(!isdigit(operando1[i])){
+		for(int i=0; i<strlen(tokens_string[1]); i++) {
+			if(!isdigit(tokens_string[1][i])){
 				return 0;
 			}
 		}
 
-		for(int i=0; i<strlen(operando2); i++) {
-			if(!isdigit(operando2[i])){
+		for(int i=0; i<strlen(tokens_string[2]); i++) {
+			if(!isdigit(tokens_string[2][i])){
 				return 0;
 			}
 		}
