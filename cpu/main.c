@@ -6,7 +6,39 @@ int main() {
 	cargarConfig("cpu.config", &config);
 
 	int dispatch = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_DISPATCH, 1);
-	recv(args->cliente_fd, &pcb, sizeof(pcb), 0);
+	int interrupt = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_INTERRUPT, 1);
+
+	if(!dispatch || !interrupt) {
+		log_info(logger, "Error al iniciar la conexión dispatch o interrupt\nCerrando el programa");
+		return 1;
+	}
+
+	log_info(logger, "CPU esperando conexión de Kernel");
+
+	/*	Hilos para conexiones dispatch e interrupt	*/
+
+	pthread_t hilo_atender_conexiones;
+
+	int cliente_dispatch = esperar_cliente(dispatch, logger);
+
+	args_dispatch *args_d = malloc(sizeof(args_dispatch));
+    args_d->cliente_fd = cliente_dispatch;
+
+	pthread_create( &hilo_atender_conexiones, NULL, atender_dispatch, (void*) args_d);
+	pthread_join(hilo_atender_conexiones, NULL);
+
+	int cliente_interrupt = esperar_cliente(interrupt, logger);
+	pthread_create(&hilo_atender_conexiones, NULL, atender_interrupt, NULL);
+	pthread_join(hilo_atender_conexiones, NULL);
+
+	/*	--------------------------------------		*/
+
+	int conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
+	
+	// return 0;
+
+}
+/*	recv(args->cliente_fd, &pcb, sizeof(pcb), 0);
 	printf("Recibo PCB: %d\n", len_instrucciones);
 	recv(args->cliente_fd, &len_instrucciones, sizeof(int), 0);
 	printf("Recibo Cantidad Instrucciones: %d\n", len_instrucciones);
@@ -17,26 +49,7 @@ int main() {
 				void* stream = malloc(len_instrucciones*sizeof(instruccion));
 				printf("Cantidad reservada para stream %d\n", len_instrucciones*sizeof(instruccion));
 				recv(args->cliente_fd, stream, len_instrucciones*sizeof(instruccion), 0);
-
-
-	int interrupt = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_INTERRUPT, 1);
-
-	if(!dispatch || !interrupt) {
-		log_info(logger, "Error al iniciar la conexión dispatch o interrupt\nCerrando el programa");
-		return 1;
-	}
-
-	log_info(logger, "CPU esperando conexión de Kernel");
-
-	int cliente_dispatch = esperar_cliente(dispatch, logger);
-	int cliente_interrupt = esperar_cliente(interrupt, logger);
-	
-	int conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
-	
-	// return 0;
-
-}
-
+*/
 
 
 

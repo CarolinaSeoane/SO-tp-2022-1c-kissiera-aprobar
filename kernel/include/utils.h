@@ -26,6 +26,8 @@ typedef struct {
     int cliente_fd;
 	int conexion_memoria;
     Config config;
+	int conexion_dispatch;
+	int conexion_interrupt;
 } args_thread;
 
 t_log* logger;

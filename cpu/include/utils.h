@@ -19,6 +19,10 @@ typedef struct {
     char* PUERTO_ESCUCHA_INTERRUPT;
 } Config;
 
+typedef struct {
+    int cliente_fd
+} args_dispatch;
+
 t_log* logger;
 
 void cargarConfig(char*, Config*);

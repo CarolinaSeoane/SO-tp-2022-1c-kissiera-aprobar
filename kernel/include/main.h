@@ -17,6 +17,7 @@
 int atender_pedido(void*) ;
 void mostrar_instrucciones(void*, int);
 void inicializar_colas();
+void planificador_largo_plazo(int, void*, int, Config, int);
 
 t_list *cola_new;
 t_list *cola_ready;

@@ -39,7 +39,7 @@ int atender_pedido(void* void_args)
 			
 			/* Hay que pedir la tabla de paginas a la memoria*/
 
-			planificador_largo_plazo(tamanio_proceso, stream, len_instrucciones, args->config.ESTIMACION_INICIAL);
+			planificador_largo_plazo(tamanio_proceso, stream, len_instrucciones, args->config, args->conexion_dispatch);
 
 			free(stream);
 			break;
@@ -53,14 +53,19 @@ int atender_pedido(void* void_args)
 	return EXIT_SUCCESS;
 }
 
-void planificador_largo_plazo(int tam_proceso, void* stream, int len_instrucciones, int est_inicial ){
+void planificador_largo_plazo(int tam_proceso, void* stream, int len_instrucciones, Config config, int conexion_dispatch) {
 	PCB pcb;
-	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, est_inicial);
+	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, config.ESTIMACION_INICIAL);
 	printf("PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d\n\n", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
 	list_add(cola_new, &pcb);
 	printf("Cantidad de procesos en ready: %d", cola_new->elements_count);
-	if (cola_new->elements_count < args->config.GRADO_MULTIPROGRAMACION)
+	if (cola_new->elements_count < config.GRADO_MULTIPROGRAMACION)
 	{
+		
+		// Pruebo enviar proceso a cpu a ver si lo recibe bien ya se que aca no va
+
+		
+		
 		/* t_list_iterator* list_iterator_create(t_list* list);  devuelve un iterator
 
 		typedef struct {
@@ -127,6 +132,8 @@ int main(void) {
         args->cliente_fd = kernel_cliente;
 		args->conexion_memoria = conexion_memoria;
     	args->config = config;
+		args->conexion_dispatch = conexion_dispatch;
+		args->conexion_interrupt = conexion_interrupt;
 		pthread_create( &hilo_atender_pedido, NULL, atender_pedido, (void*) args);
 		pthread_join(hilo_atender_pedido,NULL);
 	}

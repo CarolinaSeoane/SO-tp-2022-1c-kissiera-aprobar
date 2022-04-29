@@ -6,7 +6,9 @@ typedef enum {
 	READ_M,
 	WRITE_M, //les agrego _M (de memoria) para que no interfieran con los codigos de instruccion
 	INIT_PROCESO,
-	SUSP_PROCESO
+	SUSP_PROCESO,
+	EXEC_PROCESO, //se manda proceso a cpu
+	BLOCK_PROCESO
 }accion;
 
 #endif

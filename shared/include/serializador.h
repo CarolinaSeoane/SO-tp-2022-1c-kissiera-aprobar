@@ -48,6 +48,12 @@ typedef struct
 } PCB; // Estructura de un proceso.
 
 
+typedef struct {
+	int pid;
+	void* stream;
+	int program_counter;
+	int tabla_paginas;
+} Proceso_CPU;
 
 
 #endif

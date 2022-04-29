@@ -9,11 +9,13 @@
 #include <string.h>
 #include <commons/log.h>
 #include "utils.h"
+#include "dispatch.h"
+#include "interrupt.h"
+#include <pthread.h>
 
 /*
 #include "../../shared/include/shared.h"
 #include <stdbool.h>
-#include <pthread.h>
 #include <semaphore.h>
 #include <commons/collections/list.h>
 #include <commons/collections/queue.h>
