@@ -26,6 +26,8 @@ int atender_pedido(void* void_args)
 			recv(args->cliente_fd, stream, len_instrucciones*sizeof(instruccion), 0);
 			// mostrar_instrucciones(stream, len_instrucciones);
 			log_info(logger, "Termine de loguear instrucciones");
+
+
 			//Planificador Corto Plazo  enviar a CPU por el puerto dispatch en el momento de ejecutar
 			//Planificador Mediano Plazo - Este planificador se encargará de gestionar las transiciones
 			//Planificador Largo
@@ -36,16 +38,10 @@ int atender_pedido(void* void_args)
 			/* Creo PCB cuando recibo las instrucciones */
 			
 			/* Hay que pedir la tabla de paginas a la memoria*/
-			PCB pcb;		
-			crear_pcb(&pcb, tamanio_proceso, stream, len_instrucciones, args->config.ESTIMACION_INICIAL);
-			printf("Se crea PID\n");
-			printf("El PID es %d\n", pcb.pid);
-			printf("El tamaño es %d\n", pcb.tamanio_proceso);
-			mostrar_instrucciones(pcb.stream, len_instrucciones);
-			printf("El PC es %d\n", pcb.program_counter);
-			printf("Tabla de paginas es %d\n", pcb.tabla_paginas);
-			printf("Estimacion inicial %d\n", pcb.estimacion_rafaga);
 
+			planificador_largo_plazo(tamanio_proceso, stream, len_instrucciones, args->config.ESTIMACION_INICIAL);
+
+			free(stream);
 			break;
 		default:
 			log_warning_sh(logger, "Operacion desconocida.");
@@ -57,11 +53,57 @@ int atender_pedido(void* void_args)
 	return EXIT_SUCCESS;
 }
 
+void planificador_largo_plazo(int tam_proceso, void* stream, int len_instrucciones, int est_inicial ){
+	PCB pcb;
+	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, est_inicial);
+	printf("PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d\n\n", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
+	list_add(cola_new, &pcb);
+	printf("Cantidad de procesos en ready: %d", cola_new->elements_count);
+	if (cola_new->elements_count < args->config.GRADO_MULTIPROGRAMACION)
+	{
+		/* t_list_iterator* list_iterator_create(t_list* list);  devuelve un iterator
+
+		typedef struct {
+			t_list *self;
+			t_link_element *prev;
+			t_link_element *element;
+			int index;
+		} t_list_iterator;
+
+		Con esto vas en cada uno hasta encontrar el PDI que necesitas ubicar. Sacas el index y despues usas "void *list_get(t_list *, int index)
+		Eso te devuelve un t_link_element el cual lo sacas de la lista ready y lo pasas a Ready. Despues de esto habría solicitar a memoria la estructura.
+
+		*/
+	}
+}
+
+void mostrar_instrucciones(void* stream, int len_instrucciones){
+
+	int offset=0;
+	operacion id_operacion;
+	uint32_t operando1;
+	uint32_t operando2;
+
+	for(int i=0; i<len_instrucciones; i++) {
+		memcpy(&id_operacion, stream+offset, sizeof(operacion));
+		offset+=sizeof(operacion);
+		memcpy(&operando1, stream+offset, sizeof(uint32_t));
+		offset+=sizeof(uint32_t);
+		memcpy(&operando2, stream+offset, sizeof(uint32_t));
+		offset+=sizeof(uint32_t);
+		printf("id_operacion: %d - operando1: %d - operando2: %d\n", id_operacion, operando1, operando2 );
+	}
+	printf("------------------ DONE ---------------\n\n");
+}
+
 int main(void) {
 
 	logger = log_create("kernel.log", "Kernel", 1, LOG_LEVEL_DEBUG);
 	Config config;
 	cargarConfig("kernel.config", &config);
+
+	inicializar_colas();
+	log_info(logger, "Colas inicializadas");
 
 	int kernel_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, SOMAXCONN);
 
@@ -93,24 +135,13 @@ int main(void) {
 
 }
 
+void inicializar_colas()
+{
+	cola_new = list_create();
+	cola_ready = list_create();
+	cola_exec = list_create();
+	cola_blck = list_create();
+	cola_finish = list_create();
 
-
-int mostrar_instrucciones(void* stream, int len_instrucciones){
-
-	int offset=0;
-	operacion id_operacion;
-	uint32_t operando1;
-	uint32_t operando2;
-
-	for(int i=0; i<len_instrucciones; i++) {
-		memcpy(&id_operacion, stream+offset, sizeof(operacion));
-		offset+=sizeof(operacion);
-		memcpy(&operando1, stream+offset, sizeof(uint32_t));
-		offset+=sizeof(uint32_t);
-		memcpy(&operando2, stream+offset, sizeof(uint32_t));
-		offset+=sizeof(uint32_t);
-		printf("id_operacion: %d - operando1: %d - operando2: %d\n", id_operacion, operando1, operando2 );
-	}
-	printf("------------------ DONE ---------------\n\n");
-	free(stream);
 }
+

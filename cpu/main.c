@@ -6,6 +6,19 @@ int main() {
 	cargarConfig("cpu.config", &config);
 
 	int dispatch = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_DISPATCH, 1);
+	recv(args->cliente_fd, &pcb, sizeof(pcb), 0);
+	printf("Recibo PCB: %d\n", len_instrucciones);
+	recv(args->cliente_fd, &len_instrucciones, sizeof(int), 0);
+	printf("Recibo Cantidad Instrucciones: %d\n", len_instrucciones);
+	recv(args->cliente_fd, &tamanio_proceso, sizeof(int), 0);
+	printf("Recibo Tamaño del proceso: %d\n", tamanio_proceso);
+	recv(args->cliente_fd, &tamanio_proceso, sizeof(int), 0);
+	printf("Recibo Tamaño del proceso: %d\n", );
+				void* stream = malloc(len_instrucciones*sizeof(instruccion));
+				printf("Cantidad reservada para stream %d\n", len_instrucciones*sizeof(instruccion));
+				recv(args->cliente_fd, stream, len_instrucciones*sizeof(instruccion), 0);
+
+
 	int interrupt = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_INTERRUPT, 1);
 
 	if(!dispatch || !interrupt) {
@@ -23,6 +36,10 @@ int main() {
 	// return 0;
 
 }
+
+
+
+
 /*
 void inicializar_colas()
 {

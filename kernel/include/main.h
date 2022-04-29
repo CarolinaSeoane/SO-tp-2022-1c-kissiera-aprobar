@@ -6,6 +6,7 @@
 #include <commons/log.h>
 #include <commons/string.h>
 #include <commons/config.h>
+#include <commons/collections/list.h>
 #include <readline/readline.h>
 #include <string.h>
 #include <commons/log.h>
@@ -13,10 +14,16 @@
 #include "utils.h"
 #include "pcb.h"
 
-// int atender_pedido(int);
-// int escuchar_conexiones();
-// void imprimir_valor(t_buffer*);
-// void imprimir_STRING(t_buffer*);
-// void imprimir_STRING_y_responder(t_buffer*);
+int atender_pedido(void*) ;
+void mostrar_instrucciones(void*, int);
+void inicializar_colas();
+
+t_list *cola_new;
+t_list *cola_ready;
+t_list *cola_exec;
+t_list *cola_blck;
+t_list *cola_finish;
+
+
 
 #endif /* KERNEL_H_ */
