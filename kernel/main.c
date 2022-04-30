@@ -57,12 +57,14 @@ void planificador_largo_plazo(int tam_proceso, void* stream, int len_instruccion
 	PCB pcb;
 	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, config.ESTIMACION_INICIAL);
 	printf("PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d\n\n", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
+	
+	send_proceso_a_cpu(&pcb, len_instrucciones*sizeof(instruccion), conexion_dispatch);	// lo dejo aca para probar ahora. esto deberia ir en  el planificador de corto plazo
+	
 	list_add(cola_new, &pcb);
 	printf("Cantidad de procesos en ready: %d", cola_new->elements_count);
 	if (cola_new->elements_count < config.GRADO_MULTIPROGRAMACION)
 	{
-		
-		// Pruebo enviar proceso a cpu a ver si lo recibe bien ya se que aca no va
+	
 
 		
 		

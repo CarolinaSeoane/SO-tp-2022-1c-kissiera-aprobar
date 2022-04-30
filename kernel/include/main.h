@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include "utils.h"
 #include "pcb.h"
+#include "serializacion.h"
 
 int atender_pedido(void*) ;
 void mostrar_instrucciones(void*, int);

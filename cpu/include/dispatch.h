@@ -9,6 +9,6 @@
 #include "utils.h"
 
 void atender_dispatch(void*);
-void recv_proceso();
+void recv_proceso(Proceso_CPU*, args_dispatch*);
 
 #endif
