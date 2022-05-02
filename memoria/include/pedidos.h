@@ -3,6 +3,7 @@
 
 #include "utils.h"
 
-int atender_pedido(int);
+int atender_pedido(void*);
+void send_cpu_handshake(void*);
 
 #endif

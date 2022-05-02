@@ -11,4 +11,5 @@
 void atender_dispatch(void*);
 void recv_proceso(Proceso_CPU*, args_dispatch*);
 
-#endif
+#endif /* DISPATCH_H_ */
+

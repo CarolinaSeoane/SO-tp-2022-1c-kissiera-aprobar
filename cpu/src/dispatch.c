@@ -1,6 +1,6 @@
 #include "../include/dispatch.h"
 
-	void mostrar_instrucciones(void* stream, int len_instrucciones){
+void mostrar_instrucciones(void* stream, int len_instrucciones){
 
 	int offset=0;
 	operacion id_operacion;

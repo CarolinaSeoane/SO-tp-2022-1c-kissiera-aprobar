@@ -15,12 +15,16 @@ int main(void) {
 
     log_info(logger, "Memoria lista para recibir clientes");
 
-    pthread_t hilo_atender_pedido;
+    pthread_t hilo_atender_pedido_memoria;
 
     while(1) {
         int memoria_cliente = esperar_cliente(memoria_server, logger);
-        pthread_create(&hilo_atender_pedido, NULL, atender_pedido, memoria_cliente);
-        pthread_join(&hilo_atender_pedido, NULL);
+        /* Parametros que necesita atender_pedido */
+        args_thread_memoria *args = malloc(sizeof(args_thread_memoria));
+        args->cliente_fd = memoria_cliente;
+        args->config = config;
+        pthread_create(&hilo_atender_pedido_memoria, NULL, atender_pedido, (void*) args);
+        pthread_join(&hilo_atender_pedido_memoria, NULL);
     }	
 
 	return 0;

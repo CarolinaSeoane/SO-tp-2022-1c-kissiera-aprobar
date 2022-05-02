@@ -6,4 +6,4 @@
 
 void atender_interrupt();
 
-#endif
+#endif /* INTERRUPT_H_ */

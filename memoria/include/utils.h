@@ -13,13 +13,18 @@ typedef struct {
     char* PUERTO_ESCUCHA;
     int TAM_MEMORIA;
     int TAM_PAGINA;
-    int PAGINAS_POR_TABLA;
+    int ENTRADAS_POR_TABLA;
     int RETARDO_MEMORIA;
     char* ALGORITMO_REEMPLAZO;
     int MARCOS_POR_PROCESO;
     int RETARDO_SWAP;
     char* PATH_SWAP;
 } Config;
+
+typedef struct {
+    int cliente_fd;
+    Config config;
+} args_thread_memoria;
 
 t_log* logger;
 
