@@ -1,7 +1,6 @@
 #include "include/main.h"
 
 /*
-
 ----- COSAS QUE DEBERIA HACER EL MODULO CONSOLA -------
 
 	Validar que recibe dos parametros: el tamanio y el path ---> Hecho
@@ -17,36 +16,10 @@
 - Evitar repeticion de codigo
 */
 
-instruccion* armar_y_devolver_instruccion (char* linea_leida){
-
-	instruccion* nuevo = malloc(sizeof(instruccion));
-
-	char** tokens_string = string_split(linea_leida, " ");
-    nuevo->id_operacion = traer_identificador(tokens_string[0]);
-    if(!strcmp("NO_OP", tokens_string[0]) || !strcmp("I/O", tokens_string[0]) || !strcmp("READ", tokens_string[0])) {
-
-    	nuevo->operando1 = atoi(tokens_string[1]);
-    	nuevo->operando2 = 0;
-
-    } else if (!strcmp("COPY", tokens_string[0]) || !strcmp("WRITE", tokens_string[0])) {
-
-    	nuevo->operando1 = atoi(tokens_string[1]);
-    	nuevo->operando2 = atoi(tokens_string[2]);
-
-    } else {
-
-    	nuevo->operando1 = 0;
-    	nuevo->operando2 = 0;
-
-    }
-    return nuevo;
-}
-
 int main(int argc, char** argv) {
 
 	printf("-------- COMIENZO --------\n");
     printf("Inicia el módulo Consola \n");
-
 
     if(argc != 3) {
     	printf("Está iniciando mal este proceso. Tiene %d parámetros cuando deberia tener 2\n", argc-1);
@@ -98,6 +71,7 @@ int main(int argc, char** argv) {
     			}
 
     		    printf("------ INICIO DE OPERACIONES NORMALES ------- \n");
+    		    string_array_destroy(tokens_string);
     		}else
     		{
 
@@ -121,7 +95,6 @@ int main(int argc, char** argv) {
 
     printf("------ ARMANDO VOID* A_ENVIAR -------\n");
 
-
     offset = 0;
     void* a_enviar = malloc(sizeof(accion)+sizeof(int)*2+cantidad_de_instrucciones*sizeof(instruccion));
     memcpy(a_enviar, &(paquete->id_accion), sizeof(accion));
@@ -136,8 +109,6 @@ int main(int argc, char** argv) {
 	//memcpy(&primera_operacion, paquete->stream, sizeof(Identificador));
 	//printf("identificador: %d", primera_operacion);
 
-
-
     printf("------ ABRO CONFIG ---------\n");
 	logger = log_create("consola.log", "Consola", 1, LOG_LEVEL_DEBUG);
 	Config config;
@@ -148,9 +119,7 @@ int main(int argc, char** argv) {
 	int conexion_kernel = crear_conexion(config.IP_KERNEL, config.PUERTO_KERNEL, logger);
 	send(conexion_kernel, a_enviar, sizeof(accion)+sizeof(int)+cantidad_de_instrucciones*sizeof(instruccion), 0);
 
-
 	//libero punteros
-	//free(a_enviar);
 	free(contenido);
 	free(stream);
 	free(aux);
@@ -200,89 +169,4 @@ int main(int argc, char** argv) {
 	// Acá se podría loguear que el proceso con las instrucciones a,b,c ...etc terminó
 	return EXIT_SUCCESS;
 
-}
-
-
-int devolver_cantidad_de_instrucciones(char* path){
-	FILE* archivo = fopen(path, "r");
-	char* contenido = malloc(sizeof(char*));
-	int len = 0;
-	int lines=0;
-	int adic;
-	while (getline(&contenido, &len, archivo) != -1)
-	{
-
-		adic=0;
-		char** tokens_string = string_split(contenido, " ");
-		if (!strcmp("NO_OP", tokens_string[0])){
-			adic = atoi(tokens_string[1]);
-			lines = lines + adic;
-
-		}else{
-			lines++;
-		}
-
-	}
-	fclose(archivo);
-	return lines;
-
-}
-
-int es_una_instruccion_valida(char* instruccion) {
-
-	char** tokens_string = string_split(instruccion, " ");
-	if(!strcmp("NO_OP", tokens_string[0]) || !strcmp("I/O", tokens_string[0]) || !strcmp("READ", tokens_string[0])) {
-
-		for(int i=0; i<strlen(tokens_string[1]); i++) {
-			if(!isdigit(tokens_string[1][i])){
-				return 0;
-			}
-		}
-		return 1;
-
-	} else if(!strcmp("COPY", tokens_string[0]) || !strcmp("WRITE", tokens_string[0])) {
-
-		if(tokens_string[1] == NULL) {
-			return 0;
-		}
-
-		if(tokens_string[2] == NULL) {
-			return 0;
-		}
-
-		for(int i=0; i<strlen(tokens_string[1]); i++) {
-			if(!isdigit(tokens_string[1][i])){
-				return 0;
-			}
-		}
-
-		for(int i=0; i<strlen(tokens_string[2]); i++) {
-			if(!isdigit(tokens_string[2][i])){
-				return 0;
-			}
-		}
-		return 1;
-
-	} else {
-
-		return !strcmp("EXIT\n", instruccion);
-
-	}
-}
-
-
-int traer_identificador(char* codigo) {
-	if(!strcmp("NO_OP", codigo)){
-		return 0;
-	} else if(!strcmp("I/O", codigo)) {
-		return 1;
-	} else if(!strcmp("READ", codigo)) {
-		return 2;
-	} else if(!strcmp("WRITE", codigo)) {
-		return 3;
-	} else if(!strcmp("COPY", codigo)) {
-		return 4;
-	} else {
-		return 5;
-	}
 }
