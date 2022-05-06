@@ -7,7 +7,7 @@ void* atender_pedido(void* void_args)
 
 	int accion;
 	recv(args->cliente_fd, &accion, sizeof(accion), 0);
-	printf("Acción: %d\n", accion);
+	log_info(logger, "Acción: %d", accion);
 
 
 	switch(accion)
@@ -15,14 +15,14 @@ void* atender_pedido(void* void_args)
 		case ENVIAR_INSTRUCCIONES: ; //soluciona error de label
 			int len_instrucciones;
 			recv(args->cliente_fd, &len_instrucciones, sizeof(int), 0);
-			printf("Cantidad Instrucciones: %d\n", len_instrucciones);
+			log_info(logger, "Cantidad Instrucciones: %d", len_instrucciones);
 
 			int tamanio_proceso;
 			recv(args->cliente_fd, &tamanio_proceso, sizeof(int), 0);
-			printf("Tamaño del proceso: %d\n", tamanio_proceso);
+			log_info(logger, "Tamaño del proceso: %d", tamanio_proceso);
 
 			void* stream = malloc(len_instrucciones*sizeof(instruccion));
-			printf("Cantidad reservada para stream %d\n", len_instrucciones*sizeof(instruccion));
+			log_info(logger, "Cantidad reservada para stream %d", len_instrucciones*sizeof(instruccion));
 			recv(args->cliente_fd, stream, len_instrucciones*sizeof(instruccion), 0);
 			// mostrar_instrucciones(stream, len_instrucciones);
 			log_info(logger, "Termine de loguear instrucciones");
@@ -54,16 +54,16 @@ void* atender_pedido(void* void_args)
 void planificador_largo_plazo(int tam_proceso, void* stream, int len_instrucciones, Config config, int conexion_dispatch) {
 	PCB pcb;
 	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, config.ESTIMACION_INICIAL);
-	printf("PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d\n\n", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
+	log_info(logger, "PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
 	
 	send_proceso_a_cpu(&pcb, len_instrucciones*sizeof(instruccion), conexion_dispatch);	// lo dejo aca para probar ahora. esto deberia ir en  el planificador de corto plazo
-	printf("Nuevo proceso recibido. Entra directo a NEW\n");
+	log_info(logger, "Nuevo proceso recibido. Entra directo a NEW");
 	list_add(cola_new, &pcb);
-	printf("Cantidad de procesos en NEW: %d\n", cola_new->elements_count);
+	log_info(logger, "Cantidad de procesos en NEW: %d", cola_new->elements_count);
 	if (cola_ready->elements_count < config.GRADO_MULTIPROGRAMACION)
 	{
 		
-		printf("Puede entrar un nuevo proceso a READY, Cantidad de procesos en READY: %d\n", cola_ready->elements_count);
+		log_info(logger, "Puede entrar un nuevo proceso a READY, Cantidad de procesos en READY: %d", cola_ready->elements_count);
 
 		t_list_iterator* iterator = list_iterator_create(cola_new);
 
@@ -75,7 +75,7 @@ void planificador_largo_plazo(int tam_proceso, void* stream, int len_instruccion
 				elem_iterado = list_iterator_next(iterator);
 				if( ((PCB*)elem_iterado)->pid == pcb.pid ){
 					list_iterator_remove(iterator);
-					printf("Elemento con tamanio %d ha sido removido\n", ((PCB*)elem_iterado)->tamanio_proceso);
+					log_info(logger, "Elemento con tamanio %d ha sido removido", ((PCB*)elem_iterado)->tamanio_proceso);
 					break;
 				}
 			}
@@ -83,10 +83,10 @@ void planificador_largo_plazo(int tam_proceso, void* stream, int len_instruccion
 		}
 		//free(elem_iterado);
 		list_add(cola_ready, &pcb);
-		printf("Cantidad de procesos en NEW: %d\n", cola_new->elements_count);
-		printf("Cantidad de procesos en READY: %d\n", cola_ready->elements_count);
+		log_info(logger, "Cantidad de procesos en NEW: %d", cola_new->elements_count);
+		log_info(logger, "Cantidad de procesos en READY: %d", cola_ready->elements_count);
 	}else{
-		printf("El proceso se queda en NEW. El grado de multiprog no se la aguanta.\n");
+		log_info(logger, "El proceso se queda en NEW. El grado de multiprog no se la aguanta.");
 	}
 
 }
@@ -105,9 +105,9 @@ void mostrar_instrucciones(void* stream, int len_instrucciones){
 		offset+=sizeof(uint32_t);
 		memcpy(&operando2, stream+offset, sizeof(uint32_t));
 		offset+=sizeof(uint32_t);
-		printf("id_operacion: %d - operando1: %d - operando2: %d\n", id_operacion, operando1, operando2 );
+		log_info(logger, "id_operacion: %d - operando1: %d - operando2: %d", id_operacion, operando1, operando2 );
 	}
-	printf("------------------ DONE ---------------\n\n");
+	log_info(logger, "------------------ DONE ---------------");
 }
 
 int main(void) {
@@ -122,7 +122,7 @@ int main(void) {
 	int kernel_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, SOMAXCONN);
 
 	if(!kernel_server) {
-		log_info(logger, "Error al iniciar el servidor Kernel\nCerrando el programa");
+		log_error(logger, "Error al iniciar el servidor Kernel\nCerrando el programa");
 		return 1;
 	}
 

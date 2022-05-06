@@ -18,31 +18,33 @@
 
 int main(int argc, char** argv) {
 
-	printf("-------- COMIENZO --------\n");
-    printf("Inicia el módulo Consola \n");
+	logger = log_create("consola.log", "Consola", 1, LOG_LEVEL_DEBUG);
+	
+	log_info(logger, "-------- COMIENZO --------");
+    log_info(logger, "Inicia el módulo Consola");
 
     if(argc != 3) {
-    	printf("Está iniciando mal este proceso. Tiene %d parámetros cuando deberia tener 2\n", argc-1);
+    	log_error(logger, "Está iniciando mal este proceso. Tiene %d parámetros cuando deberia tener 2\n", argc-1);
     	return EXIT_FAILURE;
     }
 
-    printf("El proceso tiene tamanio %s\n", argv[2]);
-    printf("Sus instrucciones estan en %s\n", argv[1]);
+    log_info(logger, "El proceso tiene tamanio %s", argv[2]);
+    log_info(logger, "Sus instrucciones estan en %s", argv[1]);
 
-    printf("------ PASAJE DE INSTRUCCIONES -------\n");
+    log_info(logger, "------ PASAJE DE INSTRUCCIONES -------");
     char* contenido = malloc(sizeof(char*));
     int len = 0;
     int cantidad_de_instrucciones = devolver_cantidad_de_instrucciones(argv[1]);
-    printf("------ CANTIDAD DE INSTRUCCIONES EN ARCHIVO %d-------\n", cantidad_de_instrucciones);
+    log_info(logger, "------ CANTIDAD DE INSTRUCCIONES EN ARCHIVO %d-------", cantidad_de_instrucciones);
 
-    printf("----- APERTURA DE ARCHIVO ------\n");
+    log_info(logger, "----- APERTURA DE ARCHIVO ------");
     FILE* archivo = fopen(argv[1], "r");
 
     if(archivo == NULL) {
-    	printf("El archivo no es correcto\n");
+    	log_error(logger, "El archivo no es correcto");
     	return EXIT_FAILURE;
     }
-    printf("------ ARMANDO STREAM CON TODAS LAS INSTRUCCIONES -------\n");
+    log_info(logger, "------ ARMANDO STREAM CON TODAS LAS INSTRUCCIONES -------");
 
     void* stream = malloc(cantidad_de_instrucciones*sizeof(instruccion));
     int offset=0;
@@ -55,13 +57,13 @@ int main(int argc, char** argv) {
     		if(instr->id_operacion == 0){
 
     			char** tokens_string = string_split(contenido, " ");
-    		    printf("------ INICIO DE REPETICIONES ------- %d\n", atoi(tokens_string[1]));
+    		    log_info(logger, "------ INICIO DE REPETICIONES ------- %d", atoi(tokens_string[1]));
 
     		    for (int i = 0; i < atoi(tokens_string[1]); i++)
     		    {
     				instr->operando1 = 0;
     				instr->operando2 = 0;
-    				printf("id_operacion: %d - operando1: %d - operando2: %d\n", instr->id_operacion, instr->operando1, instr->operando2 );
+    				log_info(logger, "id_operacion: %d - operando1: %d - operando2: %d", instr->id_operacion, instr->operando1, instr->operando2 );
     		    	memcpy(stream+offset, &(instr->id_operacion), sizeof(operacion));
     				offset += sizeof(operacion);
     				memcpy(stream+offset, &(instr->operando1), sizeof(uint32_t));
@@ -70,12 +72,12 @@ int main(int argc, char** argv) {
     				offset += sizeof(uint32_t);
     			}
 
-    		    printf("------ INICIO DE OPERACIONES NORMALES ------- \n");
+    		    log_info(logger, "------ INICIO DE OPERACIONES NORMALES -------");
     		    string_array_destroy(tokens_string);
     		}else
     		{
 
-    			printf("id_operacion: %d - operando1: %d - operando2: %d\n", instr->id_operacion, instr->operando1, instr->operando2 );
+    			log_info(logger, "id_operacion: %d - operando1: %d - operando2: %d", instr->id_operacion, instr->operando1, instr->operando2 );
     			memcpy(stream+offset, &(instr->id_operacion), sizeof(operacion));
 				offset += sizeof(operacion);
 				memcpy(stream+offset, &(instr->operando1), sizeof(uint32_t));
@@ -85,7 +87,7 @@ int main(int argc, char** argv) {
     		}
         }
     fclose(archivo);
-    printf("------ ARMANDO PAQUETE PARA USAR EN VOID* A_ENVIAR -------\n");
+    log_info(logger, "------ ARMANDO PAQUETE PARA USAR EN VOID* A_ENVIAR -------");
 
     t_paquete_instrucciones* paquete = malloc(sizeof(accion)+sizeof(int)*2+sizeof(stream));
     paquete->id_accion = ENVIAR_INSTRUCCIONES;
@@ -93,7 +95,7 @@ int main(int argc, char** argv) {
     paquete->tamanio_proceso = atoi(argv[2]);
     paquete->stream = stream;
 
-    printf("------ ARMANDO VOID* A_ENVIAR -------\n");
+    log_info(logger, "------ ARMANDO VOID* A_ENVIAR -------");
 
     offset = 0;
     void* a_enviar = malloc(sizeof(accion)+sizeof(int)*2+cantidad_de_instrucciones*sizeof(instruccion));
@@ -109,12 +111,11 @@ int main(int argc, char** argv) {
 	//memcpy(&primera_operacion, paquete->stream, sizeof(Identificador));
 	//printf("identificador: %d", primera_operacion);
 
-    printf("------ ABRO CONFIG ---------\n");
-	logger = log_create("consola.log", "Consola", 1, LOG_LEVEL_DEBUG);
+    log_info(logger, "------ ABRO CONFIG ---------");
 	Config config;
 	cargarConfig("consola.config", &config);
 
-	printf("------ CONECTO A KERNEL Y ENVIO POR SOCKET -----\n");
+	log_info(logger, "------ CONECTO A KERNEL Y ENVIO POR SOCKET -----");
 
 	int conexion_kernel = crear_conexion(config.IP_KERNEL, config.PUERTO_KERNEL, logger);
 	send(conexion_kernel, a_enviar, sizeof(accion)+sizeof(int)+cantidad_de_instrucciones*sizeof(instruccion), 0);
@@ -125,7 +126,7 @@ int main(int argc, char** argv) {
 	free(aux);
 	free(paquete);
 
-	printf("------COMPROBACION DEL tamanio +  INSTRUCCIONES EN EL VOID* A ENVIAR--------\n");
+	log_info(logger, "------COMPROBACION DEL tamanio +  INSTRUCCIONES EN EL VOID* A ENVIAR--------");
 
 	offset = sizeof(accion)+sizeof(int);
 	int tamanio_proceso;
@@ -135,7 +136,7 @@ int main(int argc, char** argv) {
 	// copio el tamanio primero
 	memcpy(&tamanio_proceso, a_enviar+offset, sizeof(int));
 	offset+=sizeof(int);
-	printf("TAMANIO DEL PROCESO: %d\n", tamanio_proceso);
+	log_info(logger, "TAMANIO DEL PROCESO: %d", tamanio_proceso);
 
 	for(int i=0; i<cantidad_de_instrucciones; i++) {
 		memcpy(&id_operacion, a_enviar+offset, sizeof(operacion));
@@ -144,7 +145,7 @@ int main(int argc, char** argv) {
 		offset+=sizeof(uint32_t);
 		memcpy(&operando2, a_enviar+offset, sizeof(uint32_t));
 		offset+=sizeof(uint32_t);
-		printf("id_operacion: %d - operando1: %d - operando2: %d\n", id_operacion, operando1, operando2 );
+		log_info(logger, "id_operacion: %d - operando1: %d - operando2: %d", id_operacion, operando1, operando2 );
 	}
 
 	//printf("------------------ DONE ---------------\n\n");
@@ -163,7 +164,7 @@ int main(int argc, char** argv) {
 	}
 	free(a_enviar);
 
-	printf("------------------ ESCUCHANDO CON RECV POR LA FINALIZACION DEL PROCESO ---------------\n\n");
+	log_info(logger, "------------------ ESCUCHANDO CON RECV POR LA FINALIZACION DEL PROCESO ---------------\n");
 	int proceso_finalizado;
 	recv(conexion_kernel, &proceso_finalizado, sizeof(int), MSG_WAITALL);
 	// Acá se podría loguear que el proceso con las instrucciones a,b,c ...etc terminó

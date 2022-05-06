@@ -6,7 +6,7 @@ void* atender_pedido(void* void_args) {
 
 	int accion;
 	recv(args->cliente_fd, &accion, sizeof(accion), 0);
-	printf("Acción: %d\n", accion);
+	log_info(logger, "Acción: %d", accion);
 
     switch(accion) {
         case READ_M:

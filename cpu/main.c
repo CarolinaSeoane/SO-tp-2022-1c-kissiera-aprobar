@@ -17,7 +17,7 @@ int main() {
 	int interrupt = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_INTERRUPT, 1);
 
 	if(!dispatch || !interrupt) {
-		log_info(logger, "Error al iniciar la conexión dispatch o interrupt\nCerrando el programa");
+		log_error(logger, "Error al iniciar la conexión dispatch o interrupt\nCerrando el programa");
 		return EXIT_FAILURE;
 	}
 

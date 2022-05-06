@@ -14,9 +14,9 @@ void mostrar_instrucciones(void* stream, int len_instrucciones){
 		offset+=sizeof(uint32_t);
 		memcpy(&operando2, stream+offset, sizeof(uint32_t));
 		offset+=sizeof(uint32_t);
-		printf("id_operacion: %d - operando1: %d - operando2: %d\n", id_operacion, operando1, operando2 );
+		log_info(logger, "id_operacion: %d - operando1: %d - operando2: %d", id_operacion, operando1, operando2);
 	}
-	printf("------------------ DONE ---------------\n\n");
+	log_info(logger, "------------------ DONE ---------------\n");
 } //dsp borrar
 
 
@@ -48,7 +48,7 @@ void* atender_dispatch(void* void_args) {
 				log_info(logger, "Voy a recibir un proceso para ejecutar");
                 Proceso_CPU proceso;
 				recv_proceso(&proceso, args);
-                printf("Proceso recibido: PDI es %d - PC: %d - Tabla de páginas: %d\n\n", proceso.pid, proceso.program_counter, proceso.tabla_paginas);
+                log_info(logger, "Proceso recibido: PDI es %d - PC: %d - Tabla de páginas: %d\n\n", proceso.pid, proceso.program_counter, proceso.tabla_paginas);
 				// ejecutar ciclo de instruccion
 
 				//free(proceso.stream);
