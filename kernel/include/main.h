@@ -15,17 +15,15 @@
 #include "pcb.h"
 #include "serializacion.h"
 
-int atender_pedido(void*) ;
-void mostrar_instrucciones(void*, int);
-void inicializar_colas();
-void planificador_largo_plazo(int, void*, int, Config, int);
-
 t_list *cola_new;
 t_list *cola_ready;
 t_list *cola_exec;
 t_list *cola_blck;
 t_list *cola_finish;
 
-
+void* atender_pedido(void*) ;
+void mostrar_instrucciones(void*, int);
+void inicializar_colas();
+void planificador_largo_plazo(int, void*, int, Config, int);
 
 #endif /* KERNEL_H_ */

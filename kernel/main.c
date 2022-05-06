@@ -1,7 +1,7 @@
 #include "include/main.h"
 
 
-int atender_pedido(void* void_args)
+void* atender_pedido(void* void_args)
 {
     args_thread* args = (args_thread*) void_args;
 
@@ -50,38 +50,15 @@ int atender_pedido(void* void_args)
 	}
 	free(args);
 
-	return EXIT_SUCCESS;
 }
 
 void planificador_largo_plazo(int tam_proceso, void* stream, int len_instrucciones, Config config, int conexion_dispatch) {
 	PCB pcb;
 	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, config.ESTIMACION_INICIAL);
-	printf("PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d\n\n", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
-	
-	send_proceso_a_cpu(&pcb, len_instrucciones*sizeof(instruccion), conexion_dispatch);	// lo dejo aca para probar ahora. esto deberia ir en  el planificador de corto plazo
-	
-	list_add(cola_new, &pcb);
-	printf("Cantidad de procesos en ready: %d", cola_new->elements_count);
-	if (cola_new->elements_count < config.GRADO_MULTIPROGRAMACION)
-	{
-	
-
-		
-		
-		/* t_list_iterator* list_iterator_create(t_list* list);  devuelve un iterator
-
-		typedef struct {
-			t_list *self;
-			t_link_element *prev;
-			t_link_element *element;
-			int index;
-		} t_list_iterator;
-
-		Con esto vas en cada uno hasta encontrar el PDI que necesitas ubicar. Sacas el index y despues usas "void *list_get(t_list *, int index)
-		Eso te devuelve un t_link_element el cual lo sacas de la lista ready y lo pasas a Ready. Despues de esto habría solicitar a memoria la estructura.
-
-		*/
-	}
+	printf("Cantidad de procesos en ready: %d\n", cola_new->elements_count);
+	//printf("PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d\n", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
+	int valor = list_add(cola_new, &pcb);
+	printf("Cantidad de procesos en ready: %d\n", cola_new->elements_count);
 }
 
 void mostrar_instrucciones(void* stream, int len_instrucciones){
@@ -131,14 +108,14 @@ int main(void) {
 		int kernel_cliente = esperar_cliente(kernel_server, logger);
 		/* Parametros que necesita atender_pedido */
 		args_thread *args = malloc(sizeof(args_thread));
-        args->cliente_fd = kernel_cliente;
+		args->cliente_fd = kernel_cliente;
 		args->conexion_memoria = conexion_memoria;
-    	args->config = config;
+		args->config = config;
 		args->conexion_dispatch = conexion_dispatch;
 		args->conexion_interrupt = conexion_interrupt;
 		pthread_create( &hilo_atender_pedido, NULL, atender_pedido, (void*) args);
 		pthread_join(hilo_atender_pedido,NULL);
-	}
+		}
 
 	return 0;
 
@@ -153,4 +130,3 @@ void inicializar_colas()
 	cola_finish = list_create();
 
 }
-
