@@ -10,6 +10,10 @@
 
 void* atender_dispatch(void*);
 void recv_proceso(Proceso_CPU*, args_dispatch*);
+int fetch(Proceso_CPU*);
+operacion decode(int);
+void fetch_operands(Proceso_CPU*);
+void execute(Proceso_CPU*, operacion);
 
 #endif /* DISPATCH_H_ */
 

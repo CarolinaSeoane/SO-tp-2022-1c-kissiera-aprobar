@@ -1,5 +1,76 @@
 #include "../include/dispatch.h"
 
+
+int fetch(Proceso_CPU* proceso) {
+
+	int offset = proceso->program_counter * 12;
+	int co_op;
+	memcpy(&co_op, proceso->stream + offset, sizeof(int));
+	log_info(logger, "Fetch encontro la instruccion: %d", co_op);
+	return co_op;
+
+
+}
+
+operacion decode(int co_op) {
+	
+	switch(co_op) {
+
+		case 0:
+			return NO_OP;
+			break;
+		case 1:
+			return IO;
+			break;
+		case 2:
+			return READ;
+			break;
+		case 3:
+			return WRITE;
+			break;
+		case 4:
+			return COPY;
+			break;
+		case 5:
+			return EXIT;
+			break;
+		default:
+			log_error(logger, "Operacion desconocida");
+	}
+
+}
+
+void fetch_operands(Proceso_CPU* proceso) {
+	// TO DO
+}
+
+void execute(Proceso_CPU* proceso, operacion op) {
+
+	switch(op) {
+
+		case NO_OP:
+			
+			break;
+		case IO:
+			
+			break;
+		case READ:
+			
+			break;
+		case WRITE:
+			
+			break;
+		case COPY:
+			
+			break;
+		case EXIT:
+			
+			break;
+		default:
+			log_error(logger, "Operacion desconocida");
+	}
+}
+
 void mostrar_instrucciones(void* stream, int len_instrucciones){
 
 	int offset=0;
@@ -49,8 +120,14 @@ void* atender_dispatch(void* void_args) {
                 Proceso_CPU proceso;
 				recv_proceso(&proceso, args);
                 log_info(logger, "Proceso recibido: PDI es %d - PC: %d - Tabla de páginas: %d\n\n", proceso.pid, proceso.program_counter, proceso.tabla_paginas);
-				// ejecutar ciclo de instruccion
-
+				int co_op = fetch(&proceso);
+				operacion op = decode(co_op);
+				if (op == COPY) { 
+					fetch_operands(&proceso); // Para que saque el segundo operando y se comunique con memoria
+				}
+				proceso.program_counter = proceso.program_counter + 1; //Puede que no vaya aca
+				execute(&proceso, op);
+				//check_interrupt();
 				//free(proceso.stream);
 				break;
 			case BLOCK_PROCESO:

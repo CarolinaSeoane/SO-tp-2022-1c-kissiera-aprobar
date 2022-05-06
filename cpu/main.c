@@ -32,7 +32,7 @@ int main() {
 	args_dispatch *args_d = malloc(sizeof(args_dispatch));
     args_d->cliente_fd = cliente_dispatch;
 
-	pthread_create( &hilo_atender_conexiones, NULL, atender_dispatch, (void*) args_d);
+	pthread_create(&hilo_atender_conexiones, NULL, atender_dispatch, (void*) args_d);
 	pthread_join(hilo_atender_conexiones, NULL);
 
 	int cliente_interrupt = esperar_cliente(interrupt, logger);
