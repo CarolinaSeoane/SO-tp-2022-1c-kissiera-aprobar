@@ -49,16 +49,46 @@ void* atender_pedido(void* void_args)
 			break;
 	}
 	free(args);
-
 }
 
 void planificador_largo_plazo(int tam_proceso, void* stream, int len_instrucciones, Config config, int conexion_dispatch) {
 	PCB pcb;
 	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, config.ESTIMACION_INICIAL);
-	printf("Cantidad de procesos en ready: %d\n", cola_new->elements_count);
-	//printf("PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d\n", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
-	int valor = list_add(cola_new, &pcb);
-	printf("Cantidad de procesos en ready: %d\n", cola_new->elements_count);
+	printf("PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d\n\n", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
+	
+	send_proceso_a_cpu(&pcb, len_instrucciones*sizeof(instruccion), conexion_dispatch);	// lo dejo aca para probar ahora. esto deberia ir en  el planificador de corto plazo
+	printf("Nuevo proceso recibido. Entra directo a NEW\n");
+	list_add(cola_new, &pcb);
+	printf("Cantidad de procesos en NEW: %d\n", cola_new->elements_count);
+	if (cola_ready->elements_count < config.GRADO_MULTIPROGRAMACION)
+	{
+		
+		printf("Puede entrar un nuevo proceso a READY, Cantidad de procesos en READY: %d\n", cola_ready->elements_count);
+
+		t_list_iterator* iterator = list_iterator_create(cola_new);
+
+		void* elem_iterado = malloc(sizeof(PCB));
+		int count=0;
+		while(count<(cola_new->elements_count)){
+
+			if(list_iterator_has_next(iterator)){
+				elem_iterado = list_iterator_next(iterator);
+				if( ((PCB*)elem_iterado)->pid == pcb.pid ){
+					list_iterator_remove(iterator);
+					printf("Elemento con tamanio %d ha sido removido\n", ((PCB*)elem_iterado)->tamanio_proceso);
+					break;
+				}
+			}
+			count++;
+		}
+		//free(elem_iterado);
+		list_add(cola_ready, &pcb);
+		printf("Cantidad de procesos en NEW: %d\n", cola_new->elements_count);
+		printf("Cantidad de procesos en READY: %d\n", cola_ready->elements_count);
+	}else{
+		printf("El proceso se queda en NEW. El grado de multiprog no se la aguanta.\n");
+	}
+
 }
 
 void mostrar_instrucciones(void* stream, int len_instrucciones){
@@ -115,7 +145,7 @@ int main(void) {
 		args->conexion_interrupt = conexion_interrupt;
 		pthread_create( &hilo_atender_pedido, NULL, atender_pedido, (void*) args);
 		pthread_join(hilo_atender_pedido,NULL);
-		}
+	}
 
 	return 0;
 
