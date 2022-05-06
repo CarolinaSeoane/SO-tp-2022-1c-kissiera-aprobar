@@ -8,7 +8,7 @@
 #include "../../shared/include/shared.h"
 #include "utils.h"
 
-void atender_dispatch(void*);
+void* atender_dispatch(void*);
 void recv_proceso(Proceso_CPU*, args_dispatch*);
 
 #endif /* DISPATCH_H_ */

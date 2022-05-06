@@ -37,7 +37,7 @@ void recv_proceso(Proceso_CPU* proceso, args_dispatch* args) {
 
 }
 
-void atender_dispatch(void* void_args) {
+void* atender_dispatch(void* void_args) {
 	args_dispatch* args = (args_dispatch*) void_args;
 	
 	while(args->cliente_fd != -1) {

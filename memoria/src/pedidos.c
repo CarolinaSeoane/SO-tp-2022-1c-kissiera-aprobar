@@ -1,6 +1,6 @@
 #include "../include/pedidos.h"
 
-int atender_pedido(void* void_args) {
+void* atender_pedido(void* void_args) {
 
 	args_thread_memoria* args = (args_thread_memoria*) void_args;
 
@@ -28,16 +28,13 @@ int atender_pedido(void* void_args) {
         case HANDSHAKE_MEMORIA:
         	log_info(logger, "Se recibio un handshake con CPU");
         	send_cpu_handshake((void*) args);
-        	free(args);
         	break;
         default:
             log_warning_sh(logger, "Operacion desconocida.");
 			close(args->cliente_fd);
 			break;
     }
-
-    return 0;
-
+	free(args);
 }
 
 void send_cpu_handshake(void* void_args) {
