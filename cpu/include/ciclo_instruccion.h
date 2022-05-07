@@ -6,11 +6,12 @@
 #include <string.h>
 #include <commons/log.h>
 #include "utils.h"
+#include <unistd.h>
 
-void ejecutar_ciclo_instruccion(Proceso_CPU*);
+void ejecutar_ciclo_instruccion(Proceso_CPU*, Config);
 void fetch(Proceso_CPU*, instruccion*);
 bool decode(int);
 void fetch_operands(Proceso_CPU*);
-void execute(Proceso_CPU*, operacion);
+void execute(Proceso_CPU*, instruccion, Config);
 
 #endif 

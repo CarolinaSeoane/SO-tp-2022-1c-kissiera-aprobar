@@ -21,6 +21,7 @@ typedef struct {
 
 typedef struct {
     int cliente_fd;
+    Config config;
 } args_dispatch;
 
 t_log* logger;

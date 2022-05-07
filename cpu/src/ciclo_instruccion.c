@@ -1,6 +1,6 @@
 #include "../include/ciclo_instruccion.h"
 
-void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
+void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, Config config) {
     instruccion inst;
     log_info(logger, "Ejecutando ciclo de instruccion del proceso %d", (*proceso).pid);
     fetch(proceso, &inst);
@@ -12,7 +12,7 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
             // fetch_operands(&proceso); // Para que saque el segundo operando y se comunique con memoria
         }
         
-        //execute(&proceso, op);
+        execute(proceso, inst, config);
         //check_interrupt();  */
         (*proceso).program_counter++;
         fetch(proceso, &inst);
@@ -26,6 +26,7 @@ void fetch(Proceso_CPU* proceso, instruccion* inst) {
 	memcpy(inst, proceso->stream + offset, sizeof(instruccion));
 }
 
+/* Decode: interpretar que instrucción es la que se va a ejecutar para ver si se necesita fetch operands.*/ 
 bool decode(int co_op) {
     return co_op == COPY;
 }
@@ -34,12 +35,12 @@ void fetch_operands(Proceso_CPU* proceso) {
 	// TO DO
 }
 
-void execute(Proceso_CPU* proceso, operacion op) {
+void execute(Proceso_CPU* proceso, instruccion inst, Config config) {
 
-	switch(op) {
+	switch(inst.id_operacion) {
 
 		case NO_OP:
-			
+			sleep(config.RETARDO_NOOP / 1000);
 			break;
 		case IO:
 			
