@@ -1,6 +1,6 @@
 #include "../include/ciclo_instruccion.h"
 
-void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, Config config) {
+void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, Config config, int dispatch, int conexion_mem) {
     instruccion inst;
     log_info(logger, "Ejecutando ciclo de instruccion del proceso %d", (*proceso).pid);
     fetch(proceso, &inst);
@@ -12,7 +12,7 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, Config config) {
             // fetch_operands(&proceso); // Para que saque el segundo operando y se comunique con memoria
         }
         
-        execute(proceso, inst, config);
+        execute(proceso, inst, config, dispatch, conexion_mem);
         //check_interrupt();  */
         (*proceso).program_counter++;
         fetch(proceso, &inst);
@@ -35,17 +35,41 @@ void fetch_operands(Proceso_CPU* proceso) {
 	// TO DO
 }
 
-void execute(Proceso_CPU* proceso, instruccion inst, Config config) {
+void execute(Proceso_CPU* proceso, instruccion inst, Config config, int dispatch, int conexion_mem) {
 
 	switch(inst.id_operacion) {
 
 		case NO_OP:
 			sleep(config.RETARDO_NOOP / 1000);
 			break;
-		case IO:
-			
+		case IO:;
+			uint32_t bloqueo = inst.operando1;
+			//aca solo hace falta devolverle el pid, pc y el bloqueo que lei recien. dsp en kernel hay que buscar el proceso con ese pid, actualizarle el pc y mandarlo a bloqueo
+
 			break;
-		case READ:
+		case READ:;
+
+			int leer = inst.operando1;
+
+			int* codigo = malloc(sizeof(int));
+			*codigo = READ_M;
+
+			void* paquete = malloc(sizeof(int)*2);
+
+			int offset = 0;
+			memcpy(paquete, &(*codigo), sizeof(int));
+			offset += sizeof(int);
+			memcpy(paquete + offset, &(leer), sizeof(int));
+
+			send(conexion_mem, paquete, sizeof(int)*2, 0);
+
+			free(codigo);
+			free(paquete);
+
+			int leido;
+			recv(conexion_mem, &leido, sizeof(int), 0);
+
+			log_info(logger, "El valor leido es %d", leido);
 			
 			break;
 		case WRITE:

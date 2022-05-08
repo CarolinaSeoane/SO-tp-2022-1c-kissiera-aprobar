@@ -49,7 +49,7 @@ void* atender_dispatch(void* void_args) {
                 Proceso_CPU proceso;
 				recv_proceso(&proceso, args);
                 log_info(logger, "Proceso recibido: PDI es %d - PC: %d - Tabla de páginas: %d\n\n", proceso.pid, proceso.program_counter, proceso.tabla_paginas);
-				ejecutar_ciclo_instruccion(&proceso, args->config);
+				ejecutar_ciclo_instruccion(&proceso, args->config, args->cliente_fd, args->con_memoria);
 				//free(proceso.stream);
 				break;
 			case BLOCK_PROCESO:

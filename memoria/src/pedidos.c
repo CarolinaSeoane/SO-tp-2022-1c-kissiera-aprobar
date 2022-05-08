@@ -4,36 +4,53 @@ void* atender_pedido(void* void_args) {
 
 	args_thread_memoria* args = (args_thread_memoria*) void_args;
 
-	int accion;
-	recv(args->cliente_fd, &accion, sizeof(accion), 0);
-	log_info(logger, "Acción: %d", accion);
+	while(args->cliente_fd != -1) {
 
-    switch(accion) {
-        case READ_M:
-            
-            break;
+		int accion;
+		recv(args->cliente_fd, &accion, sizeof(accion), 0);
+		//log_info(logger, "Acción: %d", accion);
 
-        case WRITE_M:
-            
-            break;
+		switch(accion) {
+			case READ_M:;
+				int leer_en;
+				recv(args->cliente_fd, &leer_en, sizeof(int), 0);
+				log_info(logger, "tengo que leer en la posicion %d", leer_en);
 
-        case INIT_PROCESO:
-            
-            break;
+				//buscar el valor a leer
+				int valor_leido = 6; // de prueba
 
-        case SUSP_PROCESO:
-            
-            break;
+				void* paquete = malloc(sizeof(int));
 
-        case HANDSHAKE_MEMORIA:
-        	log_info(logger, "Se recibio un handshake con CPU");
-        	send_cpu_handshake((void*) args);
-        	break;
-        default:
-            log_warning_sh(logger, "Operacion desconocida.");
-			close(args->cliente_fd);
-			break;
-    }
+				memcpy(paquete, &valor_leido, sizeof(int));
+
+				send(args->cliente_fd, paquete, sizeof(int), 0);
+
+				free(paquete);
+
+				break;
+
+			case WRITE_M:
+				
+				break;
+
+			case INIT_PROCESO:
+				
+				break;
+
+			case SUSP_PROCESO:
+				
+				break;
+
+			case HANDSHAKE_MEMORIA:
+				log_info(logger, "Se recibio un handshake con CPU");
+				send_cpu_handshake((void*) args);
+				break;
+			default:
+				log_warning_sh(logger, "Operacion desconocida.");
+				close(args->cliente_fd);
+				break;
+		}
+	}
 	free(args);
 }
 
