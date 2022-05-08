@@ -17,7 +17,7 @@ int main() {
 	int interrupt = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_INTERRUPT, 1);
 
 	if(!dispatch || !interrupt) {
-		log_info(logger, "Error al iniciar la conexión dispatch o interrupt\nCerrando el programa");
+		log_error(logger, "Error al iniciar la conexión dispatch o interrupt\nCerrando el programa");
 		return EXIT_FAILURE;
 	}
 
@@ -31,8 +31,10 @@ int main() {
 
 	args_dispatch *args_d = malloc(sizeof(args_dispatch));
     args_d->cliente_fd = cliente_dispatch;
+	args_d->config = config;
+	args_d->con_memoria = conexion_memoria;
 
-	pthread_create( &hilo_atender_conexiones, NULL, atender_dispatch, (void*) args_d);
+	pthread_create(&hilo_atender_conexiones, NULL, atender_dispatch, (void*) args_d);
 	pthread_join(hilo_atender_conexiones, NULL);
 
 	int cliente_interrupt = esperar_cliente(interrupt, logger);

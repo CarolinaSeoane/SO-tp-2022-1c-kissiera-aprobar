@@ -9,7 +9,7 @@ int main(void) {
     int memoria_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, 2);
 
     if(!memoria_server) {
-		log_info(logger, "Error al iniciar el servidor Memoria\nCerrando el programa");
+		log_error(logger, "Error al iniciar el servidor Memoria\nCerrando el programa");
 		return 1;
 	}
 
@@ -24,7 +24,7 @@ int main(void) {
         args->cliente_fd = memoria_cliente;
         args->config = config;
         pthread_create(&hilo_atender_pedido_memoria, NULL, atender_pedido, (void*) args);
-        pthread_join(&hilo_atender_pedido_memoria, NULL);
+        pthread_join(hilo_atender_pedido_memoria, NULL);
     }	
 
 	return 0;

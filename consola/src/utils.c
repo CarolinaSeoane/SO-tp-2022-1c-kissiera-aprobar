@@ -11,7 +11,7 @@ void cargarConfig(char* path, Config* config) {
         config_destroy(t_config);
 
     } else {
-        log_info(logger, "No se encontró el archivo de configuración");
+        log_error(logger, "No se encontró el archivo de configuración");
         exit(0);
     }
 }
