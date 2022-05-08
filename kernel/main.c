@@ -116,8 +116,11 @@ int main(void) {
 	Config config;
 	cargarConfig("kernel.config", &config);
 
+
 	inicializar_colas();
-	log_info(logger, "Colas inicializadas");
+	inicializar_semaforos();
+	log_info(logger, "Colas y semaforos inicializadas");
+
 
 	int kernel_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, SOMAXCONN);
 
@@ -158,5 +161,17 @@ void inicializar_colas()
 	cola_exec = list_create();
 	cola_blck = list_create();
 	cola_finish = list_create();
+
+}
+
+void inicializar_semaforos(){
+
+	pthread_mutex_init(&mutexBlockSuspended, NULL);
+	pthread_mutex_init(&mutexReadySuspended, NULL);
+	pthread_mutex_init(&mutexNew, NULL);
+	pthread_mutex_init(&mutexReady, NULL);
+	pthread_mutex_init(&mutexBlock, NULL);
+	pthread_mutex_init(&mutexExe, NULL);
+	pthread_mutex_init(&mutexExit, NULL);
 
 }
