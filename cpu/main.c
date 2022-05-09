@@ -27,22 +27,20 @@ int main() {
 	// ------ RECIBE CONEXIONES DE KERNEL EN DISPATCH O INTERRUPT
 
 	pthread_t hilo_atender_conexiones;
-
-	int cliente_interrupt = esperar_cliente(interrupt, logger);
-	pthread_create(&hilo_atender_conexiones, NULL, atender_interrupt, NULL);
-	pthread_join(hilo_atender_conexiones, NULL);
-
+	
 	int cliente_dispatch = esperar_cliente(dispatch, logger);
 	
 	args_dispatch *args_d = malloc(sizeof(args_dispatch));
     args_d->cliente_dispatch_fd = cliente_dispatch;
-	args_d->cliente_interrupt_fd = cliente_interrupt;
+	//args_d->cliente_interrupt_fd = cliente_interrupt;
 	args_d->con_memoria = conexion_memoria;
 	args_d->config = config;
 
 	pthread_create(&hilo_atender_conexiones, NULL, atender_dispatch, (void*) args_d);
 	pthread_join(hilo_atender_conexiones, NULL);
 
-
+	int cliente_interrupt = esperar_cliente(interrupt, logger);
+	pthread_create(&hilo_atender_conexiones, NULL, atender_interrupt, NULL);
+	pthread_join(hilo_atender_conexiones, NULL);
 
 }
