@@ -20,14 +20,16 @@ typedef struct {
 } Config;
 
 typedef struct {
-    int cliente_fd;
-    Config config;
+    int cliente_dispatch_fd;
+    int cliente_interrupt_fd;
     int con_memoria;
+    Config config;
 } args_dispatch;
 
 t_log* logger;
 int tamanio_pagina;
 int cant_entradas_tabla;
+int flag_interrupcion;
 
 void cargarConfig(char*, Config*);
 

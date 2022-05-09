@@ -1,10 +1,10 @@
 #include "../include/ciclo_instruccion.h"
 
-void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, Config config, int dispatch, int conexion_mem) {
+void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, void* void_args) {
     instruccion inst;
     log_info(logger, "Ejecutando ciclo de instruccion del proceso %d", (*proceso).pid);
     fetch(proceso, &inst);
-    while(inst.id_operacion != EXIT) {
+    while(!flag_interrupcion) {
         log_info(logger, "Fetch encontro la instruccion %d con PARAM1 = %d, PARAM2 = %d", inst.id_operacion, inst.operando1, inst.operando2);
         bool es_copy = decode(inst.id_operacion);
         
@@ -12,11 +12,12 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, Config config, int dispatc
             // fetch_operands(&proceso); // Para que saque el segundo operando y se comunique con memoria
         }
         
-        execute(proceso, inst, config, dispatch, conexion_mem);
-        //check_interrupt();  */
         (*proceso).program_counter++;
+        execute(proceso, inst, void_args);
+        check_interrupt(void_args); 
         fetch(proceso, &inst);
     }
+	// atender_interrupcion();
 
 }
 
@@ -35,20 +36,24 @@ void fetch_operands(Proceso_CPU* proceso) {
 	// TO DO
 }
 
-void execute(Proceso_CPU* proceso, instruccion inst, Config config, int dispatch, int conexion_mem) {
+void execute(Proceso_CPU* proceso, instruccion inst, void* void_args) {
+	args_dispatch* args = (args_dispatch*) void_args;
 
 	switch(inst.id_operacion) {
 
 		case NO_OP:
-			sleep(config.RETARDO_NOOP / 1000);
+			log_info(logger, "Proceso %d ejecuta NO_OP", (*proceso).pid);
+			sleep(args->config.RETARDO_NOOP / 1000);
 			break;
 		case IO:;
-			uint32_t bloqueo = inst.operando1;
+			log_info(logger, "Proceso %d ejecuta IO", (*proceso).pid);
+			flag_interrupcion = 1;
+			send_proceso_bloqueado(proceso, inst.operando1, args);
+			//uint32_t bloqueo = inst.operando1;
 			//aca solo hace falta devolverle el pid, pc y el bloqueo que lei recien. dsp en kernel hay que buscar el proceso con ese pid, actualizarle el pc y mandarlo a bloqueo
-
 			break;
 		case READ:;
-
+			log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
 			int leer = inst.operando1;
 
 			int* codigo = malloc(sizeof(int));
@@ -61,27 +66,41 @@ void execute(Proceso_CPU* proceso, instruccion inst, Config config, int dispatch
 			offset += sizeof(int);
 			memcpy(paquete + offset, &(leer), sizeof(int));
 
-			send(conexion_mem, paquete, sizeof(int)*2, 0);
+			send(args->con_memoria, paquete, sizeof(int)*2, 0);
 
 			free(codigo);
 			free(paquete);
 
 			int leido;
-			recv(conexion_mem, &leido, sizeof(int), 0);
+			recv(args->con_memoria, &leido, sizeof(int), 0);
 
 			log_info(logger, "El valor leido es %d", leido);
-			
 			break;
 		case WRITE:
-			
+			log_info(logger, "Proceso %d ejecuta WRITE", (*proceso).pid);
 			break;
 		case COPY:
-			
+			log_info(logger, "Proceso %d ejecuta COPY", (*proceso).pid);
 			break;
 		case EXIT:
-			
+			log_info(logger, "Proceso %d ejecuta EXIT", (*proceso).pid);
+			flag_interrupcion = 1;
+			send_proceso_finalizado(proceso, args);
 			break;
 		default:
 			log_error(logger, "Operacion desconocida");
 	}
+}
+
+
+void check_interrupt(void* void_args) {
+	args_dispatch* args = (args_dispatch*) void_args;
+
+	/* 
+	No se puede poner un recv aca porque seria bloqueante. 
+	Habria que usar una funcion que consulte si hay algo o 
+	tener el recv en otro hilo y que vaya pasando las interrupciones 
+	a una lista
+	*/
+
 }

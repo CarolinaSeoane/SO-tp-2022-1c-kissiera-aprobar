@@ -13,6 +13,7 @@ int main() {
 	recv_handshake(conexion_memoria);
 
 	// ------ SERVIDORES DISPATCH E INTERRUPT PARA KERNEL
+	flag_interrupcion = 0;
 	int dispatch = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_DISPATCH, 1);
 	int interrupt = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_INTERRUPT, 1);
 
@@ -27,19 +28,21 @@ int main() {
 
 	pthread_t hilo_atender_conexiones;
 
-	int cliente_dispatch = esperar_cliente(dispatch, logger);
+	int cliente_interrupt = esperar_cliente(interrupt, logger);
+	pthread_create(&hilo_atender_conexiones, NULL, atender_interrupt, NULL);
+	pthread_join(hilo_atender_conexiones, NULL);
 
+	int cliente_dispatch = esperar_cliente(dispatch, logger);
+	
 	args_dispatch *args_d = malloc(sizeof(args_dispatch));
-    args_d->cliente_fd = cliente_dispatch;
-	args_d->config = config;
+    args_d->cliente_dispatch_fd = cliente_dispatch;
+	args_d->cliente_interrupt_fd = cliente_interrupt;
 	args_d->con_memoria = conexion_memoria;
+	args_d->config = config;
 
 	pthread_create(&hilo_atender_conexiones, NULL, atender_dispatch, (void*) args_d);
 	pthread_join(hilo_atender_conexiones, NULL);
 
-	int cliente_interrupt = esperar_cliente(interrupt, logger);
-	pthread_create(&hilo_atender_conexiones, NULL, atender_interrupt, NULL);
-	pthread_join(hilo_atender_conexiones, NULL);
 
 
 }

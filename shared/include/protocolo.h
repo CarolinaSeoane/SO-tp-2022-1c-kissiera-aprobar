@@ -9,6 +9,7 @@ typedef enum {
 	SUSP_PROCESO,
 	EXEC_PROCESO, //se manda proceso a cpu
 	BLOCK_PROCESO,
+	EXIT_PROCESO,
 	HANDSHAKE_MEMORIA
 }accion;
 
