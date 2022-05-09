@@ -24,16 +24,12 @@ void* atender_pedido(void* void_args)
 			void* stream = malloc(len_instrucciones*sizeof(instruccion));
 			log_info(logger, "Cantidad reservada para stream %d", len_instrucciones*sizeof(instruccion));
 			recv(args->cliente_fd, stream, len_instrucciones*sizeof(instruccion), 0);
-			// mostrar_instrucciones(stream, len_instrucciones);
 			log_info(logger, "Termine de loguear instrucciones");
 
 
 			//Planificador Corto Plazo  enviar a CPU por el puerto dispatch en el momento de ejecutar
 			//Planificador Mediano Plazo - Este planificador se encargará de gestionar las transiciones
-			//Planificador Largo
-					// Armar PCB
-					// Llevar el proceso al estado New;
-					// Mover a Ready si el grado de multiprogramacion lo admite y en ese caso pedir a memoria iniciar las estructuras
+
 
 			/* Creo PCB cuando recibo las instrucciones */
 			
@@ -52,46 +48,25 @@ void* atender_pedido(void* void_args)
 }
 
 void planificador_largo_plazo(int tam_proceso, void* stream, int len_instrucciones, Config config, int conexion_dispatch) {
+	//Planificador Largo
+		// Armar PCB
+		// Llevar el proceso al estado New;
+		// Mover a Ready si el grado de multiprogramacion lo admite y en ese caso pedir a memoria iniciar las estructuras
 	PCB pcb;
 	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, config.ESTIMACION_INICIAL);
 	log_info(logger, "PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
 	
 	send_proceso_a_cpu(&pcb, len_instrucciones*sizeof(instruccion), conexion_dispatch);	// lo dejo aca para probar ahora. esto deberia ir en  el planificador de corto plazo
-	log_info(logger, "Nuevo proceso recibido. Entra directo a NEW");
+	
+	pthread_mutex_lock(&mutexNew);
 	list_add(cola_new, &pcb);
-	log_info(logger, "Cantidad de procesos en NEW: %d", cola_new->elements_count);
-	if (cola_ready->elements_count < config.GRADO_MULTIPROGRAMACION)
-	{
-		
-		log_info(logger, "Puede entrar un nuevo proceso a READY, Cantidad de procesos en READY: %d", cola_ready->elements_count);
-
-		t_list_iterator* iterator = list_iterator_create(cola_new);
-
-		void* elem_iterado = malloc(sizeof(PCB));
-		int count=0;
-		while(count<(cola_new->elements_count)){
-
-			if(list_iterator_has_next(iterator)){
-				elem_iterado = list_iterator_next(iterator);
-				if( ((PCB*)elem_iterado)->pid == pcb.pid ){
-					list_iterator_remove(iterator);
-					log_info(logger, "Elemento con tamanio %d ha sido removido", ((PCB*)elem_iterado)->tamanio_proceso);
-					break;
-				}
-			}
-			count++;
-		}
-		//free(elem_iterado);
-		list_add(cola_ready, &pcb);
-		log_info(logger, "Cantidad de procesos en NEW: %d", cola_new->elements_count);
-		log_info(logger, "Cantidad de procesos en READY: %d", cola_ready->elements_count);
-	}else{
-		log_info(logger, "El proceso se queda en NEW. El grado de multiprog no se la aguanta.");
-	}
-
+	PCB* elem_agregado = list_get(cola_new, cola_new->elements_count -1);
+	log_info(logger, "Leido de la lista -> PID: %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d",elem_agregado->pid, elem_agregado->tamanio_proceso, elem_agregado->program_counter , elem_agregado->tabla_paginas, elem_agregado->estimacion_rafaga);
+	pthread_mutex_unlock(&mutexNew);
+	log_info(logger, "Nuevo proceso agregado a NEW, cantidad de procesos en NEW: %d", cola_new->elements_count);
 }
 
-void mostrar_instrucciones(void* stream, int len_instrucciones){
+/*void mostrar_instrucciones(void* stream, int len_instrucciones){
 
 	int offset=0;
 	operacion id_operacion;
@@ -108,50 +83,30 @@ void mostrar_instrucciones(void* stream, int len_instrucciones){
 		log_info(logger, "id_operacion: %d - operando1: %d - operando2: %d", id_operacion, operando1, operando2 );
 	}
 	log_info(logger, "------------------ DONE ---------------");
-}
+}*/
+void* intentar_mover_procesos_a_ready_desde_new(void* void_args){
+	
+	args_thread* args = (args_thread*) void_args;
+	int GRADO_MULTIPROGRAMACION = args->config.GRADO_MULTIPROGRAMACION;
+	int count=0;
+	PCB* elem_iterado;
 
-int main(void) {
+	while( count<(cola_new->elements_count) && (cola_ready->elements_count < GRADO_MULTIPROGRAMACION) ){
+		pthread_mutex_lock(&mutexNew);
+		t_list_iterator* iterator = list_iterator_create(cola_new);
 
-	logger = log_create("kernel.log", "Kernel", 1, LOG_LEVEL_DEBUG);
-	Config config;
-	cargarConfig("kernel.config", &config);
-
-
-	inicializar_colas();
-	inicializar_semaforos();
-	log_info(logger, "Colas y semaforos inicializadas");
-
-
-	int kernel_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, SOMAXCONN);
-
-	if(!kernel_server) {
-		log_error(logger, "Error al iniciar el servidor Kernel\nCerrando el programa");
-		return 1;
+		if(list_iterator_has_next(iterator)){
+			elem_iterado = list_remove(cola_new, count);
+			log_info(logger, "Proceso sacado de New, Cantidad en New: %d", cola_new->elements_count);
+			pthread_mutex_lock(&mutexReady);
+			list_add(cola_ready, elem_iterado);
+			log_info(logger, "Cantidad en Ready: %d", cola_ready->elements_count);
+			pthread_mutex_unlock(&mutexReady);
+			
+		}
+		pthread_mutex_unlock(&mutexNew);
+		count++;
 	}
-
-    log_info(logger, "Kernel listo para recibir clientes");
-
-	int conexion_dispatch = crear_conexion(config.IP_CPU, config.PUERTO_CPU_DISPATCH, logger);
-	int conexion_interrupt = crear_conexion(config.IP_CPU, config.PUERTO_CPU_INTERRUPT, logger);
-	int conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
-
-	pthread_t hilo_atender_pedido;
-
-	while(1) {
-		int kernel_cliente = esperar_cliente(kernel_server, logger);
-		/* Parametros que necesita atender_pedido */
-		args_thread *args = malloc(sizeof(args_thread));
-		args->cliente_fd = kernel_cliente;
-		args->conexion_memoria = conexion_memoria;
-		args->config = config;
-		args->conexion_dispatch = conexion_dispatch;
-		args->conexion_interrupt = conexion_interrupt;
-		pthread_create( &hilo_atender_pedido, NULL, atender_pedido, (void*) args);
-		pthread_join(hilo_atender_pedido,NULL);
-	}
-
-	return 0;
-
 }
 
 void inicializar_colas()
@@ -173,5 +128,48 @@ void inicializar_semaforos(){
 	pthread_mutex_init(&mutexBlock, NULL);
 	pthread_mutex_init(&mutexExe, NULL);
 	pthread_mutex_init(&mutexExit, NULL);
+}
+
+int main(void) {
+
+	logger = log_create("kernel.log", "Kernel", 1, LOG_LEVEL_DEBUG);
+	Config config;
+	cargarConfig("kernel.config", &config);
+
+
+	inicializar_colas();
+	inicializar_semaforos();
+	log_info(logger, "Colas y semaforos inicializados");
+
+
+	int kernel_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, SOMAXCONN);
+	if(!kernel_server) {
+		log_error(logger, "Error al iniciar el servidor Kernel\nCerrando el programa");
+		return 1;
+	}
+    log_info(logger, "Kernel listo para recibir clientes");
+
+	int conexion_dispatch = crear_conexion(config.IP_CPU, config.PUERTO_CPU_DISPATCH, logger);
+	int conexion_interrupt = crear_conexion(config.IP_CPU, config.PUERTO_CPU_INTERRUPT, logger);
+	int conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
+
+	pthread_t hilo_atender_pedido;
+	pthread_t hilo_largo_plazo_mover_de_new_a_ready;
+
+	while(1) {
+		int kernel_cliente = esperar_cliente(kernel_server, logger);
+		/* Parametros que necesita atender_pedido */
+		args_thread *args = malloc(sizeof(args_thread));
+		args->cliente_fd = kernel_cliente;
+		args->conexion_memoria = conexion_memoria;
+		args->config = config;
+		args->conexion_dispatch = conexion_dispatch;
+		args->conexion_interrupt = conexion_interrupt;
+		pthread_create( &hilo_atender_pedido, NULL, atender_pedido, (void*) args);
+		pthread_join(hilo_atender_pedido,NULL);
+		pthread_create( &hilo_largo_plazo_mover_de_new_a_ready, NULL, intentar_mover_procesos_a_ready_desde_new, (void*) args);
+	}
+
+	return 0;
 
 }
