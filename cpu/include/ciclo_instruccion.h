@@ -6,7 +6,7 @@
 #include <string.h>
 #include <commons/log.h>
 #include "utils.h"
-#include "ciclo_instruccion.h"
+#include "conexiones_kernel.h"
 #include <unistd.h>
 
 void ejecutar_ciclo_instruccion(Proceso_CPU*, void*);
