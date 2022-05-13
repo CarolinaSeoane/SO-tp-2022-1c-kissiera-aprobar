@@ -13,5 +13,6 @@
 #include "ciclo_instruccion.h"
 #include "conexiones_memoria.h"
 #include <pthread.h>
+#include <semaphore.h>
 
 #endif /* CPU_H_ */

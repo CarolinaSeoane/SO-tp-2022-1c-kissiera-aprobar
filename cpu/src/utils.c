@@ -20,3 +20,13 @@ void cargarConfig(char* path, Config* config) {
         exit(0);
     } 
 }
+
+void inicializar_semaforo() {
+    
+	sem_init(&mutex_flag_interrupcion, 0, 1);
+
+    sem_wait(&mutex_flag_interrupcion);
+    flag_interrupcion = 0;
+    sem_post(&mutex_flag_interrupcion);
+
+}

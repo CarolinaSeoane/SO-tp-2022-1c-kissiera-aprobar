@@ -37,10 +37,12 @@ void recv_proceso(Proceso_CPU* proceso, args_dispatch* args) {
 
 }
 
+// Si esta haciendo recv del cliente_dispatch_fd no deberia estar en el while.
+// Dispatch siempre recibe EXEC_PROCESO. No deberia recibir otra cosa
 void* atender_dispatch(void* void_args) {
 	args_dispatch* args = (args_dispatch*) void_args;
 	
-	while(args->cliente_dispatch_fd != -1) {
+	while(1) {
 		int co_op;
 		recv(args->cliente_dispatch_fd, &co_op, sizeof(co_op), 0);
 		switch(co_op) {
@@ -52,9 +54,8 @@ void* atender_dispatch(void* void_args) {
 				ejecutar_ciclo_instruccion(&proceso, args);
 				//free(proceso.stream);
 				break;
-			case BLOCK_PROCESO:
-				break;
 			default:
+				log_error(logger, "Operación desconocida");
 				break;
 		}	
 	}

@@ -35,6 +35,20 @@ void serializar_proceso_finalizado(Proceso_CPU* proceso, void* paquete_bloqueo) 
 
 }
 
+void serializar_proceso_desalojado(Proceso_CPU* proceso, void* paquete_desalojado) {
+    int offset = 0;
+    
+    int* codigo = malloc(sizeof(int));
+	*codigo = DESALOJO_PROCESO;
+	memcpy(paquete_desalojado, &(*codigo), sizeof(int));
+    
+    offset += sizeof(int);
+    memcpy(paquete_desalojado, &(*proceso).pid, sizeof(int));
+    
+    offset += sizeof(int);
+    memcpy(paquete_desalojado, &(*proceso).program_counter, sizeof(int));
+}
+
 void send_proceso_bloqueado(Proceso_CPU* proceso, int tiempo_bloqueo, void* void_args) {
     args_dispatch* args = (args_dispatch*) void_args;
 
@@ -50,3 +64,13 @@ void send_proceso_finalizado(Proceso_CPU* proceso, void* void_args) {
     serializar_proceso_finalizado(proceso, paquete_finalizado);
     send(args->cliente_dispatch_fd, paquete_finalizado, sizeof(int)*3, 0);
 }
+
+void send_proceso_desalojado(Proceso_CPU* proceso, void* void_args) {
+    args_dispatch* args = (args_dispatch*) void_args;
+
+    void* paquete_desalojado = malloc(sizeof(int)*3);
+    serializar_proceso_desalojado(proceso, paquete_desalojado);
+    send(args->cliente_dispatch_fd, paquete_desalojado, sizeof(int)*3, 0);
+}
+
+// Hay mucho código repetido, se podría mejorar

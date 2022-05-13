@@ -2,23 +2,25 @@
 
 void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, void* void_args) {
     instruccion inst;
-    log_info(logger, "Ejecutando ciclo de instruccion del proceso %d", (*proceso).pid);
-    fetch(proceso, &inst);
-    while(!flag_interrupcion) {
+    int valor_copy;
+	log_info(logger, "Ejecutando ciclos de instruccion del proceso %d", (*proceso).pid);
+    while(!check_interrupt()) {
+        fetch(proceso, &inst);
         log_info(logger, "Fetch encontro la instruccion %d con PARAM1 = %d, PARAM2 = %d", inst.id_operacion, inst.operando1, inst.operando2);
         bool es_copy = decode(inst.id_operacion);
         
 	    if (es_copy) { 
-            // fetch_operands(&proceso); // Para que saque el segundo operando y se comunique con memoria
+            valor_copy = fetch_operands(proceso, inst, void_args); // Para que saque el segundo operando y se comunique con memoria
         }
         
         (*proceso).program_counter++;
-        execute(proceso, inst, void_args);
-        check_interrupt(void_args); 
-        fetch(proceso, &inst);
+        execute(proceso, inst, valor_copy, void_args);
     }
-	// atender_interrupcion();
-
+	sem_wait(&mutex_flag_interrupcion);
+	flag_interrupcion = 0;
+	sem_post(&mutex_flag_interrupcion);
+	log_info(logger, "El proceso %d es desalojado", (*proceso).pid);
+	send_proceso_desalojado(proceso, void_args);
 }
 
 /* Fetch: buscar la próxima instrucción a ejecutar con el PC */
@@ -32,11 +34,13 @@ bool decode(int co_op) {
     return co_op == COPY;
 }
 
-void fetch_operands(Proceso_CPU* proceso) {
-	// TO DO
+int fetch_operands(Proceso_CPU* proceso, instruccion inst, void* void_args) {
+	args_dispatch* args = (args_dispatch*) void_args;
+	send_pedido_lectura(proceso, inst, args->con_memoria);
+	return recv_pedido_lectura(args->con_memoria);
 }
 
-void execute(Proceso_CPU* proceso, instruccion inst, void* void_args) {
+void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_args) {
 	args_dispatch* args = (args_dispatch*) void_args;
 
 	switch(inst.id_operacion) {
@@ -47,44 +51,29 @@ void execute(Proceso_CPU* proceso, instruccion inst, void* void_args) {
 			break;
 		case IO:;
 			log_info(logger, "Proceso %d ejecuta IO", (*proceso).pid);
-			flag_interrupcion = 1;
 			send_proceso_bloqueado(proceso, inst.operando1, args);
-			//uint32_t bloqueo = inst.operando1;
-			//aca solo hace falta devolverle el pid, pc y el bloqueo que lei recien. dsp en kernel hay que buscar el proceso con ese pid, actualizarle el pc y mandarlo a bloqueo
+			/* aca solo hace falta devolverle el pid, pc y el bloqueo que lei recien. 
+			dsp en kernel hay que buscar el proceso con ese pid, actualizarle el pc 
+			y mandarlo a bloqueo */
 			break;
 		case READ:;
 			log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
-			int leer = inst.operando1;
-
-			int* codigo = malloc(sizeof(int));
-			*codigo = READ_M;
-
-			void* paquete = malloc(sizeof(int)*2);
-
-			int offset = 0;
-			memcpy(paquete, &(*codigo), sizeof(int));
-			offset += sizeof(int);
-			memcpy(paquete + offset, &(leer), sizeof(int));
-
-			send(args->con_memoria, paquete, sizeof(int)*2, 0);
-
-			free(codigo);
-			free(paquete);
-
-			int leido;
-			recv(args->con_memoria, &leido, sizeof(int), 0);
+			send_pedido_lectura(proceso, inst, args->con_memoria);
+			
+			int leido = recv_pedido_lectura(args->con_memoria);
 
 			log_info(logger, "El valor leido es %d", leido);
 			break;
 		case WRITE:
 			log_info(logger, "Proceso %d ejecuta WRITE", (*proceso).pid);
+			send_pedido_escritura(inst.operando1, inst.operando2, args->con_memoria);
 			break;
 		case COPY:
 			log_info(logger, "Proceso %d ejecuta COPY", (*proceso).pid);
+			send_pedido_escritura(inst.operando1, valor_copy, args->con_memoria);
 			break;
 		case EXIT:
 			log_info(logger, "Proceso %d ejecuta EXIT", (*proceso).pid);
-			flag_interrupcion = 1;
 			send_proceso_finalizado(proceso, args);
 			break;
 		default:
@@ -92,15 +81,6 @@ void execute(Proceso_CPU* proceso, instruccion inst, void* void_args) {
 	}
 }
 
-
-void check_interrupt(void* void_args) {
-	args_dispatch* args = (args_dispatch*) void_args;
-
-	/* 
-	No se puede poner un recv aca porque seria bloqueante. 
-	Habria que usar una funcion que consulte si hay algo o 
-	tener el recv en otro hilo y que vaya pasando las interrupciones 
-	a una lista
-	*/
-
+int check_interrupt() {
+	return flag_interrupcion;
 }

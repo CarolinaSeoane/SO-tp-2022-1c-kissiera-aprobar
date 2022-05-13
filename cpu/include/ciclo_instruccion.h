@@ -7,13 +7,14 @@
 #include <commons/log.h>
 #include "utils.h"
 #include "conexiones_kernel.h"
+#include "conexiones_memoria.h"
 #include <unistd.h>
 
 void ejecutar_ciclo_instruccion(Proceso_CPU*, void*);
 void fetch(Proceso_CPU*, instruccion*);
 bool decode(int);
-void fetch_operands(Proceso_CPU*);
-void execute(Proceso_CPU*, instruccion, void*);
-void check_interrupt(void*);
+int fetch_operands(Proceso_CPU*, instruccion, void*);
+void execute(Proceso_CPU*, instruccion, int, void*);
+int check_interrupt();
 
 #endif 

@@ -14,5 +14,8 @@
 
 void send_handshake(int);
 int recv_handshake(int);
+void send_pedido_lectura(Proceso_CPU*, instruccion, int);
+void send_pedido_escritura(int, int, int);
+int recv_pedido_lectura(int);
 
 #endif /* CONEXIONES_MEMORIA_H_ */

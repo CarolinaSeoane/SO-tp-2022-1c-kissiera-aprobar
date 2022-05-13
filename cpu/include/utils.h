@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include "../../shared/include/shared.h"
+#include <semaphore.h>
 
 typedef struct {
     int ENTRADAS_TLB;
@@ -21,16 +22,23 @@ typedef struct {
 
 typedef struct {
     int cliente_dispatch_fd;
-    int cliente_interrupt_fd;
     int con_memoria;
     Config config;
 } args_dispatch;
+
+typedef struct {
+    int cliente_interrupt_fd;
+    Config config;
+} args_interrupt;
 
 t_log* logger;
 int tamanio_pagina;
 int cant_entradas_tabla;
 int flag_interrupcion;
 
+sem_t mutex_flag_interrupcion;
+
 void cargarConfig(char*, Config*);
+void inicializar_semaforo();
 
 #endif /* UTILS_H_ */
