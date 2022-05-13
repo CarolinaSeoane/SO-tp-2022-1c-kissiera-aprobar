@@ -41,9 +41,9 @@ void recv_proceso(Proceso_CPU* proceso, args_dispatch* args) {
 // Dispatch siempre recibe EXEC_PROCESO. No deberia recibir otra cosa
 void* atender_dispatch(void* void_args) {
 	args_dispatch* args = (args_dispatch*) void_args;
-	
 	while(1) {
 		int co_op;
+		log_info(logger, "Estoy en dispatch");
 		recv(args->cliente_dispatch_fd, &co_op, sizeof(co_op), 0);
 		switch(co_op) {
 			case EXEC_PROCESO:

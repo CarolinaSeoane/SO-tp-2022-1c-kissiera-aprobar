@@ -4,7 +4,7 @@ void* atender_pedido(void* void_args) {
 
 	args_thread_memoria* args = (args_thread_memoria*) void_args;
 
-	while(args->cliente_fd != -1) {
+	while(1) {
 
 		int accion;
 		recv(args->cliente_fd, &accion, sizeof(accion), 0);

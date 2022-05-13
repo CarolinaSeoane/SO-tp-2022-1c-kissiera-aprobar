@@ -35,6 +35,7 @@ t_log* logger;
 int tamanio_pagina;
 int cant_entradas_tabla;
 int flag_interrupcion;
+int flag_syscall;
 
 sem_t mutex_flag_interrupcion;
 

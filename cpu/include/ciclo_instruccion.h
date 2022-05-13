@@ -16,5 +16,6 @@ bool decode(int);
 int fetch_operands(Proceso_CPU*, instruccion, void*);
 void execute(Proceso_CPU*, instruccion, int, void*);
 int check_interrupt();
+int check_syscall();
 
 #endif 

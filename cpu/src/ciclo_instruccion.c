@@ -4,9 +4,9 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, void* void_args) {
     instruccion inst;
     int valor_copy;
 	log_info(logger, "Ejecutando ciclos de instruccion del proceso %d", (*proceso).pid);
-    while(!check_interrupt()) {
+    while(!check_interrupt() && !check_syscall()) {
         fetch(proceso, &inst);
-        log_info(logger, "Fetch encontro la instruccion %d con PARAM1 = %d, PARAM2 = %d", inst.id_operacion, inst.operando1, inst.operando2);
+        //log_info(logger, "Fetch encontro la instruccion %d con PARAM1 = %d, PARAM2 = %d", inst.id_operacion, inst.operando1, inst.operando2);
         bool es_copy = decode(inst.id_operacion);
         
 	    if (es_copy) { 
@@ -16,11 +16,15 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, void* void_args) {
         (*proceso).program_counter++;
         execute(proceso, inst, valor_copy, void_args);
     }
+	if(!flag_syscall) {
+		log_info(logger, "El proceso %d es desalojado", (*proceso).pid);
+		send_proceso_desalojado(proceso, void_args);
+	}
 	sem_wait(&mutex_flag_interrupcion);
 	flag_interrupcion = 0;
 	sem_post(&mutex_flag_interrupcion);
-	log_info(logger, "El proceso %d es desalojado", (*proceso).pid);
-	send_proceso_desalojado(proceso, void_args);
+	log_info(logger, "Cambie el flag a %d",flag_interrupcion);
+	flag_syscall = 0;
 }
 
 /* Fetch: buscar la próxima instrucción a ejecutar con el PC */
@@ -51,18 +55,19 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_
 			break;
 		case IO:;
 			log_info(logger, "Proceso %d ejecuta IO", (*proceso).pid);
-			send_proceso_bloqueado(proceso, inst.operando1, args);
+			flag_syscall = 1;
+			//send_proceso_bloqueado(proceso, inst.operando1, args);
 			/* aca solo hace falta devolverle el pid, pc y el bloqueo que lei recien. 
 			dsp en kernel hay que buscar el proceso con ese pid, actualizarle el pc 
 			y mandarlo a bloqueo */
 			break;
 		case READ:;
-			log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
-			send_pedido_lectura(proceso, inst, args->con_memoria);
+			//log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
+			//send_pedido_lectura(proceso, inst, args->con_memoria);
 			
-			int leido = recv_pedido_lectura(args->con_memoria);
-
-			log_info(logger, "El valor leido es %d", leido);
+			//int leido = recv_pedido_lectura(args->con_memoria);
+			log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
+			//log_info(logger, "El valor leido es %d", leido);
 			break;
 		case WRITE:
 			log_info(logger, "Proceso %d ejecuta WRITE", (*proceso).pid);
@@ -70,10 +75,11 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_
 			break;
 		case COPY:
 			log_info(logger, "Proceso %d ejecuta COPY", (*proceso).pid);
-			send_pedido_escritura(inst.operando1, valor_copy, args->con_memoria);
+			// send_pedido_escritura(inst.operando1, valor_copy, args->con_memoria);
 			break;
 		case EXIT:
 			log_info(logger, "Proceso %d ejecuta EXIT", (*proceso).pid);
+			flag_syscall = 1;
 			send_proceso_finalizado(proceso, args);
 			break;
 		default:
@@ -83,4 +89,8 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_
 
 int check_interrupt() {
 	return flag_interrupcion;
+}
+
+int check_syscall() {
+	return flag_syscall;
 }
