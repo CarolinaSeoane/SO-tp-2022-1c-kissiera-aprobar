@@ -40,8 +40,8 @@ bool decode(int co_op) {
 
 int fetch_operands(Proceso_CPU* proceso, instruccion inst, void* void_args) {
 	args_dispatch* args = (args_dispatch*) void_args;
-	send_pedido_lectura(proceso, inst, args->con_memoria);
-	return recv_pedido_lectura(args->con_memoria);
+	//send_pedido_lectura(proceso, inst, args->con_memoria);
+	return 1; //recv_pedido_lectura(args->con_memoria);
 }
 
 void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_args) {
@@ -56,22 +56,22 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_
 		case IO:;
 			log_info(logger, "Proceso %d ejecuta IO", (*proceso).pid);
 			flag_syscall = 1;
-			//send_proceso_bloqueado(proceso, inst.operando1, args);
+			send_proceso_bloqueado(proceso, inst.operando1, args);
 			/* aca solo hace falta devolverle el pid, pc y el bloqueo que lei recien. 
 			dsp en kernel hay que buscar el proceso con ese pid, actualizarle el pc 
 			y mandarlo a bloqueo */
 			break;
 		case READ:;
-			//log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
+			log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
 			//send_pedido_lectura(proceso, inst, args->con_memoria);
 			
 			//int leido = recv_pedido_lectura(args->con_memoria);
-			log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
+			
 			//log_info(logger, "El valor leido es %d", leido);
 			break;
 		case WRITE:
 			log_info(logger, "Proceso %d ejecuta WRITE", (*proceso).pid);
-			send_pedido_escritura(inst.operando1, inst.operando2, args->con_memoria);
+			//send_pedido_escritura(inst.operando1, inst.operando2, args->con_memoria);
 			break;
 		case COPY:
 			log_info(logger, "Proceso %d ejecuta COPY", (*proceso).pid);

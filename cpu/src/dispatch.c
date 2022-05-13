@@ -52,7 +52,7 @@ void* atender_dispatch(void* void_args) {
 				recv_proceso(&proceso, args);
                 log_info(logger, "Proceso recibido: PID es %d - PC: %d - Tabla de páginas: %d\n\n", proceso.pid, proceso.program_counter, proceso.tabla_paginas);
 				ejecutar_ciclo_instruccion(&proceso, args);
-				//free(proceso.stream);
+				free(proceso.stream);
 				break;
 			default:
 				log_error(logger, "Operación desconocida");

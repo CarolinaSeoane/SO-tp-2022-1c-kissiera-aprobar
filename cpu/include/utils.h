@@ -41,5 +41,6 @@ sem_t mutex_flag_interrupcion;
 
 void cargarConfig(char*, Config*);
 void inicializar_semaforo();
+void inicializar_flags();
 
 #endif /* UTILS_H_ */
