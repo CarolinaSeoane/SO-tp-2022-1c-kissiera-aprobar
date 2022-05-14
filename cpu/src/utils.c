@@ -22,11 +22,15 @@ void cargarConfig(char* path, Config* config) {
 }
 
 void inicializar_semaforo() {
-    
 	sem_init(&mutex_flag_interrupcion, 0, 1);
+}
+
+void inicializar_flags() {
 
     sem_wait(&mutex_flag_interrupcion);
     flag_interrupcion = 0;
     sem_post(&mutex_flag_interrupcion);
+
+    flag_syscall = 0;
 
 }

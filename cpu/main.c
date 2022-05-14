@@ -12,8 +12,11 @@ int main() {
 	send_handshake(conexion_memoria);
 	recv_handshake(conexion_memoria);
 
-	// ------ SERVIDORES DISPATCH E INTERRUPT PARA KERNEL
+	// ------ INICIALIZACION DE VARIABLES
 	inicializar_semaforo();
+	inicializar_flags();
+
+	// ------ SERVIDORES DISPATCH E INTERRUPT PARA KERNEL
 	int dispatch = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_DISPATCH, 1);
 	int interrupt = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_INTERRUPT, 1);
 
@@ -47,5 +50,6 @@ int main() {
 
 	// ------ FINALIZACION
 	sem_destroy(&mutex_flag_interrupcion);
+	log_destroy(logger);
 
 }
