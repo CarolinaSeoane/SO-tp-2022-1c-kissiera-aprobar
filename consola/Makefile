@@ -40,3 +40,9 @@ clean:
 	rm -rf *.out
 	rm -rf *.log
 	make clean -C ../shared
+
+# Ejecutar terminales
+
+instruccion:
+	gnome-terminal -- bash -c './consola.out instrucciones.txt 9; sleep 20'
+	gnome-terminal -- bash -c './consola.out inexit.txt 4; sleep 20' 

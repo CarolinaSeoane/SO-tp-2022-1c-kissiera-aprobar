@@ -10,3 +10,6 @@ clean:
 	make clean -C consola
 	make clean -C memoria
 	make clean -C cpu
+
+ins:
+	make instruccion  -C consola

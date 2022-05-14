@@ -56,6 +56,7 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_
 		case IO:;
 			log_info(logger, "Proceso %d ejecuta IO", (*proceso).pid);
 			flag_syscall = 1;
+			log_info(logger, "Proceso bloqueado. PC:  %d ", (*proceso).program_counter);
 			//send_proceso_bloqueado(proceso, inst.operando1, args);
 			/* aca solo hace falta devolverle el pid, pc y el bloqueo que lei recien. 
 			dsp en kernel hay que buscar el proceso con ese pid, actualizarle el pc 
