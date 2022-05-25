@@ -25,7 +25,6 @@ t_list *cola_blck;
 t_list *cola_finish;
 
 // Mutex - Estados del proceso
-
 pthread_mutex_t mutexNew;
 pthread_mutex_t mutexReady;
 pthread_mutex_t mutexBlock;
@@ -33,6 +32,9 @@ pthread_mutex_t mutexExe;
 pthread_mutex_t mutexExit;
 pthread_mutex_t mutexBlockSuspended;
 pthread_mutex_t mutexReadySuspended;
+
+//Mutex - Hilos
+pthread_mutex_t mutex_mover_de_new_a_ready;
 
 
 

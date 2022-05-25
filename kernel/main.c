@@ -1,5 +1,22 @@
 #include "include/main.h"
 
+void crear_y_poner_proceso_en_new(int tam_proceso, void* stream, int len_instrucciones, Config config, int conexion_dispatch) {
+	PCB pcb;
+	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, config.ESTIMACION_INICIAL);
+	log_info(logger, "PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
+	
+	send_proceso_a_cpu(&pcb, len_instrucciones*sizeof(instruccion), conexion_dispatch);	// lo dejo aca para probar ahora. esto deberia ir en  el planificador de corto plazo
+	
+	pthread_mutex_lock(&mutexNew);
+	list_add(cola_new, &pcb);
+	PCB* elem_agregado = list_get(cola_new, cola_new->elements_count -1);
+	log_info(logger, "Leido de la lista -> PID: %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d",elem_agregado->pid, elem_agregado->tamanio_proceso, elem_agregado->program_counter , elem_agregado->tabla_paginas, elem_agregado->estimacion_rafaga);
+	pthread_mutex_unlock(&mutexNew);
+	log_info(logger, "Nuevo proceso agregado a NEW, cantidad de procesos en NEW: %d", cola_new->elements_count);
+	pthread_mutex_unlock(&mutex_mover_de_new_a_ready);
+
+}
+
 
 void* atender_pedido(void* void_args)
 {
@@ -35,7 +52,7 @@ void* atender_pedido(void* void_args)
 			
 			/* Hay que pedir la tabla de paginas a la memoria*/
 
-			planificador_largo_plazo(tamanio_proceso, stream, len_instrucciones, args->config, args->conexion_dispatch);
+			crear_y_poner_proceso_en_new(tamanio_proceso, stream, len_instrucciones, args->config, args->conexion_dispatch);
 
 			free(stream);
 			break;
@@ -47,24 +64,16 @@ void* atender_pedido(void* void_args)
 	free(args);
 }
 
-void planificador_largo_plazo(int tam_proceso, void* stream, int len_instrucciones, Config config, int conexion_dispatch) {
-	//Planificador Largo
-		// Armar PCB
-		// Llevar el proceso al estado New;
-		// Mover a Ready si el grado de multiprogramacion lo admite y en ese caso pedir a memoria iniciar las estructuras
-	PCB pcb;
-	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, config.ESTIMACION_INICIAL);
-	log_info(logger, "PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
-	
-	send_proceso_a_cpu(&pcb, len_instrucciones*sizeof(instruccion), conexion_dispatch);	// lo dejo aca para probar ahora. esto deberia ir en  el planificador de corto plazo
-	
-	pthread_mutex_lock(&mutexNew);
-	list_add(cola_new, &pcb);
-	PCB* elem_agregado = list_get(cola_new, cola_new->elements_count -1);
-	log_info(logger, "Leido de la lista -> PID: %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d",elem_agregado->pid, elem_agregado->tamanio_proceso, elem_agregado->program_counter , elem_agregado->tabla_paginas, elem_agregado->estimacion_rafaga);
-	pthread_mutex_unlock(&mutexNew);
-	log_info(logger, "Nuevo proceso agregado a NEW, cantidad de procesos en NEW: %d", cola_new->elements_count);
-}
+	//Planificador Mediano Plazo
+		//Acciones:
+			//- Mover procesos de Blocked a Suspensded-Blocked
+			//- Mover procesos de Suspended-Blocked a Suspended-Ready (aunque podria estar en otro lado porque esto ocurre cuando termina la E/S). Podria ser que se reciba un mensaje de que termina la entrada salida, entonces ahi haces esto.
+			//- Mover procesos de Suspended-Ready a Ready. Esto tiene mas prioridad que los que se mueven de New a Ready (Planificador Largo Plazo)
+
+		// Eventos para hacer signal
+			//En otro hilo formar la estructura lista de struct de elementos proceso y timestamp, y que  alguno alcance el limite establecido en config. Esto seria en un while 1 que empieza cuando al menos hay 1 bloqueado y sale cuando no hay bloqueados.
+			//- Se recibe por ej un mensaje diciendo que finalizo la E/S entonces lo pasas de estado.
+			//- Cuando cambie el grado de multiprogramacion.
 
 /*void mostrar_instrucciones(void* stream, int len_instrucciones){
 
@@ -84,28 +93,46 @@ void planificador_largo_plazo(int tam_proceso, void* stream, int len_instruccion
 	}
 	log_info(logger, "------------------ DONE ---------------");
 }*/
-void* intentar_mover_procesos_a_ready_desde_new(void* void_args){
+void* mover_procesos_a_ready_desde_new(void* void_args){
 	
-	args_thread* args = (args_thread*) void_args;
-	int GRADO_MULTIPROGRAMACION = args->config.GRADO_MULTIPROGRAMACION;
-	int count=0;
-	PCB* elem_iterado;
-
-	while( count<(cola_new->elements_count) && (cola_ready->elements_count < GRADO_MULTIPROGRAMACION) ){
-		pthread_mutex_lock(&mutexNew);
-		t_list_iterator* iterator = list_iterator_create(cola_new);
-
-		if(list_iterator_has_next(iterator)){
-			elem_iterado = list_remove(cola_new, count);
-			log_info(logger, "Proceso sacado de New, Cantidad en New: %d", cola_new->elements_count);
-			pthread_mutex_lock(&mutexReady);
-			list_add(cola_ready, elem_iterado);
-			log_info(logger, "Cantidad en Ready: %d", cola_ready->elements_count);
-			pthread_mutex_unlock(&mutexReady);
+	
+	while(1)
+	{
+		
+	//Planificador Largo Plazo
+		//Acciones:
+			//- Mover procesos de New a Ready - Decirle a memoria que de de alta sus estructuras. Esto se hace si no hay procesos en suspended-ready (porque tiene mas prioridad los de suspended ready) y si el grado de multiprogramacion lo permite
+			//- Finalizar un proceso - Dar de baja sus estructuras, sacarlo de la cola Exit y responder a la consola.
 			
+		// Eventos para hacer signal aca
+			// Cuando un proceso entra en la cola de new
+			// Cuando recibis un exit de un proceso
+			// Cuando se modifique (incremente) el grado de multi desde otro lado
+
+		pthread_mutex_lock(&mutex_mover_de_new_a_ready);
+		args_thread* args = (args_thread*) void_args;
+		int GRADO_MULTIPROGRAMACION = args->config.GRADO_MULTIPROGRAMACION;
+		int count=0;
+		PCB* elem_iterado;
+		
+		while( count<(cola_new->elements_count) && (cola_ready->elements_count < GRADO_MULTIPROGRAMACION) ){
+			pthread_mutex_lock(&mutexNew);
+			t_list_iterator* iterator = list_iterator_create(cola_new);
+
+			if(list_iterator_has_next(iterator)){
+				elem_iterado = list_remove(cola_new, count);
+				//pedir estructuras de memoria a mem, y asignarlo				
+				log_info(logger, "Proceso sacado de New, Cantidad en New: %d", cola_new->elements_count);
+				pthread_mutex_lock(&mutexReady);
+				list_add(cola_ready, elem_iterado);
+				log_info(logger, "Cantidad en Ready: %d", cola_ready->elements_count);
+				pthread_mutex_unlock(&mutexReady);
+				
+			}
+			pthread_mutex_unlock(&mutexNew);
+			count++;
 		}
-		pthread_mutex_unlock(&mutexNew);
-		count++;
+
 	}
 }
 
@@ -128,6 +155,7 @@ void inicializar_semaforos(){
 	pthread_mutex_init(&mutexBlock, NULL);
 	pthread_mutex_init(&mutexExe, NULL);
 	pthread_mutex_init(&mutexExit, NULL);
+	pthread_mutex_init(&mutex_mover_de_new_a_ready, NULL);
 }
 
 int main(void) {
@@ -154,20 +182,25 @@ int main(void) {
 	int conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
 
 	pthread_t hilo_atender_pedido;
-	pthread_t hilo_largo_plazo_mover_de_new_a_ready;
+	
+	
 
-	while(1) {
+	/* Parametros que necesita atender_pedido */
+	args_thread *args = malloc(sizeof(args_thread));
+	args->conexion_memoria = conexion_memoria;
+	args->config = config;
+	args->conexion_dispatch = conexion_dispatch;
+	args->conexion_interrupt = conexion_interrupt;
+
+	pthread_t hilo_largo_plazo_mover_de_new_a_ready;
+	pthread_create( &hilo_largo_plazo_mover_de_new_a_ready, NULL, mover_procesos_a_ready_desde_new, (void*) args);
+
+	while(1) 
+	{
 		int kernel_cliente = esperar_cliente(kernel_server, logger);
-		/* Parametros que necesita atender_pedido */
-		args_thread *args = malloc(sizeof(args_thread));
 		args->cliente_fd = kernel_cliente;
-		args->conexion_memoria = conexion_memoria;
-		args->config = config;
-		args->conexion_dispatch = conexion_dispatch;
-		args->conexion_interrupt = conexion_interrupt;
 		pthread_create( &hilo_atender_pedido, NULL, atender_pedido, (void*) args);
-		pthread_join(hilo_atender_pedido,NULL);
-		pthread_create( &hilo_largo_plazo_mover_de_new_a_ready, NULL, intentar_mover_procesos_a_ready_desde_new, (void*) args);
+		pthread_join(hilo_atender_pedido,NULL);	
 	}
 
 	return 0;
