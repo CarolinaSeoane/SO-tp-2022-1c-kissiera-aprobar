@@ -8,6 +8,8 @@
 #include <string.h>
 #include <sys/socket.h>
 #include "../../shared/include/shared.h"
+#include <commons/collections/list.h>
+#include <pthread.h>
 
 typedef struct {
 	char* IP_MEMORIA;
@@ -24,14 +26,42 @@ typedef struct {
 
 typedef struct {
     int cliente_fd;
-	int conexion_memoria;
-    Config config;
-	int conexion_dispatch;
-	int conexion_interrupt;
 } args_thread;
 
 t_log* logger;
+Config config;
+int kernel_server;
+
+// Conexiones
+int conexion_dispatch;
+int conexion_interrupt;
+int conexion_memoria;
+
+// Listas - Estados del proceso
+t_list *cola_new;
+t_list *cola_ready;
+t_list *cola_exec;
+t_list *cola_blck;
+t_list *cola_finish;
+
+// Mutex - Estados del proceso
+pthread_mutex_t mutexNew;
+pthread_mutex_t mutexReady;
+pthread_mutex_t mutexBlock;
+pthread_mutex_t mutexExe;
+pthread_mutex_t mutexExit;
+pthread_mutex_t mutexBlockSuspended;
+pthread_mutex_t mutexReadySuspended;
+
+// Mutex - Hilos
+pthread_mutex_t mutex_mover_de_new_a_ready;
 
 void cargarConfig(char*, Config*);
+void inicializar_colas();
+void inicializar_semaforos();
+void inicializar_logger();
+Config inicializar_config();
+void inicializar_servidor();
+void inicializar_conexiones();
 
 #endif

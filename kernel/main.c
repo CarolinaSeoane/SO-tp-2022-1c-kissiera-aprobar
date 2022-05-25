@@ -1,6 +1,6 @@
 #include "include/main.h"
 
-void crear_y_poner_proceso_en_new(int tam_proceso, void* stream, int len_instrucciones, Config config, int conexion_dispatch) {
+void crear_y_poner_proceso_en_new(int tam_proceso, void* stream, int len_instrucciones) {
 	PCB pcb;
 	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, config.ESTIMACION_INICIAL);
 	log_info(logger, "PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
@@ -18,8 +18,7 @@ void crear_y_poner_proceso_en_new(int tam_proceso, void* stream, int len_instruc
 }
 
 
-void* atender_pedido(void* void_args)
-{
+void* atender_pedido(void* void_args) {
     args_thread* args = (args_thread*) void_args;
 
 	int accion;
@@ -52,7 +51,7 @@ void* atender_pedido(void* void_args)
 			
 			/* Hay que pedir la tabla de paginas a la memoria*/
 
-			crear_y_poner_proceso_en_new(tamanio_proceso, stream, len_instrucciones, args->config, args->conexion_dispatch);
+			crear_y_poner_proceso_en_new(tamanio_proceso, stream, len_instrucciones);
 
 			free(stream);
 			break;
@@ -93,7 +92,7 @@ void* atender_pedido(void* void_args)
 	}
 	log_info(logger, "------------------ DONE ---------------");
 }*/
-void* mover_procesos_a_ready_desde_new(void* void_args){
+void* mover_procesos_a_ready_desde_new(){
 	
 	
 	while(1)
@@ -110,8 +109,8 @@ void* mover_procesos_a_ready_desde_new(void* void_args){
 			// Cuando se modifique (incremente) el grado de multi desde otro lado
 
 		pthread_mutex_lock(&mutex_mover_de_new_a_ready);
-		args_thread* args = (args_thread*) void_args;
-		int GRADO_MULTIPROGRAMACION = args->config.GRADO_MULTIPROGRAMACION;
+		
+		int GRADO_MULTIPROGRAMACION = config.GRADO_MULTIPROGRAMACION;
 		int count=0;
 		PCB* elem_iterado;
 		
@@ -136,73 +135,39 @@ void* mover_procesos_a_ready_desde_new(void* void_args){
 	}
 }
 
-void inicializar_colas()
-{
-	cola_new = list_create();
-	cola_ready = list_create();
-	cola_exec = list_create();
-	cola_blck = list_create();
-	cola_finish = list_create();
-
-}
-
-void inicializar_semaforos(){
-
-	pthread_mutex_init(&mutexBlockSuspended, NULL);
-	pthread_mutex_init(&mutexReadySuspended, NULL);
-	pthread_mutex_init(&mutexNew, NULL);
-	pthread_mutex_init(&mutexReady, NULL);
-	pthread_mutex_init(&mutexBlock, NULL);
-	pthread_mutex_init(&mutexExe, NULL);
-	pthread_mutex_init(&mutexExit, NULL);
-	pthread_mutex_init(&mutex_mover_de_new_a_ready, NULL);
-}
-
 int main(void) {
 
-	logger = log_create("kernel.log", "Kernel", 1, LOG_LEVEL_DEBUG);
-	Config config;
-	cargarConfig("kernel.config", &config);
-
-
+	inicializar_logger();
+	inicializar_config();
+	inicializar_servidor();
 	inicializar_colas();
 	inicializar_semaforos();
-	log_info(logger, "Colas y semaforos inicializados");
-
-
-	int kernel_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, SOMAXCONN);
-	if(!kernel_server) {
-		log_error(logger, "Error al iniciar el servidor Kernel\nCerrando el programa");
-		return 1;
-	}
-    log_info(logger, "Kernel listo para recibir clientes");
-
-	int conexion_dispatch = crear_conexion(config.IP_CPU, config.PUERTO_CPU_DISPATCH, logger);
-	int conexion_interrupt = crear_conexion(config.IP_CPU, config.PUERTO_CPU_INTERRUPT, logger);
-	int conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
-
-	pthread_t hilo_atender_pedido;
+	inicializar_conexiones();
 	
-	
-
-	/* Parametros que necesita atender_pedido */
-	args_thread *args = malloc(sizeof(args_thread));
-	args->conexion_memoria = conexion_memoria;
-	args->config = config;
-	args->conexion_dispatch = conexion_dispatch;
-	args->conexion_interrupt = conexion_interrupt;
+	log_info(logger, "Inicializacion de Kernel terminada");
 
 	pthread_t hilo_largo_plazo_mover_de_new_a_ready;
-	pthread_create( &hilo_largo_plazo_mover_de_new_a_ready, NULL, mover_procesos_a_ready_desde_new, (void*) args);
+	pthread_create( &hilo_largo_plazo_mover_de_new_a_ready, NULL, mover_procesos_a_ready_desde_new, NULL);
 
-	while(1) 
-	{
-		int kernel_cliente = esperar_cliente(kernel_server, logger);
-		args->cliente_fd = kernel_cliente;
-		pthread_create( &hilo_atender_pedido, NULL, atender_pedido, (void*) args);
-		pthread_join(hilo_atender_pedido,NULL);	
-	}
+	while(server_escuchar(kernel_server));
 
 	return 0;
+
+}
+
+int server_escuchar(int kernel_server) {
+	int kernel_cliente = esperar_cliente(kernel_server, logger);
+
+    if (kernel_cliente != -1) {
+        pthread_t hilo_atender_pedido;
+
+		args_thread *args = malloc(sizeof(args_thread));
+		args->cliente_fd = kernel_cliente;
+		
+		pthread_create( &hilo_atender_pedido, NULL, atender_pedido, (void*) args);
+        pthread_join(hilo_atender_pedido, NULL);
+        return 1;
+    }
+    return 0;
 
 }

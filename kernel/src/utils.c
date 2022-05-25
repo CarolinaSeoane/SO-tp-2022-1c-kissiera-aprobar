@@ -23,3 +23,43 @@ void cargarConfig(char* path, Config* config) {
         exit(0);
     }
 }
+
+void inicializar_colas() {
+	cola_new = list_create();
+	cola_ready = list_create();
+	cola_exec = list_create();
+	cola_blck = list_create();
+	cola_finish = list_create();
+}
+
+void inicializar_semaforos() {
+	pthread_mutex_init(&mutexBlockSuspended, NULL);
+	pthread_mutex_init(&mutexReadySuspended, NULL);
+	pthread_mutex_init(&mutexNew, NULL);
+	pthread_mutex_init(&mutexReady, NULL);
+	pthread_mutex_init(&mutexBlock, NULL);
+	pthread_mutex_init(&mutexExe, NULL);
+	pthread_mutex_init(&mutexExit, NULL);
+	pthread_mutex_init(&mutex_mover_de_new_a_ready, NULL);
+}
+
+void inicializar_logger() {
+	logger = log_create("kernel.log", "Kernel", 1, LOG_LEVEL_DEBUG);
+}
+
+Config inicializar_config() {
+	cargarConfig("kernel.config", &config);
+}
+
+void inicializar_servidor() {
+    kernel_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, SOMAXCONN);
+	if(!kernel_server) {
+		log_error(logger, "Error al iniciar el servidor Kernel\nCerrando el programa");
+	}
+}
+
+void inicializar_conexiones() {
+    conexion_dispatch = crear_conexion(config.IP_CPU, config.PUERTO_CPU_DISPATCH, logger);
+    conexion_interrupt = crear_conexion(config.IP_CPU, config.PUERTO_CPU_INTERRUPT, logger);
+    conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
+}
