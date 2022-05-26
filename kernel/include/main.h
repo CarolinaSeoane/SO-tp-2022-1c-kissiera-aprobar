@@ -14,7 +14,7 @@
 #include "serializacion.h"
 
 void* atender_pedido(void*);
-void* mover_procesos_a_ready_desde_new(void*);
+void* mover_procesos_a_ready_desde_new();
 void mostrar_instrucciones(void*, int);
 void planificador_largo_plazo(int, void*, int, Config, int);
 int server_escuchar(int kernel_server);

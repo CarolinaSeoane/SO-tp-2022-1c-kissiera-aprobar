@@ -120,7 +120,7 @@ void* mover_procesos_a_ready_desde_new(void* args){
 
 			if(list_iterator_has_next(iterator)){
 				elem_iterado = list_remove(cola_new, count);
-				elem_iterado -> tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado, args->conexion_memoria);			
+				elem_iterado -> tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado, conexion_memoria);			
 				log_info(logger, "Proceso sacado de New, Cantidad en New: %d", cola_new->elements_count);
 				pthread_mutex_lock(&mutexReady);
 				list_add(cola_ready, elem_iterado);
@@ -146,12 +146,8 @@ int main(void) {
 	
 	log_info(logger, "Inicializacion de Kernel terminada");
 	pthread_t hilo_largo_plazo_mover_de_new_a_ready;
-
-	args_thread *args = malloc(sizeof(args_thread));
-	conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
-	args->conexion_memoria = conexion_memoria;
-	pthread_create( &hilo_largo_plazo_mover_de_new_a_ready, NULL, mover_procesos_a_ready_desde_new, (void*) args);
-
+	pthread_create( &hilo_largo_plazo_mover_de_new_a_ready, NULL, mover_procesos_a_ready_desde_new, NULL);
+	
 	while(server_escuchar(kernel_server));
 
 	return 0;
