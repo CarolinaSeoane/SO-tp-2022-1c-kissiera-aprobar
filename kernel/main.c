@@ -97,8 +97,8 @@ void* atender_pedido(void* void_args) {
 	log_info(logger, "------------------ DONE ---------------");
 }*/
 
-
 void* mover_procesos_a_ready_desde_new(){
+
 	
 	
 	while(1)
@@ -153,6 +153,8 @@ int main(void) {
 	pthread_create( &hilo_largo_plazo_mover_de_new_a_ready, NULL, mover_procesos_a_ready_desde_new, NULL);
 	while(server_escuchar(kernel_server));
 
+	destroy_recursos();
+
 	return 0;
 
 }
@@ -171,5 +173,4 @@ int server_escuchar(int kernel_server) {
         return 1;
     }
     return 0;
-
 }

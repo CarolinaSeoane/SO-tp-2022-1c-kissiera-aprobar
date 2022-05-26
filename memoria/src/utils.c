@@ -23,3 +23,22 @@ void cargarConfig(char* path, Config* config) {
         exit(0);
     }
 }
+
+void inicializar_logger() {
+	logger = log_create("memoria.log", "Memoria", 1, LOG_LEVEL_DEBUG);
+}
+
+void inicializar_config() {
+	cargarConfig("memoria.config", &config);
+}
+
+void inicializar_servidor() {
+    memoria_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, 2);
+	if(!memoria_server) {
+		log_error(logger, "Error al iniciar el servidor Memoria");
+	}
+}
+
+void destroy_recursos() {
+    log_destroy(logger);
+}

@@ -49,14 +49,14 @@ void inicializar_logger() {
 	logger = log_create("kernel.log", "Kernel", 1, LOG_LEVEL_DEBUG);
 }
 
-Config inicializar_config() {
+void inicializar_config() {
 	cargarConfig("kernel.config", &config);
 }
 
 void inicializar_servidor() {
     kernel_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, SOMAXCONN);
 	if(!kernel_server) {
-		log_error(logger, "Error al iniciar el servidor Kernel\nCerrando el programa");
+		log_error(logger, "Error al iniciar el servidor Kernel");
 	}
 }
 
@@ -64,5 +64,11 @@ void inicializar_conexiones() {
     conexion_dispatch = crear_conexion(config.IP_CPU, config.PUERTO_CPU_DISPATCH, logger);
     conexion_interrupt = crear_conexion(config.IP_CPU, config.PUERTO_CPU_INTERRUPT, logger);
     conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
+}
 
+void destroy_recursos() {
+    log_destroy(logger);
+    close(conexion_dispatch);
+    close(conexion_interrupt);
+    close(conexion_memoria);
 }

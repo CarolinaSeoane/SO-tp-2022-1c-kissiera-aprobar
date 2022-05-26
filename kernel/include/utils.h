@@ -26,7 +26,6 @@ typedef struct {
 
 typedef struct {
     int cliente_fd;
-	int conexion_memoria;
 } args_thread;
 
 t_log* logger;
@@ -63,8 +62,9 @@ void cargarConfig(char*, Config*);
 void inicializar_colas();
 void inicializar_semaforos();
 void inicializar_logger();
-Config inicializar_config();
+void inicializar_config();
 void inicializar_servidor();
 void inicializar_conexiones();
+void destroy_recursos();
 
 #endif
