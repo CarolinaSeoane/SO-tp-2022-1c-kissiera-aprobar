@@ -14,5 +14,7 @@
 #include "conexiones_memoria.h"
 #include <pthread.h>
 #include <semaphore.h>
+#include "mmu.h"
+#include "tlb.h"
 
 #endif /* CPU_H_ */

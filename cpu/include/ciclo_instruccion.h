@@ -9,6 +9,7 @@
 #include "conexiones_kernel.h"
 #include "conexiones_memoria.h"
 #include <unistd.h>
+#include "mmu.h"
 
 void ejecutar_ciclo_instruccion(Proceso_CPU*, void*);
 void fetch(Proceso_CPU*, instruccion*);

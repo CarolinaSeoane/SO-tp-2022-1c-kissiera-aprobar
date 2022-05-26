@@ -1,6 +1,30 @@
 #include "../include/ciclo_instruccion.h"
 
 void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, void* void_args) {
+
+	inicializar_tlb();
+	printear();
+	//esto es todo de prueba
+	agregar_direccion(4,5);
+	printear();
+	
+	obtener_dir_tlb(4);
+	obtener_dir_tlb(5);
+	obtener_dir_tlb(3);
+	agregar_direccion(3,8);
+	printear();
+	obtener_dir_tlb(3);
+
+	agregar_direccion(9,6);
+	printear();
+	agregar_direccion(2,7);
+	printear();
+
+	agregar_direccion(5,9);
+	printear();
+	
+	eliminar_tlb();
+
     instruccion inst;
     int valor_copy;
 	log_info(logger, "Ejecutando ciclos de instruccion del proceso %d", (*proceso).pid);

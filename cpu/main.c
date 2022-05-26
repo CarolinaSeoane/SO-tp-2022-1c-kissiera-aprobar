@@ -4,7 +4,7 @@ int main() {
 
 	// ------ CONFIG INICIAL DE CPU ----------
 	logger = log_create("cpu.log", "Cpu", 1, LOG_LEVEL_DEBUG);
-	Config config;
+	
 	cargarConfig("cpu.config", &config);
 
 	// ------ HANDSHAKE CON MEMORIA ----------

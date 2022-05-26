@@ -32,6 +32,7 @@ typedef struct {
 } args_interrupt;
 
 t_log* logger;
+Config config;
 int tamanio_pagina;
 int cant_entradas_tabla;
 int flag_interrupcion;
