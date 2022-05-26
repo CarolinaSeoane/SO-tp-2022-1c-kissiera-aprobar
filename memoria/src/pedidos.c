@@ -3,14 +3,36 @@
 void* atender_pedido(void* void_args) {
 
 	args_thread_memoria* args = (args_thread_memoria*) void_args;
-
-	while(1) {
+	
+	while(args->cliente_fd != -1) {
 
 		int accion;
 		recv(args->cliente_fd, &accion, sizeof(accion), 0);
-		//log_info(logger, "Acción: %d", accion);
+		log_info(logger, "Acción: %d", accion);
 
 		switch(accion) {
+			case INIT_PROCESO:;
+
+				int pid;
+				int tamanio_proceso;
+				uint32_t tabla_primer_nivel;
+
+				recv_proceso_init(&pid, &tamanio_proceso, args->cliente_fd);
+				log_info(logger, "Recibi proceso PID: %d TAM: %d", pid, tamanio_proceso);
+
+				/* Enviar respuesta a kernel
+				*/
+				
+				break;
+
+			case ENVIAR_TABLA_PRIMER_NIVEL:
+	
+				break;
+			
+			case ENVIAR_TABLA_SEGUNDO_NIVEL:
+
+				break;
+
 			case READ_M:;
 				int leer_en;
 				recv(args->cliente_fd, &leer_en, sizeof(int), 0);
@@ -30,10 +52,6 @@ void* atender_pedido(void* void_args) {
 				break;
 
 			case WRITE_M:
-				
-				break;
-
-			case INIT_PROCESO:
 				
 				break;
 

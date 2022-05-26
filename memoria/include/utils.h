@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include "../../shared/include/shared.h"
+#include <pthread.h>
 
 typedef struct {
     char* PUERTO_ESCUCHA;
@@ -28,11 +29,17 @@ typedef struct {
 t_log* logger;
 Config config;
 int memoria_server;
+void* memoria_principal;
+
+// Mutex
+pthread_mutex_t mutex_memoria;
 
 void cargarConfig(char*, Config*);
 void inicializar_logger();
 void inicializar_config();
 void inicializar_servidor();
 void destroy_recursos();
+void inicializar_semaforos();
+void inicializar_memoria_principal();
 
 #endif

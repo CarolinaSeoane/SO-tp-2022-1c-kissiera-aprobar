@@ -39,6 +39,18 @@ void inicializar_servidor() {
 	}
 }
 
+void inicializar_semaforos() {
+    pthread_mutex_init(&mutex_memoria, NULL);
+}
+
 void destroy_recursos() {
     log_destroy(logger);
+    free(memoria_principal);
+}
+
+void inicializar_memoria_principal() {
+    memoria_principal = malloc(sizeof(config.TAM_MEMORIA));
+    log_info(logger, "Memoria inicializada con %d frames", config.TAM_MEMORIA / config.TAM_PAGINA);
+
+
 }

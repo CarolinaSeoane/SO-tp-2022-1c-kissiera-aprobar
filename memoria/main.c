@@ -2,10 +2,11 @@
 
 int main(void) {
 
-
 	inicializar_logger();
 	inicializar_config();
 	inicializar_servidor();
+	inicializar_semaforos();
+	inicializar_memoria_principal();
 
     log_info(logger, "Inicializacion de Memoria terminada");
 
@@ -26,7 +27,7 @@ int server_escuchar(int memoria_server) {
 		args->cliente_fd = memoria_cliente;
 		
 		pthread_create(&hilo_atender_pedido_memoria, NULL, atender_pedido, (void*) args);
-        pthread_join(hilo_atender_pedido_memoria, NULL);
+        pthread_detach(hilo_atender_pedido_memoria);
         return 1;
     }
     return 0;
