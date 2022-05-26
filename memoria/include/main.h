@@ -12,4 +12,6 @@
 #include "utils.h"
 #include "pedidos.h"
 
+int server_escuchar(int);
+
 #endif

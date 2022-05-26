@@ -67,10 +67,10 @@ void send_cpu_handshake(void* void_args) {
 	memcpy(a_enviar, &(*codigo), sizeof(int));
 	offset += sizeof(int);
 
-	memcpy(a_enviar+offset, &(args->config.TAM_PAGINA), sizeof(int));
+	memcpy(a_enviar+offset, &config.TAM_PAGINA, sizeof(int));
 	offset += sizeof(int);
 
-	memcpy(a_enviar+offset, &(args->config.ENTRADAS_POR_TABLA), sizeof(int));
+	memcpy(a_enviar+offset, &config.ENTRADAS_POR_TABLA, sizeof(int));
 
 	send(args->cliente_fd, a_enviar, sizeof(int)*3, 0);
 	free(a_enviar);

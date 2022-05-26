@@ -23,11 +23,16 @@ typedef struct {
 
 typedef struct {
     int cliente_fd;
-    Config config;
 } args_thread_memoria;
 
 t_log* logger;
+Config config;
+int memoria_server;
 
 void cargarConfig(char*, Config*);
+void inicializar_logger();
+void inicializar_config();
+void inicializar_servidor();
+void destroy_recursos();
 
 #endif

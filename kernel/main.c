@@ -92,7 +92,7 @@ void* atender_pedido(void* void_args) {
 	}
 	log_info(logger, "------------------ DONE ---------------");
 }*/
-void* mover_procesos_a_ready_desde_new(void* args){
+void* mover_procesos_a_ready_desde_new() {
 	
 	
 	while(1)
@@ -120,7 +120,7 @@ void* mover_procesos_a_ready_desde_new(void* args){
 
 			if(list_iterator_has_next(iterator)){
 				elem_iterado = list_remove(cola_new, count);
-				elem_iterado -> tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado, conexion_memoria);			
+				elem_iterado -> tabla_paginas = 7;// solicitar_tabla_de_paginas_a_memoria(elem_iterado, conexion_memoria);			
 				log_info(logger, "Proceso sacado de New, Cantidad en New: %d", cola_new->elements_count);
 				pthread_mutex_lock(&mutexReady);
 				list_add(cola_ready, elem_iterado);
@@ -150,6 +150,8 @@ int main(void) {
 	
 	while(server_escuchar(kernel_server));
 
+	destroy_recursos();
+
 	return 0;
 
 }
@@ -168,5 +170,4 @@ int server_escuchar(int kernel_server) {
         return 1;
     }
     return 0;
-
 }
