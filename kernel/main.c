@@ -92,7 +92,7 @@ void* atender_pedido(void* void_args) {
 	}
 	log_info(logger, "------------------ DONE ---------------");
 }*/
-void* mover_procesos_a_ready_desde_new(){
+void* mover_procesos_a_ready_desde_new(void* args){
 	
 	
 	while(1)
@@ -109,7 +109,7 @@ void* mover_procesos_a_ready_desde_new(){
 			// Cuando se modifique (incremente) el grado de multi desde otro lado
 
 		pthread_mutex_lock(&mutex_mover_de_new_a_ready);
-		
+		args_thread* args = (args_thread*) args;
 		int GRADO_MULTIPROGRAMACION = config.GRADO_MULTIPROGRAMACION;
 		int count=0;
 		PCB* elem_iterado;
@@ -120,7 +120,7 @@ void* mover_procesos_a_ready_desde_new(){
 
 			if(list_iterator_has_next(iterator)){
 				elem_iterado = list_remove(cola_new, count);
-				//pedir estructuras de memoria a mem, y asignarlo				
+				elem_iterado -> tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado, args->conexion_memoria);			
 				log_info(logger, "Proceso sacado de New, Cantidad en New: %d", cola_new->elements_count);
 				pthread_mutex_lock(&mutexReady);
 				list_add(cola_ready, elem_iterado);
@@ -145,9 +145,12 @@ int main(void) {
 	inicializar_conexiones();
 	
 	log_info(logger, "Inicializacion de Kernel terminada");
-
 	pthread_t hilo_largo_plazo_mover_de_new_a_ready;
-	pthread_create( &hilo_largo_plazo_mover_de_new_a_ready, NULL, mover_procesos_a_ready_desde_new, NULL);
+
+	args_thread *args = malloc(sizeof(args_thread));
+	conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
+	args->conexion_memoria = conexion_memoria;
+	pthread_create( &hilo_largo_plazo_mover_de_new_a_ready, NULL, mover_procesos_a_ready_desde_new, (void*) args);
 
 	while(server_escuchar(kernel_server));
 

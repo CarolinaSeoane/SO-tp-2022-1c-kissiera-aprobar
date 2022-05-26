@@ -32,3 +32,26 @@ void* serializar_proceso(PCB* pcb, int bytes) {
 
     return paquete;
 }
+
+int solicitar_tabla_de_paginas_a_memoria(PCB* proceso, int conexion_memoria)
+{   
+    int bytes_a_enviar = sizeof(int) * 2;
+	void* a_enviar = malloc(bytes_a_enviar);
+    int* codigo = malloc(sizeof(int));
+    *codigo = INIT_PROCESO;
+    int offset = 0;
+
+    memcpy(a_enviar, &(*codigo), sizeof(int));
+	offset += sizeof(int);
+	memcpy(a_enviar + offset, &(proceso->pid), sizeof(int));
+	offset += sizeof(int);
+
+    send(conexion_memoria, a_enviar, bytes_a_enviar, 0);
+    free(codigo);
+    free(a_enviar);
+    
+    int tabla_paginas;
+    recv(conexion_memoria, &tabla_paginas, sizeof(int), MSG_WAITALL);
+    return tabla_paginas;
+
+}

@@ -7,5 +7,6 @@
 
 void send_proceso_a_cpu(PCB*, int, int);
 void* serializar_proceso(PCB*, int);
+int solicitar_tabla_de_paginas_a_memoria(PCB*,int);
 
 #endif
