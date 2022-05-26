@@ -30,17 +30,19 @@ void inicializar_colas() {
 	cola_exec = list_create();
 	cola_blck = list_create();
 	cola_finish = list_create();
+    cola_suspended_ready = list_create();
+	cola_suspended_blck = list_create();
 }
 
 void inicializar_semaforos() {
-	pthread_mutex_init(&mutexBlockSuspended, NULL);
-	pthread_mutex_init(&mutexReadySuspended, NULL);
+	pthread_mutex_init(&mutexSuspendedBlocked, NULL);
+	pthread_mutex_init(&mutexSuspendedReady, NULL);
 	pthread_mutex_init(&mutexNew, NULL);
 	pthread_mutex_init(&mutexReady, NULL);
 	pthread_mutex_init(&mutexBlock, NULL);
 	pthread_mutex_init(&mutexExe, NULL);
 	pthread_mutex_init(&mutexExit, NULL);
-	pthread_mutex_init(&mutex_mover_de_new_a_ready, NULL);
+	pthread_mutex_init(&mutex_popular_cola_ready, NULL);
 }
 
 void inicializar_logger() {

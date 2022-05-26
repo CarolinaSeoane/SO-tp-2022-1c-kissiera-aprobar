@@ -44,6 +44,8 @@ t_list *cola_ready;
 t_list *cola_exec;
 t_list *cola_blck;
 t_list *cola_finish;
+t_list *cola_suspended_ready;
+t_list *cola_suspended_blck;
 
 // Mutex - Estados del proceso
 pthread_mutex_t mutexNew;
@@ -51,11 +53,11 @@ pthread_mutex_t mutexReady;
 pthread_mutex_t mutexBlock;
 pthread_mutex_t mutexExe;
 pthread_mutex_t mutexExit;
-pthread_mutex_t mutexBlockSuspended;
-pthread_mutex_t mutexReadySuspended;
+pthread_mutex_t mutexSuspendedBlocked;
+pthread_mutex_t mutexSuspendedReady;
 
 // Mutex - Hilos
-pthread_mutex_t mutex_mover_de_new_a_ready;
+pthread_mutex_t mutex_popular_cola_ready;
 
 void cargarConfig(char*, Config*);
 void inicializar_colas();
