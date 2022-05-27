@@ -28,6 +28,11 @@ typedef struct {
     int cliente_fd;
 } args_thread;
 
+typedef struct {
+	int pid;
+	int cliente_fd;
+} Proceso_socket;
+
 t_log* logger;
 Config config;
 int kernel_server;
@@ -45,6 +50,7 @@ t_list *cola_blck;
 t_list *cola_finish;
 t_list *cola_suspended_ready;
 t_list *cola_suspended_blck;
+t_list *cola_procesos_con_socket;
 
 // Mutex - Estados del proceso
 pthread_mutex_t mutexNew;
@@ -57,6 +63,8 @@ pthread_mutex_t mutexSuspendedReady;
 
 // Mutex - Hilos
 pthread_mutex_t mutex_popular_cola_ready;
+pthread_mutex_t mutex_procesos_con_socket;
+
 
 void cargarConfig(char*, Config*);
 void inicializar_colas();

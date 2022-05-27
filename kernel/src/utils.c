@@ -32,6 +32,7 @@ void inicializar_colas() {
 	cola_finish = list_create();
     cola_suspended_ready = list_create();
 	cola_suspended_blck = list_create();
+    cola_procesos_con_socket = list_create();
 }
 
 void inicializar_semaforos() {
@@ -43,6 +44,7 @@ void inicializar_semaforos() {
 	pthread_mutex_init(&mutexExe, NULL);
 	pthread_mutex_init(&mutexExit, NULL);
 	pthread_mutex_init(&mutex_popular_cola_ready, NULL);
+    pthread_mutex_init(&mutex_procesos_con_socket, NULL);
 }
 
 void inicializar_logger() {
@@ -71,4 +73,10 @@ void destroy_recursos() {
     close(conexion_dispatch);
     close(conexion_interrupt);
     close(conexion_memoria);
+}
+
+
+void crear_proceso_socket(Proceso_socket* proceso_socket, int pid, int cliente_fd) {
+    (*proceso_socket).pid = generar_pid();
+    (*proceso_socket).cliente_fd = cliente_fd;
 }

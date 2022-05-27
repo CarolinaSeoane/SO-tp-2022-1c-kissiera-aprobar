@@ -1,17 +1,36 @@
 #include "include/main.h"
 
-void crear_y_poner_proceso_en_new(int tam_proceso, void* stream, int len_instrucciones) {
+void crear_y_poner_proceso_en_new(int tam_proceso, void* stream, int len_instrucciones, int cliente_fd) {
 	PCB pcb;
 	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, config.ESTIMACION_INICIAL);
 	log_info(logger, "PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
 	
 	//send_proceso_a_cpu(&pcb, len_instrucciones*sizeof(instruccion), conexion_dispatch);	// lo dejo aca para probar ahora. esto deberia ir en  el planificador de corto plazo
 	
+	// Agrego el proceso a New
 	pthread_mutex_lock(&mutexNew);
 	list_add(cola_new, &pcb);
 	PCB* elem_agregado = list_get(cola_new, cola_new->elements_count -1);
 	log_info(logger, "Leido de la lista -> PID: %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d",elem_agregado->pid, elem_agregado->tamanio_proceso, elem_agregado->program_counter , elem_agregado->tabla_paginas, elem_agregado->estimacion_rafaga);
 	pthread_mutex_unlock(&mutexNew);
+
+	//Armo elemento Proceso socket
+	Proceso_socket proceso_socket;
+	crear_proceso_socket(&proceso_socket, elem_agregado->pid, cliente_fd);
+
+	//Verifico sus datos
+	log_info(logger, "Antes de Agregar a la lista -> ID proceso: %d ; cliente_fd: %d", proceso_socket.pid, proceso_socket.cliente_fd);
+
+	//Lo agrego
+	pthread_mutex_lock(&mutex_procesos_con_socket);
+	list_add(cola_procesos_con_socket, &proceso_socket);
+	pthread_mutex_unlock(&mutex_procesos_con_socket);
+
+	//Lo leo de la lista para verificar
+	log_info(logger, "Cantidad en Proceso-Socket: %d", cola_procesos_con_socket->elements_count);
+	Proceso_socket* elem_guardado = list_get(cola_procesos_con_socket, cola_procesos_con_socket->elements_count -1);
+	log_info(logger, "Leo de la lista lista -> ID proceso: %d ; cliente_fd: %d", elem_guardado->pid, elem_guardado->cliente_fd);
+	
 	log_info(logger, "Nuevo proceso agregado a NEW, cantidad de procesos en NEW: %d", cola_new->elements_count);
 	pthread_mutex_unlock(&mutex_popular_cola_ready);
 
@@ -41,11 +60,14 @@ void* atender_pedido(void* void_args) {
 			log_info(logger, "Cantidad reservada para stream %d", len_instrucciones*sizeof(instruccion));
 			recv(args->cliente_fd, stream, len_instrucciones*sizeof(instruccion), 0);
 			log_info(logger, "Termine de loguear instrucciones");
-			crear_y_poner_proceso_en_new(tamanio_proceso, stream, len_instrucciones);
+			crear_y_poner_proceso_en_new(tamanio_proceso, stream, len_instrucciones, args->cliente_fd);
 			free(stream);
 			break;
 		case EXIT_PROCESO: ;
-			//Avisar a memoria que elimine las estructuras(mandar operacion + pid)
+			int pid_a_finalizar;
+			recv(args->cliente_fd, &pid_a_finalizar, sizeof(int), 0);
+			log_info(logger, "ID del proceso a finalizar: %d", pid_a_finalizar);
+			//avisar_a_memoria_proceso_finalizado(pid_a_finalizar);	//Avisar a memoria que elimine las estructuras(mandar operacion + pid)
 			//Movel el proceso de running a exit con mutex
 			//Mandar signal de mutex_popular_cola_ready ya que el grado de multiprogramacion decrementa
 		default:
@@ -55,6 +77,8 @@ void* atender_pedido(void* void_args) {
 	}
 	free(args);
 }
+
+
 
 	//Planificador Mediano Plazo
 		//Acciones:
