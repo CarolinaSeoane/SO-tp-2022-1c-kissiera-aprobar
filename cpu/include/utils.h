@@ -22,13 +22,10 @@ typedef struct {
 
 typedef struct {
     int cliente_dispatch_fd;
-    int con_memoria;
-    Config config;
 } args_dispatch;
 
 typedef struct {
     int cliente_interrupt_fd;
-    Config config;
 } args_interrupt;
 
 t_log* logger;
@@ -37,11 +34,19 @@ int tamanio_pagina;
 int cant_entradas_tabla;
 int flag_interrupcion;
 int flag_syscall;
+int conexion_memoria;
+int dispatch;
+int interrupt;
 
 sem_t mutex_flag_interrupcion;
 
 void cargarConfig(char*, Config*);
-void inicializar_semaforo();
+void inicializar_semaforos();
 void inicializar_flags();
+void inicializar_logger();
+void inicializar_config();
+void inicializar_conexiones();
+void inicializar_servidores();
+void destroy_recursos();
 
 #endif /* UTILS_H_ */

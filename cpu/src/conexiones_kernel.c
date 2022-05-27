@@ -1,4 +1,21 @@
-#include "../include/conexiones_memoria.h"
+#include "../include/conexiones_kernel.h"
+
+void recv_proceso(Proceso_CPU* proceso, args_dispatch* args) {
+
+	recv(args->cliente_dispatch_fd, &(proceso->pid), sizeof(int), 0);
+
+	recv(args->cliente_dispatch_fd, &(proceso->program_counter), sizeof(int), 0);
+
+	recv(args->cliente_dispatch_fd, &(proceso->tabla_paginas), sizeof(int), 0);
+
+	int tam_stream;
+	recv(args->cliente_dispatch_fd, &tam_stream, sizeof(int), 0);
+
+	proceso->stream = malloc(tam_stream);
+	recv(args->cliente_dispatch_fd, proceso->stream, tam_stream, 0);
+	//mostrar_instrucciones(proceso->stream, tam_stream/sizeof(instruccion));
+
+}
 
 // Alcanza con mandar 4 int: CODIGO_OP + PID + PC + TIEMPO_BLOQUEO 
 void serializar_proceso_bloqueado(Proceso_CPU* proceso, int tiempo_bloqueo, void* paquete_bloqueo) {

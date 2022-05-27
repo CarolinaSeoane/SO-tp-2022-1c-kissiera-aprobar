@@ -54,7 +54,7 @@ int solicitar_tabla_de_paginas_a_memoria(PCB* proceso, int conexion_memoria)
     free(a_enviar);
     
     int tabla_primer_nivel;
-    recv(conexion_memoria, &tabla_primer_nivel, sizeof(int), 0);
+    // recv(conexion_memoria, &tabla_primer_nivel, sizeof(int), 0);
     printf("Recibi tabla de primer nivel\n");
-    return tabla_primer_nivel;
+    return 7;//tabla_primer_nivel;
 }

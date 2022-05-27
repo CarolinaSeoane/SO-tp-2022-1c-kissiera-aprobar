@@ -75,7 +75,6 @@ void destroy_recursos() {
     close(conexion_memoria);
 }
 
-
 void crear_proceso_socket(Proceso_socket* proceso_socket, int pid, int cliente_fd) {
     (*proceso_socket).pid = generar_pid();
     (*proceso_socket).cliente_fd = cliente_fd;

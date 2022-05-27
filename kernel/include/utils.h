@@ -10,6 +10,7 @@
 #include "../../shared/include/shared.h"
 #include <commons/collections/list.h>
 #include <pthread.h>
+#include "pcb.h"
 
 typedef struct {
 	char* IP_MEMORIA;
@@ -74,5 +75,6 @@ void inicializar_config();
 void inicializar_servidor();
 void inicializar_conexiones();
 void destroy_recursos();
+void crear_proceso_socket(Proceso_socket*, int, int);
 
 #endif

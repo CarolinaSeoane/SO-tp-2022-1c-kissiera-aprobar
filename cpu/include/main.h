@@ -12,6 +12,7 @@
 #include "interrupt.h"
 #include "ciclo_instruccion.h"
 #include "conexiones_memoria.h"
+#include "conexiones_kernel.h"
 #include <pthread.h>
 #include <semaphore.h>
 #include "mmu.h"

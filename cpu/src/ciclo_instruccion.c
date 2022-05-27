@@ -34,7 +34,7 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, void* void_args) {
         bool es_copy = decode(inst.id_operacion);
         
 	    if (es_copy) { 
-            valor_copy = fetch_operands(proceso, inst, void_args); // Para que saque el segundo operando y se comunique con memoria
+            valor_copy = fetch_operands(proceso, inst); // Para que saque el segundo operando y se comunique con memoria
         }
         
         (*proceso).program_counter++;
@@ -62,10 +62,9 @@ bool decode(int co_op) {
     return co_op == COPY;
 }
 
-int fetch_operands(Proceso_CPU* proceso, instruccion inst, void* void_args) {
-	args_dispatch* args = (args_dispatch*) void_args;
-	//send_pedido_lectura(proceso, inst, args->con_memoria);
-	return 1; //recv_pedido_lectura(args->con_memoria);
+int fetch_operands(Proceso_CPU* proceso, instruccion inst) {
+	//send_pedido_lectura(proceso, inst, conexion_memoria);
+	return 1; //recv_pedido_lectura(conexion_memoria);
 }
 
 void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_args) {
@@ -75,7 +74,7 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_
 
 		case NO_OP:
 			log_info(logger, "Proceso %d ejecuta NO_OP", (*proceso).pid);
-			sleep(args->config.RETARDO_NOOP / 1000);
+			sleep(config.RETARDO_NOOP / 1000);
 			break;
 		case IO:;
 			log_info(logger, "Proceso %d ejecuta IO", (*proceso).pid);
@@ -87,19 +86,19 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_
 			break;
 		case READ:;
 			log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
-			//send_pedido_lectura(proceso, inst, args->con_memoria);
+			//send_pedido_lectura(proceso, inst, conexion_memoria);
 			
-			//int leido = recv_pedido_lectura(args->con_memoria);
+			//int leido = recv_pedido_lectura(conexion_memoria);
 			
 			//log_info(logger, "El valor leido es %d", leido);
 			break;
 		case WRITE:
 			log_info(logger, "Proceso %d ejecuta WRITE", (*proceso).pid);
-			//send_pedido_escritura(inst.operando1, inst.operando2, args->con_memoria);
+			//send_pedido_escritura(inst.operando1, inst.operando2, conexion_memoria);
 			break;
 		case COPY:
 			log_info(logger, "Proceso %d ejecuta COPY", (*proceso).pid);
-			// send_pedido_escritura(inst.operando1, valor_copy, args->con_memoria);
+			// send_pedido_escritura(inst.operando1, valor_copy, conexion_memoria);
 			break;
 		case EXIT:
 			log_info(logger, "Proceso %d ejecuta EXIT", (*proceso).pid);

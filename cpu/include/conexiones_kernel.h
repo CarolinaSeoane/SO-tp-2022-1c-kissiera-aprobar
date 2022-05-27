@@ -12,6 +12,7 @@
 #include "interrupt.h"
 #include <pthread.h>
 
+void recv_proceso(Proceso_CPU*, args_dispatch*);
 void serializar_proceso_bloqueado(Proceso_CPU*, int, void*);
 void serializar_proceso_finalizado(Proceso_CPU*, void*);
 void serializar_proceso_desalojado(Proceso_CPU*, void*);
