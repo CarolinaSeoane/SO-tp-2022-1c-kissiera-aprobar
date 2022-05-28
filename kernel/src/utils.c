@@ -47,6 +47,7 @@ void inicializar_semaforos() {
     pthread_mutex_init(&mutex_procesos_con_socket, NULL);
     sem_init(&sem_hilo_new_ready, 0, 0);
     sem_init(&sem_hilo_exec_exit, 0, 0);
+    sem_init(&sem_hilo_susp_ready_ready, 0, 0);
 }
 
 void inicializar_logger() {
@@ -78,7 +79,8 @@ void destroy_recursos() {
 }
 
 void inicializar_planificacion() {
-    pthread_create(&hilo_new_ready, NULL, pasar_de_new_a_ready, NULL);
+    pthread_create(&hilo_new_ready, NULL, intentar_pasar_de_new_a_ready, NULL);
+    pthread_create(&hilo_ready_susp_ready, NULL, pasar_de_ready_susp_a_ready, NULL);
 /*	pthread_create(&hilo_exec_exit, NULL, pasar_de_exec_a_exit, NULL);
 	pthread_create(&hilo_mediano_plazo, NULL, planificador_mediano_plazo, NULL);
 	pthread_create(&hilo_corto_plazo, NULL, planificador_corto_plazo, NULL);

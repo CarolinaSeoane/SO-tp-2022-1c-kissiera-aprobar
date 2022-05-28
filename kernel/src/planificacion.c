@@ -13,51 +13,55 @@ void crear_y_poner_proceso_en_new(int tam_proceso, void* stream, int len_instruc
 	// Signal al hilo new - ready
 	log_info(logger, "Nuevo proceso agregado a NEW, cantidad de procesos en NEW: %d", cola_new->elements_count);
 	sem_post(&sem_hilo_new_ready);
+    //sem_post(&planificador_largo_plazo);
 }
 
-void* pasar_de_new_a_ready() {
+/* PLANIFICADOR LARGO PLAZO */
+
+void* intentar_pasar_de_new_a_ready() {
 	while(1) {
 		sem_wait(&sem_hilo_new_ready);
-        // sem_wait(&planificador_largo_plazo); //ver
-        
-        int GRADO_MULTIPROGRAMACION = config.GRADO_MULTIPROGRAMACION;
-		int PROCESOS_EN_MEMORIA = cola_ready->elements_count + cola_blck->elements_count + cola_exec->elements_count;
+        //sem_wait(&planificador_largo_plazo);
 
-/* Aca creo que si hay procesos en susp ready tenemos que avisar al planificador de mediano plazo y si no ahi si lo podemos agregar */
-
-/*		pthread_mutex_lock(&mutex_popular_cola_ready);
-		PCB* elem_iterado;
-
-		int count=0;
-
-		t_list* cola_a_revisar = cola_suspended_ready;
-		pthread_mutex_t *mutex = &mutexSuspendedReady;
-		char* cola_para_revisar = "Suspended/Ready";
-		if(cola_suspended_ready->elements_count == 0){
-			cola_a_revisar = cola_new;
-			mutex = &mutexNew;
-			cola_para_revisar = "New";
-		}
-		
-		while( count<(cola_a_revisar->elements_count) && (PROCESOS_EN_MEMORIA < GRADO_MULTIPROGRAMACION) ){
-			pthread_mutex_lock(mutex);
-			t_list_iterator* iterator = list_iterator_create(cola_a_revisar);
-
-			if(list_iterator_has_next(iterator)){
-				elem_iterado = list_remove(cola_a_revisar, count);
-				elem_iterado -> tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado, conexion_memoria);			
-				log_info(logger, "Proceso removido, Cantidad en cola %s: %d", cola_para_revisar, cola_a_revisar->elements_count);
-				pthread_mutex_lock(&mutexReady);
-				list_add(cola_ready, elem_iterado);
-				log_info(logger, "Cantidad en Ready: %d", cola_ready->elements_count);
-				pthread_mutex_unlock(&mutexReady);
-			}
-			pthread_mutex_unlock(mutex);
-			count++;
-		}
-*/
-	}
+        if(cola_suspended_ready->elements_count > 0) {
+            sem_post(&sem_hilo_susp_ready_ready); //hacer
+        } else {
+            pasar_de_new_a_ready();
+        }
+    }
 }
+
+void pasar_de_new_a_ready() {
+    int GRADO_MULTIPROGRAMACION = config.GRADO_MULTIPROGRAMACION;
+	int PROCESOS_EN_MEMORIA = cola_ready->elements_count + cola_blck->elements_count + cola_exec->elements_count;
+	
+	t_list_iterator* iterator = list_iterator_create(cola_new);
+	PCB* elem_iterado = malloc(sizeof(PCB));
+
+    if((PROCESOS_EN_MEMORIA < GRADO_MULTIPROGRAMACION) && list_iterator_has_next(iterator)) {
+		pthread_mutex_lock(&mutexNew);
+		elem_iterado = (PCB*) list_remove(cola_new, 0);
+		pthread_mutex_unlock(&mutexNew);
+
+		elem_iterado->tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado, conexion_memoria);	
+
+		pthread_mutex_lock(&mutexReady);
+		list_add(cola_ready, elem_iterado);
+		pthread_mutex_unlock(&mutexReady);
+
+		log_info(logger, "Proceso %d removido de New, cantidad en New: %d", elem_iterado->pid, cola_new->elements_count);
+		log_info(logger, "Cantidad en Ready: %d", cola_ready->elements_count);
+    }
+}
+
+/* PALNIFICADOR MEDIANO PLAZO */
+
+void* pasar_de_ready_susp_a_ready() {
+	sem_wait(&sem_hilo_susp_ready_ready);
+
+	/* Agregar proceso de ready susp a ready*/
+}
+
 /*
 void* pasar_de_exec_a_exit(){
 

@@ -60,10 +60,12 @@ pthread_t hilo_new_ready;
 pthread_t hilo_exec_exit; 
 pthread_t hilo_mediano_plazo; 
 pthread_t hilo_corto_plazo;
+pthread_t hilo_ready_susp_ready;
 
 // Semaforos para eventos de planificadores
 sem_t sem_hilo_new;
 sem_t sem_hilo_new_ready; //uso
+sem_t sem_hilo_susp_ready_ready; //uso
 sem_t sem_hilo_ready;
 sem_t sem_hilo_exec_exit;
 
