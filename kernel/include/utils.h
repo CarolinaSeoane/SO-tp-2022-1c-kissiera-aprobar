@@ -11,6 +11,7 @@
 #include <commons/collections/list.h>
 #include <pthread.h>
 #include "pcb.h"
+#include "planificacion.h"
 #include <semaphore.h>
 
 typedef struct {
@@ -61,11 +62,13 @@ pthread_t hilo_mediano_plazo;
 pthread_t hilo_corto_plazo;
 
 // Semaforos para eventos de planificadores
-sem_t sem_hilo_new_ready;
+sem_t sem_hilo_new;
+sem_t sem_hilo_new_ready; //uso
+sem_t sem_hilo_ready;
 sem_t sem_hilo_exec_exit;
 
 // Mutex - Estados del proceso
-pthread_mutex_t mutexNew;
+pthread_mutex_t mutexNew; //uso
 pthread_mutex_t mutexReady;
 pthread_mutex_t mutexBlock;
 pthread_mutex_t mutexExe;
@@ -86,6 +89,6 @@ void inicializar_config();
 void inicializar_servidor();
 void inicializar_conexiones();
 void destroy_recursos();
-void crear_proceso_socket(Proceso_socket*, int, int);
+void inicializar_planificacion();
 
 #endif

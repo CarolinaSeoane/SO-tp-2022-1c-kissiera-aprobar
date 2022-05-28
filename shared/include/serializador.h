@@ -45,6 +45,7 @@ typedef struct
 	int program_counter;
 	int tabla_paginas;
 	int estimacion_rafaga;
+	int cliente_fd;
 } PCB; // Estructura de un proceso.
 
 

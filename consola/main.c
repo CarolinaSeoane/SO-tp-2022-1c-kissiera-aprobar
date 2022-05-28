@@ -167,7 +167,6 @@ int main(int argc, char** argv) {
 	log_info(logger, "------------------ ESCUCHANDO CON RECV POR LA FINALIZACION DEL PROCESO ---------------\n");
 	int proceso_finalizado;
 	recv(conexion_kernel, &proceso_finalizado, sizeof(int), MSG_WAITALL);
-	// Acá se podría loguear que el proceso con las instrucciones a,b,c ...etc terminó
+	log_info(logger, "Proceso finalizado");
 	return EXIT_SUCCESS;
-
 }

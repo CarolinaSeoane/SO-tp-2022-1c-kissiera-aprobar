@@ -8,6 +8,6 @@
 int ULT_PID;
 
 int generar_pid();
-void crear_pcb(PCB*, int, void*, int, int);
+void crear_pcb(PCB*, int, void*, int, int, int);
 
 #endif 

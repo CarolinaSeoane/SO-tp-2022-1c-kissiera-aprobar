@@ -77,7 +77,10 @@ void destroy_recursos() {
     close(conexion_memoria);
 }
 
-void crear_proceso_socket(Proceso_socket* proceso_socket, int pid, int cliente_fd) {
-    (*proceso_socket).pid = generar_pid();
-    (*proceso_socket).cliente_fd = cliente_fd;
+void inicializar_planificacion() {
+    pthread_create(&hilo_new_ready, NULL, pasar_de_new_a_ready, NULL);
+/*	pthread_create(&hilo_exec_exit, NULL, pasar_de_exec_a_exit, NULL);
+	pthread_create(&hilo_mediano_plazo, NULL, planificador_mediano_plazo, NULL);
+	pthread_create(&hilo_corto_plazo, NULL, planificador_corto_plazo, NULL);
+*/
 }
