@@ -8,7 +8,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include "../../shared/include/shared.h"
-#include <semaphore.h>
+#include <pthread.h>
 
 typedef struct {
     int ENTRADAS_TLB;
@@ -38,7 +38,7 @@ int conexion_memoria;
 int dispatch;
 int interrupt;
 
-sem_t mutex_flag_interrupcion;
+pthread_mutex_t mutex_flag_interrupcion;
 
 void cargarConfig(char*, Config*);
 void inicializar_semaforos();

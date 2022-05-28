@@ -11,6 +11,7 @@
 #include <commons/collections/list.h>
 #include <pthread.h>
 #include "pcb.h"
+#include <semaphore.h>
 
 typedef struct {
 	char* IP_MEMORIA;
@@ -52,6 +53,16 @@ t_list *cola_finish;
 t_list *cola_suspended_ready;
 t_list *cola_suspended_blck;
 t_list *cola_procesos_con_socket;
+
+// Hilos
+pthread_t hilo_new_ready; 
+pthread_t hilo_exec_exit; 
+pthread_t hilo_mediano_plazo; 
+pthread_t hilo_corto_plazo;
+
+// Semaforos para eventos de planificadores
+sem_t sem_hilo_new_ready;
+sem_t sem_hilo_exec_exit;
 
 // Mutex - Estados del proceso
 pthread_mutex_t mutexNew;

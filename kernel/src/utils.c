@@ -45,6 +45,8 @@ void inicializar_semaforos() {
 	pthread_mutex_init(&mutexExit, NULL);
 	pthread_mutex_init(&mutex_popular_cola_ready, NULL);
     pthread_mutex_init(&mutex_procesos_con_socket, NULL);
+    sem_init(&sem_hilo_new_ready, 0, 0);
+    sem_init(&sem_hilo_exec_exit, 0, 0);
 }
 
 void inicializar_logger() {

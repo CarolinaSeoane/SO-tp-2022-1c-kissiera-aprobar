@@ -44,9 +44,9 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, void* void_args) {
 		log_info(logger, "El proceso %d es desalojado", (*proceso).pid);
 		send_proceso_desalojado(proceso, void_args);
 	}
-	sem_wait(&mutex_flag_interrupcion);
+	pthread_mutex_unlock(&mutex_flag_interrupcion);
 	flag_interrupcion = 0;
-	sem_post(&mutex_flag_interrupcion);
+	pthread_mutex_lock(&mutex_flag_interrupcion);
 	log_info(logger, "Cambie el flag a %d",flag_interrupcion);
 	flag_syscall = 0;
 }

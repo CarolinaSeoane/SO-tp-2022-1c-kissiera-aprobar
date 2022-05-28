@@ -22,13 +22,13 @@ void cargarConfig(char* path, Config* config) {
 }
 
 void inicializar_semaforos() {
-	sem_init(&mutex_flag_interrupcion, 0, 1);
+	pthread_mutex_init(&mutex_flag_interrupcion, NULL);
 }
 
 void inicializar_flags() {
-    sem_wait(&mutex_flag_interrupcion);
+    pthread_mutex_unlock(&mutex_flag_interrupcion);
     flag_interrupcion = 0;
-    sem_post(&mutex_flag_interrupcion);
+    pthread_mutex_lock(&mutex_flag_interrupcion);
     flag_syscall = 0;
 }
 
@@ -84,5 +84,5 @@ void inicializar_servidores() {
 void destroy_recursos() {
     log_destroy(logger);
     close(conexion_memoria);
-    sem_destroy(&mutex_flag_interrupcion);
+    pthread_mutex_destroy(&mutex_flag_interrupcion);
 }

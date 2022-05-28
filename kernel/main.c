@@ -70,6 +70,10 @@ void* atender_pedido(void* void_args) {
 			//avisar_a_memoria_proceso_finalizado(pid_a_finalizar);	//Avisar a memoria que elimine las estructuras(mandar operacion + pid)
 			//Movel el proceso de running a exit con mutex
 			//Mandar signal de mutex_popular_cola_ready ya que el grado de multiprogramacion decrementa
+		case BLOCK_PROCESO: ;
+			break;
+		case DESALOJO_PROCESO: ;
+			break;
 		default:
 			log_warning_sh(logger, "Operacion desconocida.");
 			close(args->cliente_fd);
@@ -121,12 +125,12 @@ void* atender_pedido(void* void_args) {
 	log_info(logger, "------------------ DONE ---------------");
 }*/
 
-void* mover_procesos_a_ready_desde_new(){
+void* pasar_de_new_a_ready(){
 
-	
-	
 	while(1)
 	{
+		sem_wait(&sem_hilo_new_ready);
+
 		pthread_mutex_lock(&mutex_popular_cola_ready);
 		PCB* elem_iterado;
 
@@ -163,6 +167,59 @@ void* mover_procesos_a_ready_desde_new(){
 	}
 }
 
+void* pasar_de_exec_a_exit(){
+
+	while(1)
+	{
+		sem_wait(&sem_hilo_exec_exit);
+
+		pthread_mutex_lock(&mutex_popular_cola_ready);
+		PCB* elem_iterado;
+
+		int GRADO_MULTIPROGRAMACION = config.GRADO_MULTIPROGRAMACION;
+		int PROCESOS_EN_MEMORIA = cola_ready->elements_count + cola_blck->elements_count + cola_exec->elements_count;
+		int count=0;
+
+		t_list* cola_a_revisar = cola_suspended_ready;
+		pthread_mutex_t *mutex = &mutexSuspendedReady;
+		char* cola_para_revisar = "Suspended/Ready";
+		if(cola_suspended_ready->elements_count == 0){
+			cola_a_revisar = cola_new;
+			mutex = &mutexNew;
+			cola_para_revisar = "New";
+		}
+		
+		while( count<(cola_a_revisar->elements_count) && (PROCESOS_EN_MEMORIA < GRADO_MULTIPROGRAMACION) ){
+			pthread_mutex_lock(mutex);
+			t_list_iterator* iterator = list_iterator_create(cola_a_revisar);
+
+			if(list_iterator_has_next(iterator)){
+				elem_iterado = list_remove(cola_a_revisar, count);
+				elem_iterado -> tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado, conexion_memoria);			
+				log_info(logger, "Proceso removido, Cantidad en cola %s: %d", cola_para_revisar, cola_a_revisar->elements_count);
+				pthread_mutex_lock(&mutexReady);
+				list_add(cola_ready, elem_iterado);
+				log_info(logger, "Cantidad en Ready: %d", cola_ready->elements_count);
+				pthread_mutex_unlock(&mutexReady);
+			}
+			pthread_mutex_unlock(mutex);
+			count++;
+		}
+
+	}
+}
+
+void* planificador_mediano_plazo(){
+	while(1)
+	{
+	}
+}
+
+void* planificador_corto_plazo(){
+	while(1){
+	}
+}
+
 int main(void) {
 
 	inicializar_logger();
@@ -173,8 +230,12 @@ int main(void) {
 	inicializar_conexiones();
 	
 	log_info(logger, "Inicializacion de Kernel terminada");
-	pthread_t hilo_largo_plazo_mover_de_new_a_ready;
-	pthread_create( &hilo_largo_plazo_mover_de_new_a_ready, NULL, mover_procesos_a_ready_desde_new, NULL);
+	
+	pthread_create(&hilo_new_ready, NULL, pasar_de_new_a_ready, NULL);
+	pthread_create(&hilo_exec_exit, NULL, pasar_de_exec_a_exit, NULL);
+	pthread_create(&hilo_mediano_plazo, NULL, planificador_mediano_plazo, NULL);
+	pthread_create(&hilo_corto_plazo, NULL, planificador_corto_plazo, NULL);
+
 	while(server_escuchar(kernel_server));
 
 	destroy_recursos();

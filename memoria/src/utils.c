@@ -45,6 +45,7 @@ void inicializar_semaforos() {
 
 void destroy_recursos() {
     log_destroy(logger);
+    pthread_mutex_destroy(&mutex_memoria);
     free(memoria_principal);
 }
 

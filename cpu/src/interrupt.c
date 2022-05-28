@@ -9,9 +9,9 @@ void* atender_interrupt(void* void_args) {
 		switch(codigo) {
 			case INTERRUPCION:
 				log_info(logger, "Se recibió una interrupción");
-				sem_wait(&mutex_flag_interrupcion);
+				pthread_mutex_unlock(&mutex_flag_interrupcion);
 				flag_interrupcion = 1;
-				sem_post(&mutex_flag_interrupcion);
+				pthread_mutex_lock(&mutex_flag_interrupcion);
 				break;
 			default:
 				log_error(logger, "Operación desconocida");
