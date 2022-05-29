@@ -26,6 +26,7 @@ typedef struct {
 	int ESTIMACION_INICIAL;
 	double ALFA;
 	int GRADO_MULTIPROGRAMACION;
+	int TIEMPO_MAXIMO_BLOQUEADO;
 } Config;
 
 typedef struct {

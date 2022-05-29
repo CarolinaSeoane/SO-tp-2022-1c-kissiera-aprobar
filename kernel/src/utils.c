@@ -14,6 +14,8 @@ void cargarConfig(char* path, Config* config) {
         (*config).ESTIMACION_INICIAL           = config_get_int_value(t_config, "ESTIMACION_INICIAL");
         (*config).ALFA                         = config_get_double_value(t_config, "ALFA");
         (*config).GRADO_MULTIPROGRAMACION      = config_get_int_value(t_config, "GRADO_MULTIPROGRAMACION");
+        (*config).TIEMPO_MAXIMO_BLOQUEADO      = config_get_int_value(t_config, "TIEMPO_MAXIMO_BLOQUEADO");
+
 
         log_info(logger, "Configuración cargada correctamente");
         config_destroy(t_config);
@@ -84,7 +86,7 @@ void destroy_recursos() {
 void inicializar_planificacion() {
     hay_un_proceso_ejecutando = 0;
     pthread_create(&hilo_new_ready, NULL, intentar_pasar_de_new_a_ready, NULL);
-    pthread_create(&hilo_ready_susp_ready, NULL, pasar_de_ready_susp_a_ready, NULL);
+    pthread_create(&hilo_ready_susp_ready, NULL, pasar_de_bloqueado_a_susp, NULL);
     
     if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
 		pthread_create(&hilo_ready_exec, NULL, pasar_de_ready_a_exec_FIFO, NULL);
