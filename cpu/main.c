@@ -18,10 +18,8 @@ int main() {
 	
 	// ------ RECIBE PROCESOS DE KERNEL
 	pthread_t hilo_dispatch;
-	int cliente_dispatch = esperar_cliente(dispatch, logger);
-	args_dispatch *args_d = malloc(sizeof(args_dispatch));
-    args_d->cliente_dispatch_fd = cliente_dispatch;
-	pthread_create(&hilo_dispatch, NULL, atender_dispatch, (void*) args_d);
+	cliente_dispatch = esperar_cliente(dispatch, logger);
+	pthread_create(&hilo_dispatch, NULL, atender_dispatch, NULL);
 
 	// ------ ESPERA TERMINACION DE HILOS
 	pthread_join(hilo_dispatch, NULL);

@@ -16,34 +16,40 @@ void crear_y_poner_proceso_en_new(int tam_proceso, void* stream, int len_instruc
     //sem_post(&planificador_largo_plazo);
 }
 
-/* PLANIFICADOR LARGO PLAZO */
+/* ********** PLANIFICADOR LARGO PLAZO ********** */
 
 void* intentar_pasar_de_new_a_ready() {
 	while(1) {
 		sem_wait(&sem_hilo_new_ready);
         //sem_wait(&planificador_largo_plazo);
 
-        if(cola_suspended_ready->elements_count > 0) {
-            sem_post(&sem_hilo_susp_ready_ready); //hacer
-        } else {
-            pasar_de_new_a_ready();
-        }
+   		int GRADO_MULTIPROGRAMACION = config.GRADO_MULTIPROGRAMACION;
+		int PROCESOS_EN_MEMORIA = cola_ready->elements_count + cola_blck->elements_count + hay_un_proceso_ejecutando;
+
+		log_info(logger, "PROCESOS EN MEMORIA: %d", PROCESOS_EN_MEMORIA);
+		if(PROCESOS_EN_MEMORIA < GRADO_MULTIPROGRAMACION) {
+			pthread_mutex_lock(&mutexSuspendedReady);
+			if(cola_suspended_ready->elements_count > 0) {
+				pthread_mutex_unlock(&mutexSuspendedReady);
+				sem_post(&sem_hilo_ready_susp_ready);
+			} else {
+				pthread_mutex_unlock(&mutexSuspendedReady);
+				pasar_de_new_a_ready();
+			}
+		}
     }
 }
 
 void pasar_de_new_a_ready() {
-    int GRADO_MULTIPROGRAMACION = config.GRADO_MULTIPROGRAMACION;
-	int PROCESOS_EN_MEMORIA = cola_ready->elements_count + cola_blck->elements_count + cola_exec->elements_count;
-	
-	t_list_iterator* iterator = list_iterator_create(cola_new);
-	PCB* elem_iterado = malloc(sizeof(PCB));
+	PCB* elem_iterado;
 
-    if((PROCESOS_EN_MEMORIA < GRADO_MULTIPROGRAMACION) && list_iterator_has_next(iterator)) {
+    if(list_size(cola_new)) {
 		pthread_mutex_lock(&mutexNew);
-		elem_iterado = (PCB*) list_remove(cola_new, 0);
+		elem_iterado = list_remove(cola_new, 0);
 		pthread_mutex_unlock(&mutexNew);
 
-		elem_iterado->tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado, conexion_memoria);	
+		log_info(logger, "Pidiendo pagina a memoria");
+		elem_iterado->tabla_paginas = 7; //solicitar_tabla_de_paginas_a_memoria(elem_iterado, conexion_memoria);	
 
 		pthread_mutex_lock(&mutexReady);
 		list_add(cola_ready, elem_iterado);
@@ -51,19 +57,112 @@ void pasar_de_new_a_ready() {
 
 		log_info(logger, "Proceso %d removido de New, cantidad en New: %d", elem_iterado->pid, cola_new->elements_count);
 		log_info(logger, "Cantidad en Ready: %d", cola_ready->elements_count);
+		sem_post(&sem_hay_procesos_en_ready);
     }
 }
 
-/* PALNIFICADOR MEDIANO PLAZO */
+void pasar_de_exec_a_exit(int pid, int pc) { 
 
-void* pasar_de_ready_susp_a_ready() {
-	sem_wait(&sem_hilo_susp_ready_ready);
+	int consola;
+	int pid_exec;
 
-	/* Agregar proceso de ready susp a ready*/
+	pthread_mutex_lock(&mutex_vg_ex);
+	bool cpu_ocupada = hay_un_proceso_ejecutando;
+	pthread_mutex_unlock(&mutex_vg_ex);
+		
+	if(cpu_ocupada) {
+		log_info(logger, "HAY UN PROCESO EJECUTANDO");
+		pthread_mutex_lock(&mutexExe);
+		proceso_exec.program_counter = pc;
+		consola = proceso_exec.cliente_fd;
+		pid_exec = proceso_exec.pid;
+		pthread_mutex_unlock(&mutexExe);
+
+		if(pid_exec == pid) {
+			int codigo = 1;
+			void* a_enviar = malloc(sizeof(int));
+			memcpy(a_enviar, &codigo, sizeof(int));
+			
+			log_info(logger, "Enviando finalizacion a consola");
+			send(consola, a_enviar, sizeof(int), 0);
+
+			pthread_mutex_lock(&mutex_vg_ex);
+			hay_un_proceso_ejecutando = false;
+			pthread_mutex_unlock(&mutex_vg_ex);
+
+			memset(&proceso_exec, 0, sizeof(PCB));
+			
+			if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
+				sem_post(&sem_planificar_FIFO);
+			} else {
+				// semaforos SRT
+			}			
+		} else {
+			log_error(logger, "Error grave de planificacion");
+		}
+	}
 }
 
+/* ********** PLANIFICADOR MEDIANO PLAZO ********** */
+
+void* pasar_de_ready_susp_a_ready() { //ver
+	while(1) {
+		sem_wait(&sem_hilo_ready_susp_ready);
+/*		PCB* pcb = malloc(sizeof(PCB));
+
+		pthread_mutex_lock(&mutexSuspendedReady);
+		pcb = (PCB*) list_remove(cola_suspended_ready, 0);
+		pthread_mutex_unlock(&mutexSuspendedReady);
+
+		pthread_mutex_lock(&mutexReady);
+		list_add(cola_ready, pcb);
+		pthread_mutex_unlock(&mutexReady);
+
+		log_info(logger, "Proceso %d removido de Suspended/Ready, cantidad en Suspended/Ready: %d", pcb->pid, cola_suspended_ready->elements_count);
+		log_info(logger, "Cantidad en Ready: %d", cola_ready->elements_count);
+		sem_post(&sem_hay_procesos_en_ready);
+	
+
+	/* Avisar SWAP IN a memoria */
+
+	// sem_post(&sem_planificador_corto_pĺazo);
+	}
+}
+
+/* ********** PLANIFICADOR CORTO PLAZO ********** */
+
+void* pasar_de_ready_a_exec_FIFO() {  // esta hecha asi nomas para probar
+	while(1) {
+		log_info(logger, "Ejecutando fifo");
+		sem_wait(&sem_planificar_FIFO);
+		sem_wait(&sem_hay_procesos_en_ready);
+
+		PCB* pcb;
+		pthread_mutex_lock(&mutexReady);
+		if(list_size(cola_ready) && !hay_un_proceso_ejecutando) {	
+			pcb = list_remove(cola_ready, 0);
+			pthread_mutex_unlock(&mutexReady);
+
+			pthread_mutex_lock(&mutexExe);
+			proceso_exec = *pcb;
+			pthread_mutex_unlock(&mutexExe);
+			
+			log_info(logger, "Enviando proceso para ejecutar con pid: %d", proceso_exec.pid);
+			hay_un_proceso_ejecutando = true;
+			send_proceso_a_cpu(pcb, (pcb->len_instrucciones)*sizeof(instruccion), conexion_dispatch);
+		} else {
+			pthread_mutex_unlock(&mutexReady);
+		}
+	}
+}
+
+void* pasar_de_ready_a_exec_SRT() {  
+
+}
+
+
 /*
-void* pasar_de_exec_a_exit(){
+void* pasar_de_exec_a_exit() {
 
 	while(1)
 	{

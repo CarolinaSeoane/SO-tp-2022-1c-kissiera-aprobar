@@ -8,6 +8,7 @@ int generar_pid() {
 void crear_pcb(PCB* pcb, int tam, void* stream, int len_instrucciones, int est_inicial, int cliente) {
     (*pcb).pid = generar_pid();
     (*pcb).tamanio_proceso = tam;
+    (*pcb).len_instrucciones = len_instrucciones;
     (*pcb).stream = malloc(len_instrucciones*sizeof(instruccion));
     (*pcb).stream = stream;
     (*pcb).program_counter = 0;

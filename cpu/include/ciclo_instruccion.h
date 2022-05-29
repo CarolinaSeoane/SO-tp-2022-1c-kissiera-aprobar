@@ -11,11 +11,11 @@
 #include <unistd.h>
 #include "mmu.h"
 
-void ejecutar_ciclo_instruccion(Proceso_CPU*, void*);
+void ejecutar_ciclo_instruccion(Proceso_CPU*);
 void fetch(Proceso_CPU*, instruccion*);
 bool decode(int);
 int fetch_operands(Proceso_CPU*, instruccion);
-void execute(Proceso_CPU*, instruccion, int, void*);
+void execute(Proceso_CPU*, instruccion, int);
 int check_interrupt();
 int check_syscall();
 

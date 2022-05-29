@@ -41,6 +41,7 @@ typedef struct
 {
 	int pid;
 	int tamanio_proceso;
+	int len_instrucciones;
 	void* stream;
 	int program_counter;
 	int tabla_paginas;

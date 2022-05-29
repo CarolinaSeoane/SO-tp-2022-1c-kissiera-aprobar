@@ -27,7 +27,6 @@ void cargarConfig(char* path, Config* config) {
 void inicializar_colas() {
 	cola_new = list_create();
 	cola_ready = list_create();
-	cola_exec = list_create();
 	cola_blck = list_create();
 	cola_finish = list_create();
     cola_suspended_ready = list_create();
@@ -43,11 +42,13 @@ void inicializar_semaforos() {
 	pthread_mutex_init(&mutexBlock, NULL);
 	pthread_mutex_init(&mutexExe, NULL);
 	pthread_mutex_init(&mutexExit, NULL);
-	pthread_mutex_init(&mutex_popular_cola_ready, NULL);
+	pthread_mutex_init(&mutex_vg_ex, NULL);
     pthread_mutex_init(&mutex_procesos_con_socket, NULL);
     sem_init(&sem_hilo_new_ready, 0, 0);
     sem_init(&sem_hilo_exec_exit, 0, 0);
-    sem_init(&sem_hilo_susp_ready_ready, 0, 0);
+    sem_init(&sem_hilo_ready_susp_ready, 0, 0);
+    sem_init(&sem_planificar_FIFO, 0, 1);
+    sem_init(&sem_hay_procesos_en_ready, 0, 0);
 }
 
 void inicializar_logger() {
@@ -67,7 +68,9 @@ void inicializar_servidor() {
 
 void inicializar_conexiones() {
     conexion_dispatch = crear_conexion(config.IP_CPU, config.PUERTO_CPU_DISPATCH, logger);
-    conexion_interrupt = crear_conexion(config.IP_CPU, config.PUERTO_CPU_INTERRUPT, logger);
+    pthread_create(&hilo_atender_pedidos_dispatch, NULL, atender_pedidos_dispatch, NULL);
+    pthread_detach(hilo_atender_pedidos_dispatch);
+    conexion_interrupt = crear_conexion(config.IP_CPU, config.PUERTO_CPU_INTERRUPT, logger); //esta iria en otro hilo
     conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
 }
 
@@ -79,8 +82,16 @@ void destroy_recursos() {
 }
 
 void inicializar_planificacion() {
+    hay_un_proceso_ejecutando = 0;
     pthread_create(&hilo_new_ready, NULL, intentar_pasar_de_new_a_ready, NULL);
     pthread_create(&hilo_ready_susp_ready, NULL, pasar_de_ready_susp_a_ready, NULL);
+    
+    if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
+		pthread_create(&hilo_ready_exec, NULL, pasar_de_ready_a_exec_FIFO, NULL);
+	} else {
+		pthread_create(&hilo_ready_exec, NULL, pasar_de_ready_a_exec_SRT, NULL);
+	}
+    
 /*	pthread_create(&hilo_exec_exit, NULL, pasar_de_exec_a_exit, NULL);
 	pthread_create(&hilo_mediano_plazo, NULL, planificador_mediano_plazo, NULL);
 	pthread_create(&hilo_corto_plazo, NULL, planificador_corto_plazo, NULL);

@@ -10,6 +10,7 @@
 #include <pthread.h>
 #include "pcb.h"
 #include "utils.h"
+#include <stdbool.h>
 #include <semaphore.h>
 #include "serializacion.h"
 
@@ -17,5 +18,11 @@ void crear_y_poner_proceso_en_new(int, void*, int, int);
 void* intentar_pasar_de_new_a_ready();
 void pasar_de_new_a_ready(); 
 void* pasar_de_ready_susp_a_ready();
+void* pasar_de_ready_a_exec_FIFO();
+void* pasar_de_ready_a_exec_SRT();
+void pasar_de_exec_a_exit(int, int);
+
+PCB proceso_exec;
+bool hay_un_proceso_ejecutando;
 
 #endif 

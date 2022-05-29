@@ -11,11 +11,13 @@
 #include <commons/log.h>
 #include "utils.h"
 #include "pcb.h"
+#include "pedidos.h"
 #include "planificacion.h"
 #include "serializacion.h"
 #include <semaphore.h>
+#include "../../shared/include/shared.h"
 
-void* atender_pedido(void*);
 int server_escuchar(int kernel_server);
+
 
 #endif /* KERNEL_H_ */

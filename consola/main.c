@@ -167,6 +167,11 @@ int main(int argc, char** argv) {
 	log_info(logger, "------------------ ESCUCHANDO CON RECV POR LA FINALIZACION DEL PROCESO ---------------\n");
 	int proceso_finalizado;
 	recv(conexion_kernel, &proceso_finalizado, sizeof(int), MSG_WAITALL);
-	log_info(logger, "Proceso finalizado");
-	return EXIT_SUCCESS;
+	if(proceso_finalizado == 1) {
+		log_info(logger, "Proceso finalizado con codigo %d", proceso_finalizado);
+		return EXIT_SUCCESS;
+	} else {
+		log_error(logger, "Proceso finalizado con codigo de error %d", proceso_finalizado);
+		return -1;
+	}
 }

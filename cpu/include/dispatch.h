@@ -9,7 +9,7 @@
 #include "../../shared/include/shared.h"
 #include "ciclo_instruccion.h"
 
-void* atender_dispatch(void*);
+void* atender_dispatch();
 
 #endif /* DISPATCH_H_ */
 

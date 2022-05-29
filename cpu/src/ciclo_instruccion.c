@@ -1,8 +1,8 @@
 #include "../include/ciclo_instruccion.h"
 
-void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, void* void_args) {
+void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
 
-	inicializar_tlb();
+/*	inicializar_tlb();
 	printear();
 	//esto es todo de prueba
 	agregar_direccion(4,5);
@@ -24,7 +24,7 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, void* void_args) {
 	printear();
 	
 	eliminar_tlb();
-
+*/
     instruccion inst;
     int valor_copy;
 	log_info(logger, "Ejecutando ciclos de instruccion del proceso %d", (*proceso).pid);
@@ -38,11 +38,11 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso, void* void_args) {
         }
         
         (*proceso).program_counter++;
-        execute(proceso, inst, valor_copy, void_args);
+        execute(proceso, inst, valor_copy);
     }
 	if(!flag_syscall) {
 		log_info(logger, "El proceso %d es desalojado", (*proceso).pid);
-		send_proceso_desalojado(proceso, void_args);
+		send_proceso_desalojado(proceso);
 	}
 	pthread_mutex_unlock(&mutex_flag_interrupcion);
 	flag_interrupcion = 0;
@@ -67,9 +67,8 @@ int fetch_operands(Proceso_CPU* proceso, instruccion inst) {
 	return 1; //recv_pedido_lectura(conexion_memoria);
 }
 
-void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_args) {
-	args_dispatch* args = (args_dispatch*) void_args;
-
+void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy) {
+	
 	switch(inst.id_operacion) {
 
 		case NO_OP:
@@ -79,7 +78,7 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_
 		case IO:;
 			log_info(logger, "Proceso %d ejecuta IO", (*proceso).pid);
 			flag_syscall = 1;
-			send_proceso_bloqueado(proceso, inst.operando1, args);
+			send_proceso_bloqueado(proceso, inst.operando1);
 			/* aca solo hace falta devolverle el pid, pc y el bloqueo que lei recien. 
 			dsp en kernel hay que buscar el proceso con ese pid, actualizarle el pc 
 			y mandarlo a bloqueo */
@@ -103,7 +102,7 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, void* void_
 		case EXIT:
 			log_info(logger, "Proceso %d ejecuta EXIT", (*proceso).pid);
 			flag_syscall = 1;
-			send_proceso_finalizado(proceso, args);
+			send_proceso_finalizado(proceso);
 			break;
 		default:
 			log_error(logger, "Operacion desconocida");

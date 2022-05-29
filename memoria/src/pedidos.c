@@ -63,6 +63,8 @@ void* atender_pedido(void* void_args) {
 				log_info(logger, "Se recibio un handshake con CPU");
 				send_cpu_handshake((void*) args);
 				break;
+			case SWAP_IN:
+				break;
 			default:
 				log_warning_sh(logger, "Operacion desconocida.");
 				close(args->cliente_fd);

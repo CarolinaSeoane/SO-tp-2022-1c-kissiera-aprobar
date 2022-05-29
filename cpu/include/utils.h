@@ -21,10 +21,6 @@ typedef struct {
 } Config;
 
 typedef struct {
-    int cliente_dispatch_fd;
-} args_dispatch;
-
-typedef struct {
     int cliente_interrupt_fd;
 } args_interrupt;
 
@@ -35,8 +31,10 @@ int cant_entradas_tabla;
 int flag_interrupcion;
 int flag_syscall;
 int conexion_memoria;
+
 int dispatch;
 int interrupt;
+int cliente_dispatch; //hacer lo mismo para interrupt
 
 pthread_mutex_t mutex_flag_interrupcion;
 
