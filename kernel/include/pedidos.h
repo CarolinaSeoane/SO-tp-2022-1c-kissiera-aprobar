@@ -12,6 +12,7 @@
 #include "utils.h"
 #include "planificacion.h"
 #include <semaphore.h>
+#include "serializacion.h"
 
 void* atender_pedidos_consolas(void*);
 void* atender_pedidos_dispatch();

@@ -53,17 +53,30 @@ void* atender_pedidos_dispatch() {
 		switch(accion) {
 			case EXIT_PROCESO: ;
 				int pid_a_finalizar;
-				recv(conexion_dispatch, &pid_a_finalizar, sizeof(int), 0);
 				int program_counter;
-				recv(conexion_dispatch, &program_counter, sizeof(int), 0);
+
+				recv_exit_proceso(&pid_a_finalizar, &program_counter);
+				log_info(logger, "Proceso %d con pc %d por finalizar", pid_a_finalizar, program_counter);
+
 				pasar_de_exec_a_exit(pid_a_finalizar, program_counter);
 				//avisar_a_memoria_proceso_finalizado(pid_a_finalizar);	//Avisar a memoria que elimine las estructuras(mandar operacion + pid)
 				//Mover el proceso de running a exit con mutex
 				//Mandar signal de mutex_popular_cola_ready ya que el grado de multiprogramacion decrementa
 
 				break;
+
 			case BLOCK_PROCESO: ;
+				int pid;
+				int pc;
+				int tiempo_bloqueo;
+				recv_proceso_bloqueado(&pid, &pc, &tiempo_bloqueo);
+
+				log_info(logger, "Proceso %d bloqueado, pc %d, tiempo de bloqueo %d", pid, pc, tiempo_bloqueo);
+
+				pasar_de_exec_a_bloqueado(pid, pc, tiempo_bloqueo);
+				//mover el proceso de exec a blocked y mandar otro a ejecutar segun algoritmo de planificacion
 				break;
+
 			default:
 				log_error(logger, "Operacion desconocida.");
 				break;

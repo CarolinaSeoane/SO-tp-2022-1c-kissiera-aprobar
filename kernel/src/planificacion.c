@@ -7,8 +7,12 @@ void* intentar_pasar_de_new_a_ready() {
 		sem_wait(&sem_hilo_new_ready);
         //sem_wait(&planificador_largo_plazo);
 
+		pthread_mutex_lock(&mutex_vg_ex);
+		bool cpu_ocupada = hay_un_proceso_ejecutando;
+		pthread_mutex_unlock(&mutex_vg_ex);
+
    		int GRADO_MULTIPROGRAMACION = config.GRADO_MULTIPROGRAMACION;
-		int PROCESOS_EN_MEMORIA = cola_ready->elements_count + cola_blck->elements_count + hay_un_proceso_ejecutando;
+		int PROCESOS_EN_MEMORIA = cola_ready->elements_count + cola_blck->elements_count + cpu_ocupada;
 
 		log_info(logger, "PROCESOS EN MEMORIA: %d", PROCESOS_EN_MEMORIA);
 		if(PROCESOS_EN_MEMORIA < GRADO_MULTIPROGRAMACION) {
@@ -34,7 +38,7 @@ void pasar_de_new_a_ready() {
 		pthread_mutex_unlock(&mutexNew);
 
 		log_info(logger, "Pidiendo tabla de paginas a memoria");
-		elem_iterado->tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado, conexion_memoria);
+		elem_iterado->tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado);
 		log_info(logger, "Recibi tabla de paginas: %d", elem_iterado->tabla_paginas);
 
 		pthread_mutex_lock(&mutexReady);
@@ -118,7 +122,7 @@ void* pasar_de_bloqueado_a_susp() { //ver
 		pthread_mutex_unlock(&mutexBlock);
 
 		log_info(logger, "Pidiendo a memoria pasarel proceso a swap ");
-		solicitar_swap_out_a_memoria(elem_iterado, conexion_memoria);	
+		solicitar_swap_out_a_memoria(elem_iterado);	
           
 		pthread_mutex_lock(&mutexSuspendedBlocked);
 		list_add(cola_suspended_blck, elem_iterado);
@@ -165,9 +169,13 @@ void* pasar_de_ready_a_exec_FIFO() {  // esta hecha asi nomas para probar
 		sem_wait(&sem_planificar_FIFO);
 		sem_wait(&sem_hay_procesos_en_ready);
 
+		pthread_mutex_lock(&mutex_vg_ex);
+		bool cpu_ocupada = hay_un_proceso_ejecutando;
+		pthread_mutex_unlock(&mutex_vg_ex);
+
 		PCB* pcb;
 		pthread_mutex_lock(&mutexReady);
-		if(list_size(cola_ready) && !hay_un_proceso_ejecutando) {	
+		if(list_size(cola_ready) && !cpu_ocupada) {	
 			pcb = list_remove(cola_ready, 0);
 			pthread_mutex_unlock(&mutexReady);
 
@@ -176,11 +184,56 @@ void* pasar_de_ready_a_exec_FIFO() {  // esta hecha asi nomas para probar
 			pthread_mutex_unlock(&mutexExe);
 			
 			log_info(logger, "Enviando proceso para ejecutar con pid: %d", proceso_exec.pid);
+
+			pthread_mutex_lock(&mutex_vg_ex);
 			hay_un_proceso_ejecutando = true;
-			send_proceso_a_cpu(pcb, (pcb->len_instrucciones)*sizeof(instruccion), conexion_dispatch);
+			pthread_mutex_unlock(&mutex_vg_ex);
+
+			send_proceso_a_cpu(pcb, (pcb->len_instrucciones)*sizeof(instruccion));
 		} else {
 			pthread_mutex_unlock(&mutexReady);
 		}
+	}
+}
+
+void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
+
+	pthread_mutex_lock(&mutex_vg_ex);
+	bool cpu_ocupada = hay_un_proceso_ejecutando;
+	pthread_mutex_unlock(&mutex_vg_ex);
+
+	pthread_mutex_lock(&mutexExe);
+	if(cpu_ocupada && proceso_exec.pid == pid) {
+
+		proceso_exec.program_counter = pc;
+		
+		PCB* proceso_bloqueado = malloc(sizeof(PCB));
+		memcpy(proceso_bloqueado, &proceso_exec, sizeof(PCB));
+		proceso_bloqueado->tiempo_bloqueo = tiempo_bloqueo;
+
+		log_info(logger, "Proceso copiado con memcpy, pid: %d, pc: %d, con tiempo bloqueo: %d", proceso_bloqueado->pid, proceso_bloqueado->program_counter, proceso_bloqueado->tiempo_bloqueo);
+
+		list_add(cola_blck, proceso_bloqueado);
+
+		pthread_mutex_lock(&mutex_vg_ex);
+		hay_un_proceso_ejecutando = false;
+		pthread_mutex_unlock(&mutex_vg_ex);
+
+		memset(&proceso_exec, 0, sizeof(PCB));
+
+		pthread_mutex_unlock(&mutexExe);
+
+		log_info(logger, "Proceso removido de Running. Replanificando...");
+
+		if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
+			sem_post(&sem_planificar_FIFO);
+		} else {
+			// semaforos SRT
+		}			
+
+	} else {
+		pthread_mutex_unlock(&mutexExe);
+		log_error(logger, "Error grave de planificacion");
 	}
 }
 
@@ -218,7 +271,7 @@ void* pasar_de_exec_a_exit() {
 
 			if(list_iterator_has_next(iterator)){
 				elem_iterado = list_remove(cola_a_revisar, count);
-				elem_iterado -> tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado, conexion_memoria);			
+				elem_iterado -> tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado);			
 				log_info(logger, "Proceso removido, Cantidad en cola %s: %d", cola_para_revisar, cola_a_revisar->elements_count);
 				pthread_mutex_lock(&mutexReady);
 				list_add(cola_ready, elem_iterado);

@@ -28,8 +28,7 @@ typedef struct {
 } instruccion; // La instruccion en si.
 
 
-typedef struct
-{
+typedef struct {
 	accion id_accion;
 	int length_instrucciones;
 	int tamanio_proceso;
@@ -37,8 +36,7 @@ typedef struct
 } t_paquete_instrucciones; // Paquete para mandar instrucciones. Consola a Kernel.
 
 
-typedef struct
-{
+typedef struct {
 	int pid;
 	int tamanio_proceso;
 	int len_instrucciones;
@@ -47,6 +45,7 @@ typedef struct
 	int tabla_paginas;
 	int estimacion_rafaga;
 	int cliente_fd;
+	int tiempo_bloqueo;
 } PCB; // Estructura de un proceso.
 
 

@@ -21,6 +21,7 @@ void* pasar_de_ready_a_exec_SRT();
 void pasar_de_exec_a_exit(int, int);
 void* pasar_de_bloqueado_a_susp();
 void* pasar_de_ready_susp_a_ready();
+void pasar_de_exec_a_bloqueado(int, int, int);
 
 PCB proceso_exec;
 bool hay_un_proceso_ejecutando;

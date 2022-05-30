@@ -72,7 +72,9 @@ void inicializar_conexiones() {
     conexion_dispatch = crear_conexion(config.IP_CPU, config.PUERTO_CPU_DISPATCH, logger);
     pthread_create(&hilo_atender_pedidos_dispatch, NULL, atender_pedidos_dispatch, NULL);
     pthread_detach(hilo_atender_pedidos_dispatch);
-    conexion_interrupt = crear_conexion(config.IP_CPU, config.PUERTO_CPU_INTERRUPT, logger); //esta iria en otro hilo
+
+    conexion_interrupt = crear_conexion(config.IP_CPU, config.PUERTO_CPU_INTERRUPT, logger);
+
     conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
 }
 
@@ -91,7 +93,7 @@ void inicializar_planificacion() {
     pthread_create(&hilo_new_ready, NULL, intentar_pasar_de_new_a_ready, NULL);
     pthread_create(&hilo_bloqueado_a_bloqueado_susp, NULL, pasar_de_bloqueado_a_susp, NULL);
     pthread_create(&hilo_ready_susp_ready, NULL, pasar_de_ready_susp_a_ready, NULL);
-    
+
     if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
 		pthread_create(&hilo_ready_exec, NULL, pasar_de_ready_a_exec_FIFO, NULL);
 	} else {
