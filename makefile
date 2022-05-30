@@ -13,3 +13,12 @@ clean:
 
 ins:
 	make instruccion  -C consola
+
+base:
+	make base -C consola
+
+planificacion:
+	make planificacion -C consola
+
+suspension:
+	make suspension -C consola
