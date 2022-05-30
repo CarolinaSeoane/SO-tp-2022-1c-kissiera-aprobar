@@ -65,6 +65,7 @@ sem_t sem_planificar_FIFO; //uso
 sem_t sem_hay_procesos_en_ready; //uso
 sem_t sem_hilo_ready;
 sem_t sem_hilo_exec_exit;
+sem_t finalizar;
 
 // Mutex - Estados del proceso
 pthread_mutex_t mutexNew; //uso

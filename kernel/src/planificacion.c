@@ -1,21 +1,5 @@
 #include "../include/planificacion.h"
 
-void crear_y_poner_proceso_en_new(int tam_proceso, void* stream, int len_instrucciones, int cliente_fd) {
-	PCB pcb;
-	crear_pcb(&pcb, tam_proceso, stream, len_instrucciones, config.ESTIMACION_INICIAL, cliente_fd);
-	log_info(logger, "PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
-	
-	// Agrego el proceso a New
-	pthread_mutex_lock(&mutexNew);
-	list_add(cola_new, &pcb);
-	pthread_mutex_unlock(&mutexNew);
-
-	// Signal al hilo new - ready
-	log_info(logger, "Nuevo proceso agregado a NEW, cantidad de procesos en NEW: %d", cola_new->elements_count);
-	sem_post(&sem_hilo_new_ready);
-    //sem_post(&planificador_largo_plazo);
-}
-
 /* ********** PLANIFICADOR LARGO PLAZO ********** */
 
 void* intentar_pasar_de_new_a_ready() {
@@ -96,7 +80,8 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 				sem_post(&sem_planificar_FIFO);
 			} else {
 				// semaforos SRT
-			}			
+			}	
+			sem_post(&finalizar);		
 		} else {
 			log_error(logger, "Error grave de planificacion");
 		}

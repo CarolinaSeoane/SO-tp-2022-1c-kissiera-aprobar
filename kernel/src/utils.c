@@ -49,6 +49,7 @@ void inicializar_semaforos() {
     sem_init(&sem_hilo_ready_susp_ready, 0, 0);
     sem_init(&sem_planificar_FIFO, 0, 1);
     sem_init(&sem_hay_procesos_en_ready, 0, 0);
+    sem_init(&finalizar, 0, 0);
 }
 
 void inicializar_logger() {
