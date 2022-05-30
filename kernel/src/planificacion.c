@@ -90,9 +90,49 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 
 /* ********** PLANIFICADOR MEDIANO PLAZO ********** */
 
-void* pasar_de_ready_susp_a_ready() { //ver
+
+
+
+void* pasar_de_bloqueado_a_susp() { //ver
 	while(1) {
+
 		sem_wait(&sem_hilo_ready_susp_ready);
+
+
+	pthread_mutex_lock(&mutexSuspendedBlocked);
+	
+	PCB* elem_iterado;
+	int TIEMPO_MAXIMO_BLOQUEADO = config.TIEMPO_MAXIMO_BLOQUEADO;
+	int TIEMPO_BLOQUEADO = 0 ; //elem_iterado-> tiempo_en_blok;   despues corro un hilo para verificar el tiempo en blok 
+	int pid_bloqueado;
+
+	pthread_mutex_lock(&mutex_vg_ex);
+	bool cpu_ocupada = hay_un_proceso_ejecutando;
+	pthread_mutex_unlock(&mutex_vg_ex);
+
+	while( TIEMPO_BLOQUEADO < TIEMPO_MAXIMO_BLOQUEADO ){
+       
+		pthread_mutex_lock(&mutexBlock);
+		elem_iterado = list_remove(cola_blck, 0);
+		pthread_mutex_unlock(&mutexBlock);
+
+		log_info(logger, "Pidiendo a memoria pasarel proceso a swap ");
+		solicitar_swap_in_a_memoria(elem_iterado, conexion_memoria);	
+          
+		pthread_mutex_lock(&mutexSuspendedBlocked);
+		list_add(cola_suspended_blck, elem_iterado);
+		pthread_mutex_unlock(&mutexSuspendedBlocked);
+
+		log_info(logger, "Proceso %d removido de Block, cantidad en Block: %d", elem_iterado->pid, cola_new->elements_count);
+		log_info(logger, "Cantidad en Susoendido: %d", cola_suspended_blck->elements_count);
+		sem_post(&sem_hilo_new_ready);
+    
+	
+     }
+   }
+}
+
+
 /*		PCB* pcb = malloc(sizeof(PCB));
 
 		pthread_mutex_lock(&mutexSuspendedReady);
@@ -111,8 +151,8 @@ void* pasar_de_ready_susp_a_ready() { //ver
 	/* Avisar SWAP IN a memoria */
 
 	// sem_post(&sem_planificador_corto_pĺazo);
-	}
-}
+	
+
 
 /* ********** PLANIFICADOR CORTO PLAZO ********** */
 
