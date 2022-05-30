@@ -33,11 +33,6 @@ typedef struct {
     int cliente_fd;
 } args_thread;
 
-typedef struct {
-	int pid;
-	int cliente_fd;
-} Proceso_socket;
-
 t_log* logger;
 Config config;
 int kernel_server;
@@ -49,27 +44,23 @@ int conexion_memoria;
 
 // Hilos Planificadores
 pthread_t hilo_new_ready; 
-pthread_t hilo_exec_exit; 
-pthread_t hilo_mediano_plazo; 
-pthread_t hilo_corto_plazo;
 pthread_t hilo_ready_susp_ready;
 pthread_t hilo_ready_exec;
+pthread_t hilo_bloqueado_a_bloqueado_susp;
 
 // Hilos dispatch e interrupt
 pthread_t hilo_atender_pedidos_dispatch;
 
 // Semaforos para eventos de planificadores
-sem_t sem_hilo_new;
-sem_t sem_hilo_new_ready; //uso
-sem_t sem_hilo_ready_susp_ready; //uso
-sem_t sem_planificar_FIFO; //uso
-sem_t sem_hay_procesos_en_ready; //uso
-sem_t sem_hilo_ready;
+sem_t sem_hilo_new_ready;
+sem_t sem_hilo_ready_susp_ready;
+sem_t sem_planificar_FIFO;
+sem_t sem_hay_procesos_en_ready;
 sem_t sem_hilo_exec_exit;
 sem_t finalizar;
 
 // Mutex - Estados del proceso
-pthread_mutex_t mutexNew; //uso
+pthread_mutex_t mutexNew;
 pthread_mutex_t mutexReady;
 pthread_mutex_t mutexBlock;
 pthread_mutex_t mutexExe;
@@ -77,9 +68,8 @@ pthread_mutex_t mutexExit;
 pthread_mutex_t mutexSuspendedBlocked;
 pthread_mutex_t mutexSuspendedReady;
 
-// Mutex - Hilos
+// Mutex - Variables globales
 pthread_mutex_t mutex_vg_ex;
-pthread_mutex_t mutex_procesos_con_socket;
 
 // Listas - Estados del proceso
 t_list *cola_new;
@@ -89,7 +79,6 @@ t_list *cola_finish;
 t_list *cola_suspended_ready;
 t_list *cola_suspended_blck;
 t_list *cola_procesos_con_socket;
-
 
 void cargarConfig(char*, Config*);
 void inicializar_colas();

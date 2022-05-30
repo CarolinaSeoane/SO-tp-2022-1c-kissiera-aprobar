@@ -45,7 +45,6 @@ void inicializar_semaforos() {
 	pthread_mutex_init(&mutexExe, NULL);
 	pthread_mutex_init(&mutexExit, NULL);
 	pthread_mutex_init(&mutex_vg_ex, NULL);
-    pthread_mutex_init(&mutex_procesos_con_socket, NULL);
     sem_init(&sem_hilo_new_ready, 0, 0);
     sem_init(&sem_hilo_exec_exit, 0, 0);
     sem_init(&sem_hilo_ready_susp_ready, 0, 0);
@@ -85,18 +84,17 @@ void destroy_recursos() {
 }
 
 void inicializar_planificacion() {
+    pthread_mutex_lock(&mutex_vg_ex);
     hay_un_proceso_ejecutando = 0;
+    pthread_mutex_unlock(&mutex_vg_ex);
+
     pthread_create(&hilo_new_ready, NULL, intentar_pasar_de_new_a_ready, NULL);
-    pthread_create(&hilo_ready_susp_ready, NULL, pasar_de_bloqueado_a_susp, NULL);
+    pthread_create(&hilo_bloqueado_a_bloqueado_susp, NULL, pasar_de_bloqueado_a_susp, NULL);
+    pthread_create(&hilo_ready_susp_ready, NULL, pasar_de_ready_susp_a_ready, NULL);
     
     if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
 		pthread_create(&hilo_ready_exec, NULL, pasar_de_ready_a_exec_FIFO, NULL);
 	} else {
 		pthread_create(&hilo_ready_exec, NULL, pasar_de_ready_a_exec_SRT, NULL);
-	}
-    
-/*	pthread_create(&hilo_exec_exit, NULL, pasar_de_exec_a_exit, NULL);
-	pthread_create(&hilo_mediano_plazo, NULL, planificador_mediano_plazo, NULL);
-	pthread_create(&hilo_corto_plazo, NULL, planificador_corto_plazo, NULL);
-*/
+	}  
 }

@@ -20,9 +20,13 @@ void* atender_pedido(void* void_args) {
 				recv_proceso_init(&pid, &tamanio_proceso, args->cliente_fd);
 				log_info(logger, "Recibi proceso PID: %d TAM: %d", pid, tamanio_proceso);
 
-				/* Enviar respuesta a kernel
-				*/
-				
+				/* Asignar frames */
+
+				int* a_enviar = malloc(sizeof(int));
+				*a_enviar = 9;   			
+				send(args->cliente_fd, a_enviar, sizeof(int), 0);
+    			free(a_enviar);
+
 				break;
 
 			case ENVIAR_TABLA_PRIMER_NIVEL:

@@ -27,13 +27,15 @@ void* intentar_pasar_de_new_a_ready() {
 void pasar_de_new_a_ready() {
 	PCB* elem_iterado;
 
+	pthread_mutex_lock(&mutexNew);
     if(list_size(cola_new)) {
-		pthread_mutex_lock(&mutexNew);
+
 		elem_iterado = list_remove(cola_new, 0);
 		pthread_mutex_unlock(&mutexNew);
 
-		log_info(logger, "Pidiendo pagina a memoria");
-		elem_iterado->tabla_paginas = 7; //solicitar_tabla_de_paginas_a_memoria(elem_iterado, conexion_memoria);	
+		log_info(logger, "Pidiendo tabla de paginas a memoria");
+		elem_iterado->tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado, conexion_memoria);
+		log_info(logger, "Recibi tabla de paginas: %d", elem_iterado->tabla_paginas);
 
 		pthread_mutex_lock(&mutexReady);
 		list_add(cola_ready, elem_iterado);
@@ -42,7 +44,9 @@ void pasar_de_new_a_ready() {
 		log_info(logger, "Proceso %d removido de New, cantidad en New: %d", elem_iterado->pid, cola_new->elements_count);
 		log_info(logger, "Cantidad en Ready: %d", cola_ready->elements_count);
 		sem_post(&sem_hay_procesos_en_ready);
-    }
+    } else {
+		pthread_mutex_unlock(&mutexNew);
+	}
 }
 
 void pasar_de_exec_a_exit(int pid, int pc) { 
@@ -90,24 +94,21 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 
 /* ********** PLANIFICADOR MEDIANO PLAZO ********** */
 
-
-
-
 void* pasar_de_bloqueado_a_susp() { //ver
 	while(1) {
 
-		sem_wait(&sem_hilo_ready_susp_ready);
+		sem_wait(&sem_hilo_ready_susp_ready); // Fijate que este semaforo lo usamos para cuando un proceso quiere pasar de Ready/Susp a Ready. Aca tendriamos que usar otro
 
 
-	pthread_mutex_lock(&mutexSuspendedBlocked);
+	pthread_mutex_lock(&mutexSuspendedBlocked); // nunca se le hace unlock
 	
 	PCB* elem_iterado;
 	int TIEMPO_MAXIMO_BLOQUEADO = config.TIEMPO_MAXIMO_BLOQUEADO;
 	int TIEMPO_BLOQUEADO = 0 ; //elem_iterado-> tiempo_en_blok;   despues corro un hilo para verificar el tiempo en blok 
 	int pid_bloqueado;
 
-	pthread_mutex_lock(&mutex_vg_ex);
-	bool cpu_ocupada = hay_un_proceso_ejecutando;
+	pthread_mutex_lock(&mutex_vg_ex); 
+	bool cpu_ocupada = hay_un_proceso_ejecutando; //no es necesario consultar esta variable
 	pthread_mutex_unlock(&mutex_vg_ex);
 
 	while( TIEMPO_BLOQUEADO < TIEMPO_MAXIMO_BLOQUEADO ){
@@ -117,7 +118,7 @@ void* pasar_de_bloqueado_a_susp() { //ver
 		pthread_mutex_unlock(&mutexBlock);
 
 		log_info(logger, "Pidiendo a memoria pasarel proceso a swap ");
-		solicitar_swap_in_a_memoria(elem_iterado, conexion_memoria);	
+		solicitar_swap_out_a_memoria(elem_iterado, conexion_memoria);	
           
 		pthread_mutex_lock(&mutexSuspendedBlocked);
 		list_add(cola_suspended_blck, elem_iterado);
@@ -125,34 +126,36 @@ void* pasar_de_bloqueado_a_susp() { //ver
 
 		log_info(logger, "Proceso %d removido de Block, cantidad en Block: %d", elem_iterado->pid, cola_new->elements_count);
 		log_info(logger, "Cantidad en Susoendido: %d", cola_suspended_blck->elements_count);
-		sem_post(&sem_hilo_new_ready);
+		sem_post(&sem_hilo_new_ready); // no corresponde hacerle signal a este semaforo
     
 	
      }
    }
 }
 
-
-/*		PCB* pcb = malloc(sizeof(PCB));
+void* pasar_de_ready_susp_a_ready() {
+	while(1) {
+		sem_wait(&sem_hilo_ready_susp_ready);
+		PCB* elem_iterado;
 
 		pthread_mutex_lock(&mutexSuspendedReady);
-		pcb = (PCB*) list_remove(cola_suspended_ready, 0);
-		pthread_mutex_unlock(&mutexSuspendedReady);
+		if(list_size(cola_suspended_ready)) {
+			
+			elem_iterado = list_remove(cola_suspended_ready, 0);
+			pthread_mutex_unlock(&mutexSuspendedReady);
 
-		pthread_mutex_lock(&mutexReady);
-		list_add(cola_ready, pcb);
-		pthread_mutex_unlock(&mutexReady);
+			pthread_mutex_lock(&mutexReady);
+			list_add(cola_ready, elem_iterado);
+			pthread_mutex_unlock(&mutexReady);
 
-		log_info(logger, "Proceso %d removido de Suspended/Ready, cantidad en Suspended/Ready: %d", pcb->pid, cola_suspended_ready->elements_count);
-		log_info(logger, "Cantidad en Ready: %d", cola_ready->elements_count);
-		sem_post(&sem_hay_procesos_en_ready);
-	
-
-	/* Avisar SWAP IN a memoria */
-
-	// sem_post(&sem_planificador_corto_pĺazo);
-	
-
+			log_info(logger, "Proceso %d removido de Susp/Ready, cantidad en Susp/Ready: %d", elem_iterado->pid, cola_suspended_ready->elements_count);
+			log_info(logger, "Cantidad en Ready: %d", cola_ready->elements_count);
+			sem_post(&sem_hay_procesos_en_ready);
+		} else {
+			pthread_mutex_unlock(&mutexSuspendedReady);
+		}
+	}
+}
 
 /* ********** PLANIFICADOR CORTO PLAZO ********** */
 

@@ -35,7 +35,7 @@ void* serializar_proceso(PCB* pcb, int bytes) {
 
 int solicitar_tabla_de_paginas_a_memoria(PCB* proceso, int conexion_memoria)
 {   
-    int bytes_a_enviar = sizeof(int) * 3; //PID, OPERACION, LO OTRO
+    int bytes_a_enviar = sizeof(int) * 3; //PID, OPERACION, TAM PROCESO
 	void* a_enviar = malloc(bytes_a_enviar);
     int* codigo = malloc(sizeof(int));
     *codigo = INIT_PROCESO;
@@ -47,19 +47,18 @@ int solicitar_tabla_de_paginas_a_memoria(PCB* proceso, int conexion_memoria)
 	offset += sizeof(int);
     memcpy(a_enviar + offset, &(proceso->tamanio_proceso), sizeof(int));
 
-
     send(conexion_memoria, a_enviar, bytes_a_enviar, 0);
     printf("Ya hice el send a memoria\n");
     free(codigo);
     free(a_enviar);
     
     int tabla_primer_nivel;
-    // recv(conexion_memoria, &tabla_primer_nivel, sizeof(int), 0);
+    recv(conexion_memoria, &tabla_primer_nivel, sizeof(int), 0);
     printf("Recibi tabla de primer nivel\n");
-    return 7;//tabla_primer_nivel;
+    return tabla_primer_nivel;
 }
 
-int solicitar_swap_in_a_memoria(PCB* proceso, int conexion_memoria)
+int solicitar_swap_out_a_memoria(PCB* proceso, int conexion_memoria) // hacer
 {   
     int bytes_a_enviar = sizeof(int) * 3 ; 
 	void* a_enviar = malloc(bytes_a_enviar);
