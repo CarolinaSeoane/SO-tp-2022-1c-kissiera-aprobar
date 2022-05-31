@@ -9,8 +9,8 @@
 	A medida que leo, agregar la instruccion a una lista    ---> Hecho
 	Conectarse a Kernel 									---> Hecho
 	Enviar Lista y tamaño									---> Hecho
-	Esperar respuesta										---> Falta
-	Finalizar												---> Falta
+	Esperar respuesta										---> Hecho
+	Finalizar												---> Hecho
 
 ---- PROBLEMAS A SOLUCIONAR -----
 - Evitar repeticion de codigo
@@ -166,12 +166,14 @@ int main(int argc, char** argv) {
 
 	log_info(logger, "------------------ ESCUCHANDO CON RECV POR LA FINALIZACION DEL PROCESO ---------------\n");
 	int proceso_finalizado;
+	int pid;
 	recv(conexion_kernel, &proceso_finalizado, sizeof(int), MSG_WAITALL);
+	recv(conexion_kernel, &pid, sizeof(int), MSG_WAITALL);
 	if(proceso_finalizado == 1) {
-		log_info(logger, "Proceso finalizado con codigo %d", proceso_finalizado);
+		log_info(logger, "Proceso %d finalizado con codigo %d", pid, proceso_finalizado);
 		return EXIT_SUCCESS;
 	} else {
-		log_error(logger, "Proceso finalizado con codigo de error %d", proceso_finalizado);
+		log_error(logger, "Proceso %d finalizado con codigo de error %d", pid, proceso_finalizado);
 		return -1;
 	}
 }

@@ -26,9 +26,9 @@ void inicializar_semaforos() {
 }
 
 void inicializar_flags() {
-    pthread_mutex_unlock(&mutex_flag_interrupcion);
-    flag_interrupcion = 0;
     pthread_mutex_lock(&mutex_flag_interrupcion);
+    flag_interrupcion = 0;
+    pthread_mutex_unlock(&mutex_flag_interrupcion);
     flag_syscall = 0;
 }
 

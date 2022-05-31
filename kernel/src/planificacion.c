@@ -5,36 +5,16 @@
 void* intentar_pasar_de_new_a_ready() {
 	while(1) {
 		sem_wait(&sem_hilo_new_ready);
-        //sem_wait(&planificador_largo_plazo);
-
-		pthread_mutex_lock(&mutex_vg_ex);
-		bool cpu_ocupada = hay_un_proceso_ejecutando;
-		pthread_mutex_unlock(&mutex_vg_ex);
-
-   		int GRADO_MULTIPROGRAMACION = config.GRADO_MULTIPROGRAMACION;
-		int PROCESOS_EN_MEMORIA = cola_ready->elements_count + cola_blck->elements_count + cpu_ocupada;
-
-		log_info(logger, "PROCESOS EN MEMORIA: %d", PROCESOS_EN_MEMORIA);
-		if(PROCESOS_EN_MEMORIA < GRADO_MULTIPROGRAMACION) {
-			pthread_mutex_lock(&mutexSuspendedReady);
-			if(cola_suspended_ready->elements_count > 0) {
-				pthread_mutex_unlock(&mutexSuspendedReady);
-				sem_post(&sem_hilo_ready_susp_ready);
-			} else {
-				pthread_mutex_unlock(&mutexSuspendedReady);
-				pasar_de_new_a_ready();
-			}
-		}
+		sem_wait(&sem_grado_multiprogramacion);	//FALTA ARREGLAR LA PRIORIDAD DE READY SUSP. NO SE ME OCURRE COMO HACERLO
+		pasar_de_new_a_ready();
     }
 }
 
 void pasar_de_new_a_ready() {
-	PCB* elem_iterado;
-
 	pthread_mutex_lock(&mutexNew);
     if(list_size(cola_new)) {
 
-		elem_iterado = list_remove(cola_new, 0);
+		PCB* elem_iterado = list_remove(cola_new, 0);
 		pthread_mutex_unlock(&mutexNew);
 
 		log_info(logger, "Pidiendo tabla de paginas a memoria");
@@ -65,31 +45,25 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 	if(cpu_ocupada) {
 		log_info(logger, "HAY UN PROCESO EJECUTANDO");
 		pthread_mutex_lock(&mutexExe);
-		proceso_exec.program_counter = pc;
-		consola = proceso_exec.cliente_fd;
-		pid_exec = proceso_exec.pid;
+		proceso_exec->program_counter = pc;
+		consola = proceso_exec->cliente_fd;
+		pid_exec = proceso_exec->pid;
 		pthread_mutex_unlock(&mutexExe);
 
 		if(pid_exec == pid) {
-			int codigo = 1;
-			void* a_enviar = malloc(sizeof(int));
-			memcpy(a_enviar, &codigo, sizeof(int));
-			
-			log_info(logger, "Enviando finalizacion a consola");
-			send(consola, a_enviar, sizeof(int), 0);
+			send_proceso_finalizado_a_consola(pid, consola);
 
 			pthread_mutex_lock(&mutex_vg_ex);
 			hay_un_proceso_ejecutando = false;
 			pthread_mutex_unlock(&mutex_vg_ex);
-
-			memset(&proceso_exec, 0, sizeof(PCB));
 			
 			if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
 				sem_post(&sem_planificar_FIFO);
 			} else {
 				// semaforos SRT
 			}	
-			sem_post(&finalizar);		
+			sem_post(&(proceso_exec->puedo_finalizar));	
+			sem_post(&sem_grado_multiprogramacion);
 		} else {
 			log_error(logger, "Error grave de planificacion");
 		}
@@ -98,7 +72,7 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 
 /* ********** PLANIFICADOR MEDIANO PLAZO ********** */
 
-void* pasar_de_bloqueado_a_susp() { //ver
+void* pasar_de_bloqueado_a_bloqueado_susp() { //ver
 	while(1) {
 
 		sem_wait(&sem_hilo_ready_susp_ready); // Fijate que este semaforo lo usamos para cuando un proceso quiere pasar de Ready/Susp a Ready. Aca tendriamos que usar otro
@@ -131,7 +105,8 @@ void* pasar_de_bloqueado_a_susp() { //ver
 		log_info(logger, "Proceso %d removido de Block, cantidad en Block: %d", elem_iterado->pid, cola_new->elements_count);
 		log_info(logger, "Cantidad en Susoendido: %d", cola_suspended_blck->elements_count);
 		sem_post(&sem_hilo_new_ready); // no corresponde hacerle signal a este semaforo
-    
+    	
+		sem_post(&sem_grado_multiprogramacion); //recordar hacer este
 	
      }
    }
@@ -139,14 +114,13 @@ void* pasar_de_bloqueado_a_susp() { //ver
 
 void* pasar_de_ready_susp_a_ready() {
 	while(1) {
-		sem_wait(&sem_hilo_ready_susp_ready);
-		PCB* elem_iterado;
+		sem_wait(&sem_hilo_ready_susp_ready); // hay que hacerle signal cuando pasa de block/susp a ready/susp
+		sem_wait(&sem_grado_multiprogramacion);
 
 		pthread_mutex_lock(&mutexSuspendedReady);
 		if(list_size(cola_suspended_ready)) {
 			
-			elem_iterado = list_remove(cola_suspended_ready, 0);
-			pthread_mutex_unlock(&mutexSuspendedReady);
+			PCB* elem_iterado = list_remove(cola_suspended_ready, 0);
 
 			pthread_mutex_lock(&mutexReady);
 			list_add(cola_ready, elem_iterado);
@@ -155,15 +129,115 @@ void* pasar_de_ready_susp_a_ready() {
 			log_info(logger, "Proceso %d removido de Susp/Ready, cantidad en Susp/Ready: %d", elem_iterado->pid, cola_suspended_ready->elements_count);
 			log_info(logger, "Cantidad en Ready: %d", cola_ready->elements_count);
 			sem_post(&sem_hay_procesos_en_ready);
-		} else {
-			pthread_mutex_unlock(&mutexSuspendedReady);
+		
+			/*if(list_size(cola_suspended_ready)) {
+				sem_post(&es_el_turno_de_new);
+			}*/
 		}
+		pthread_mutex_unlock(&mutexSuspendedReady);
 	}
 }
 
 /* ********** PLANIFICADOR CORTO PLAZO ********** */
 
 void* pasar_de_ready_a_exec_FIFO() {  // esta hecha asi nomas para probar
+	while(1) {
+		log_info(logger, "Ejecutando fifo");
+		sem_wait(&sem_planificar_FIFO);
+		sem_wait(&sem_hay_procesos_en_ready);
+
+		pthread_mutex_lock(&mutex_vg_ex);
+		bool cpu_ocupada = hay_un_proceso_ejecutando;
+		pthread_mutex_unlock(&mutex_vg_ex);
+
+		pthread_mutex_lock(&mutexReady);
+		if(list_size(cola_ready) && !cpu_ocupada) {	
+			PCB* pcb = list_remove(cola_ready, 0);
+			pthread_mutex_unlock(&mutexReady);
+
+			pthread_mutex_lock(&mutexExe);
+			proceso_exec = pcb;
+			pthread_mutex_unlock(&mutexExe);
+	
+			log_info(logger, "Enviando proceso para ejecutar con pid: %d", proceso_exec->pid);
+
+			pthread_mutex_lock(&mutex_vg_ex);
+			hay_un_proceso_ejecutando = true;
+			pthread_mutex_unlock(&mutex_vg_ex);
+
+			send_proceso_a_cpu(pcb, (pcb->len_instrucciones)*sizeof(instruccion));
+		} else {
+			pthread_mutex_unlock(&mutexReady);
+		}
+	}
+}
+
+void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
+
+	pthread_mutex_lock(&mutex_vg_ex);
+	bool cpu_ocupada = hay_un_proceso_ejecutando;
+	pthread_mutex_unlock(&mutex_vg_ex);
+
+	pthread_mutex_lock(&mutexExe);
+	if(cpu_ocupada && proceso_exec->pid == pid) {
+
+		proceso_exec->program_counter = pc;
+		proceso_exec->tiempo_bloqueo = tiempo_bloqueo;
+
+		pthread_mutex_lock(&mutexBlock);
+		list_add(cola_blck, proceso_exec);
+		pthread_mutex_unlock(&mutexBlock);
+		pthread_mutex_unlock(&mutexExe);
+
+		pthread_mutex_lock(&mutex_vg_ex);
+		hay_un_proceso_ejecutando = false;
+		pthread_mutex_unlock(&mutex_vg_ex);
+
+		log_info(logger, "Proceso removido de Running. Replanificando...");
+
+		if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
+			sem_post(&sem_planificar_FIFO);
+			sem_post(&sem_ejecutar_IO);
+		} else {
+			// semaforos SRT
+		}			
+
+	} else {
+		pthread_mutex_unlock(&mutexExe);
+		log_error(logger, "Error grave de planificacion");
+	}
+}
+
+void pasar_de_bloqueado_a_ready() {  
+
+}
+
+void* pasar_de_ready_a_exec_SRT() {  
+
+}
+
+/* ********** DISPOSITIVO IO ********** */
+
+void* ejecutar_IO() {
+	while(1) {/*
+		log_info(logger, "IO disponible");
+		wait(&sem_ejecutar_IO);
+		wait(&elegir_proceso_para_usar_IO);
+
+		pthread_mutex_lock(&mutex_vg_io);
+		bool IO_esta_ocupado = IO_ocupado;
+		pthread_mutex_unlock(&mutex_vg_io);
+
+		PCB* pcb;
+
+		if(!IO_esta_ocupado) {
+			pthread_mutex_lock(&mutexBlock);
+			pcb = 
+			pthread_mutex_unlock(&mutexBlock);
+		}*/
+	}
+}
+/*
 	while(1) {
 		log_info(logger, "Ejecutando fifo");
 		sem_wait(&sem_planificar_FIFO);
@@ -194,53 +268,6 @@ void* pasar_de_ready_a_exec_FIFO() {  // esta hecha asi nomas para probar
 			pthread_mutex_unlock(&mutexReady);
 		}
 	}
-}
-
-void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
-
-	pthread_mutex_lock(&mutex_vg_ex);
-	bool cpu_ocupada = hay_un_proceso_ejecutando;
-	pthread_mutex_unlock(&mutex_vg_ex);
-
-	pthread_mutex_lock(&mutexExe);
-	if(cpu_ocupada && proceso_exec.pid == pid) {
-
-		proceso_exec.program_counter = pc;
-		
-		PCB* proceso_bloqueado = malloc(sizeof(PCB));
-		memcpy(proceso_bloqueado, &proceso_exec, sizeof(PCB));
-		proceso_bloqueado->tiempo_bloqueo = tiempo_bloqueo;
-
-		log_info(logger, "Proceso copiado con memcpy, pid: %d, pc: %d, con tiempo bloqueo: %d", proceso_bloqueado->pid, proceso_bloqueado->program_counter, proceso_bloqueado->tiempo_bloqueo);
-
-		list_add(cola_blck, proceso_bloqueado);
-
-		pthread_mutex_lock(&mutex_vg_ex);
-		hay_un_proceso_ejecutando = false;
-		pthread_mutex_unlock(&mutex_vg_ex);
-
-		memset(&proceso_exec, 0, sizeof(PCB));
-
-		pthread_mutex_unlock(&mutexExe);
-
-		log_info(logger, "Proceso removido de Running. Replanificando...");
-
-		if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
-			sem_post(&sem_planificar_FIFO);
-		} else {
-			// semaforos SRT
-		}			
-
-	} else {
-		pthread_mutex_unlock(&mutexExe);
-		log_error(logger, "Error grave de planificacion");
-	}
-}
-
-void* pasar_de_ready_a_exec_SRT() {  
-
-}
-
 
 /*
 void* pasar_de_exec_a_exit() {

@@ -19,11 +19,13 @@ void pasar_de_new_a_ready();
 void* pasar_de_ready_a_exec_FIFO();
 void* pasar_de_ready_a_exec_SRT();
 void pasar_de_exec_a_exit(int, int);
-void* pasar_de_bloqueado_a_susp();
+void* pasar_de_bloqueado_a_bloqueado_susp();
 void* pasar_de_ready_susp_a_ready();
 void pasar_de_exec_a_bloqueado(int, int, int);
+void pasar_de_bloqueado_a_ready();
 
-PCB proceso_exec;
+PCB* proceso_exec;
 bool hay_un_proceso_ejecutando;
+bool IO_ocupado;
 
 #endif 

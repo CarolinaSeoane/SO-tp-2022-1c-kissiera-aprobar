@@ -33,6 +33,22 @@ void* serializar_proceso(PCB* pcb, int bytes) {
     return paquete;
 }
 
+void send_proceso_finalizado_a_consola(int pid, int consola) {
+    int bytes_a_enviar = sizeof(int) * 2;
+	void* a_enviar = malloc(bytes_a_enviar);
+    int codigo = 1;
+    int id = pid;
+	int offset = 0;
+
+	memcpy(a_enviar, &codigo, sizeof(int));
+    offset += sizeof(int);
+	memcpy(a_enviar + offset, &id, sizeof(int));
+	
+	log_info(logger, "Enviando finalizacion a consola");
+	send(consola, a_enviar, bytes_a_enviar, 0);
+    free(a_enviar);	
+}
+
 int solicitar_tabla_de_paginas_a_memoria(PCB* proceso) {   
     int bytes_a_enviar = sizeof(int) * 3; //PID, OPERACION, TAM PROCESO
 	void* a_enviar = malloc(bytes_a_enviar);
