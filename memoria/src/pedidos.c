@@ -22,10 +22,15 @@ void* atender_pedido(void* void_args) {
 
 				/* Asignar frames */
 
+				asignar_memoria_y_estructuras(pid, tamanio_proceso, &tabla_primer_nivel);
+				send_tabla_primer_nivel(args->cliente_fd, tabla_primer_nivel);
+
+				/*
 				int* a_enviar = malloc(sizeof(int));
 				*a_enviar = 9;   			
 				send(args->cliente_fd, a_enviar, sizeof(int), 0);
     			free(a_enviar);
+				*/
 
 				break;
 
