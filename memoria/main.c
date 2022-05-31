@@ -7,6 +7,7 @@ int main(void) {
 	inicializar_servidor();
 	inicializar_semaforos();
 	inicializar_memoria_principal();
+	inicializar_tablas_de_paginas();
 
     log_info(logger, "Inicializacion de Memoria terminada");
 

@@ -73,8 +73,9 @@ int solicitar_swap_out_a_memoria(PCB* proceso) { // hacer
     free(codigo);
     free(a_enviar);
     
-    int tabla_primer_nivel;
-    // recv(conexion_memoria, &tabla_primer_nivel, sizeof(int), 0);
+    uint32_t tabla_primer_nivel;
+    recv(conexion_memoria, &tabla_primer_nivel, sizeof(uint32_t), 0);
+    log_info(logger, "Recibi para el proceso %d la tabla_primer_nivel con valor %d", proceso->pid, tabla_primer_nivel);
     return 7;//tabla_primer_nivel;
 }
 

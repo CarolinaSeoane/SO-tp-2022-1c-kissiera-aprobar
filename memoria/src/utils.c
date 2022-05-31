@@ -52,6 +52,9 @@ void destroy_recursos() {
 void inicializar_memoria_principal() {
     memoria_principal = malloc(sizeof(config.TAM_MEMORIA));
     log_info(logger, "Memoria inicializada con %d frames", config.TAM_MEMORIA / config.TAM_PAGINA);
+}
 
-
+void inicializar_tablas_de_paginas() {
+    lista_tablas_primer_nivel = list_create();
+    lista_tablas_segundo_nivel = list_create();
 }
