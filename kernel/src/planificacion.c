@@ -71,13 +71,9 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 }
 
 /* ********** PLANIFICADOR MEDIANO PLAZO ********** */
-<<<<<<< HEAD
 /*
-void* pasar_de_bloqueado_a_bloqueado_susp() { //ver
-=======
 
 void* pasar_de_bloqueado_a_bloqueado_susp() { 
->>>>>>> 563773e771a05ffedc6d24e3562d3e17af8fffc4
 	while(1) {
 
 		sem_wait(&sem_hilo_bloqueado_a_bloqueado_susp);
@@ -112,7 +108,7 @@ void* pasar_de_bloqueado_a_bloqueado_susp() {
 	 }
    }
 }*/
-
+/*
 void* pasar_de_bloqueado_susp_a_susp_ready(){
 while(1) {
 sem_wait(&sem_hilo_bloqueado_susp_a_susp_ready);
@@ -120,7 +116,7 @@ sem_wait(&sem_hilo_bloqueado_susp_a_susp_ready);
 PCB* proceso_susp;
 
 pthread_mutex_lock(&mutexSuspendedBlocked);
-proceso_block = list_remove(cola_suspended_blck, 0);
+proceso_block = list_remove(cola_suspended_blck, 0); //me dice que no esta declaro
 pthread_mutex_lock(&mutexSuspendedBlocked);
 
 pthread_mutex_lock(&mutexSuspendedBlocked);
@@ -130,7 +126,7 @@ pthread_mutex_unlock(&mutexSuspendedBlocked);
 sem_post(&sem_hilo_ready_susp_ready);
 
     }
-}
+}*/
 
 void* pasar_de_ready_susp_a_ready() {
 	while(1) {
