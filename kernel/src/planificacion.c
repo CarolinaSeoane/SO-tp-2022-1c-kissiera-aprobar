@@ -208,10 +208,6 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 	}
 }
 
-void pasar_de_bloqueado_a_ready() {  
-
-}
-
 void* pasar_de_ready_a_exec_SRT() {  
 
 }
@@ -237,23 +233,28 @@ void* ejecutar_IO() {
 			// Ejecuta rafaga de IO
 			int rafaga_io = pcb->tiempo_bloqueo;
 
-			if(rafaga_io <= tiempo_max_bloqueo) {
-				// Hace su rafaga de IO sin suspenderse
-				sleep(rafaga_io / 1000);
+			sleep(rafaga_io / 1000);
 
+			sem_post(&IO_esta_disponible);
+			pthread_mutex_lock(&mutex_vg_io);
+			IO_esta_ocupado = false;
+			pthread_mutex_unlock(&mutex_vg_io);
+
+			
+			bool se_suspendio_al_proceso; // hacer
+			if(!se_suspendio_al_proceso) {
 				pthread_mutex_lock(&mutexReady);
 				list_add(cola_ready, pcb);
 				pthread_mutex_unlock(&mutexReady);
 
-				sem_post(&IO_esta_disponible);
-				sem_post(&sem_hay_procesos_en_ready);	
-				
-				pthread_mutex_lock(&mutex_vg_io);
-				IO_esta_ocupado = false;
-				pthread_mutex_unlock(&mutex_vg_io);
+				sem_post(&sem_hay_procesos_en_ready);
 			} else {
-				/* hacer rafaga de IO con suspension*/
+
+				/* Sacar de blocked susp y pasar a ready susp*/
 			}
+
+
+			
 		}
 	}
 }
