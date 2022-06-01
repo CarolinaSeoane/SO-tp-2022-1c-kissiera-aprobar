@@ -50,6 +50,7 @@ pthread_t hilo_new_ready;
 pthread_t hilo_ready_susp_ready;
 pthread_t hilo_ready_exec;
 pthread_t hilo_bloqueado_a_bloqueado_susp;
+pthread_t hilo_bloqueado_susp_a_susp_ready;
 
 // Hilos dispatch e interrupt
 pthread_t hilo_atender_pedidos_dispatch;
@@ -57,6 +58,8 @@ pthread_t hilo_atender_pedidos_dispatch;
 // Semaforos para eventos de planificadores
 sem_t sem_hilo_new_ready;
 sem_t sem_hilo_ready_susp_ready;
+sem_t sem_hilo_bloqueado_a_bloqueado_susp;
+sem_t sem_hilo_bloqueado_susp_a_susp_ready;
 sem_t sem_planificar_FIFO;
 sem_t sem_hay_procesos_en_ready;
 sem_t sem_hilo_exec_exit;
@@ -73,6 +76,7 @@ pthread_mutex_t mutexExe;
 pthread_mutex_t mutexExit;
 pthread_mutex_t mutexSuspendedBlocked;
 pthread_mutex_t mutexSuspendedReady;
+
 
 // Mutex - Variables globales
 pthread_mutex_t mutex_vg_ex;
