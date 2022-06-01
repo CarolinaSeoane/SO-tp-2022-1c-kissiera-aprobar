@@ -34,6 +34,8 @@ void inicializar_colas() {
     cola_suspended_ready = list_create();
 	cola_suspended_blck = list_create();
     cola_procesos_con_socket = list_create();
+
+    procesos_que_se_van_a_suspender = list_create();
 }
 
 void inicializar_semaforos() {
@@ -45,6 +47,9 @@ void inicializar_semaforos() {
 	pthread_mutex_init(&mutexExe, NULL);
 	pthread_mutex_init(&mutexExit, NULL);
 	pthread_mutex_init(&mutex_vg_ex, NULL);
+
+    pthread_mutex_init(&mutexProcesosQueSeVanASuspender, NULL);
+
     sem_init(&sem_hilo_new_ready, 0, 0);
     sem_init(&sem_hilo_exec_exit, 0, 0);
     sem_init(&sem_hilo_ready_susp_ready, 0, 0);
@@ -54,6 +59,7 @@ void inicializar_semaforos() {
     sem_init(&sem_ejecutar_IO, 0, 0);
     sem_init(&IO_esta_disponible, 0, 1);
     sem_init(&sem_grado_multiprogramacion, 0, config.GRADO_MULTIPROGRAMACION);
+    sem_init(&sem_hilo_blocked_a_blocked_susp, 0, 0);
 }
 
 void inicializar_logger() {

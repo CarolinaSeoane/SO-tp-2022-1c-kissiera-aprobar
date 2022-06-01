@@ -11,6 +11,7 @@
 #include<netdb.h>
 #include"protocolo.h"
 #include <semaphore.h>
+#include <time.h>
 
 typedef enum {
 	NO_OP,
@@ -48,6 +49,7 @@ typedef struct {
 	int cliente_fd;
 	int tiempo_bloqueo;
 	sem_t puedo_finalizar;
+	time_t timestamp;
 } PCB; // Estructura de un proceso.
 
 
@@ -57,6 +59,5 @@ typedef struct {
 	int program_counter;
 	int tabla_paginas;
 } Proceso_CPU;
-
 
 #endif

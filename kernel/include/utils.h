@@ -64,6 +64,7 @@ sem_t finalizar;
 sem_t sem_ejecutar_IO;
 sem_t IO_esta_disponible;
 sem_t sem_grado_multiprogramacion;
+sem_t sem_hilo_blocked_a_blocked_susp;
 
 // Mutex - Estados del proceso
 pthread_mutex_t mutexNew;
@@ -73,6 +74,8 @@ pthread_mutex_t mutexExe;
 pthread_mutex_t mutexExit;
 pthread_mutex_t mutexSuspendedBlocked;
 pthread_mutex_t mutexSuspendedReady;
+
+pthread_mutex_t mutexProcesosQueSeVanASuspender;
 
 // Mutex - Variables globales
 pthread_mutex_t mutex_vg_ex;
@@ -86,6 +89,8 @@ t_list *cola_finish;
 t_list *cola_suspended_ready;
 t_list *cola_suspended_blck;
 t_list *cola_procesos_con_socket;
+
+t_list *procesos_que_se_van_a_suspender;
 
 void cargarConfig(char*, Config*);
 void inicializar_colas();

@@ -71,7 +71,7 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 }
 
 /* ********** PLANIFICADOR MEDIANO PLAZO ********** */
-
+/*
 void* pasar_de_bloqueado_a_bloqueado_susp() { //ver
 	while(1) {
 
@@ -110,7 +110,7 @@ void* pasar_de_bloqueado_a_bloqueado_susp() { //ver
 	
      }
    }
-}
+}*/
 
 void* pasar_de_ready_susp_a_ready() {
 	while(1) {
@@ -136,6 +136,10 @@ void* pasar_de_ready_susp_a_ready() {
 		}
 		pthread_mutex_unlock(&mutexSuspendedReady);
 	}
+}
+
+void pasar_de_blocked_susp_a_ready_susp() {
+
 }
 
 /* ********** PLANIFICADOR CORTO PLAZO ********** */
@@ -183,24 +187,36 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 
 		proceso_exec->program_counter = pc;
 		proceso_exec->tiempo_bloqueo = tiempo_bloqueo;
+		proceso_exec->timestamp = time(NULL) * 1000; //guardo cuando ingreso a la cola blocked. time devuelve segundos, lo paso a milisegundos
 
 		pthread_mutex_lock(&mutexBlock);
 		list_add(cola_blck, proceso_exec);
 		pthread_mutex_unlock(&mutexBlock);
+
 		pthread_mutex_unlock(&mutexExe);
 
 		pthread_mutex_lock(&mutex_vg_ex);
 		hay_un_proceso_ejecutando = false;
 		pthread_mutex_unlock(&mutex_vg_ex);
 
-		log_info(logger, "Proceso removido de Running. Replanificando...");
+		log_info(logger, "Proceso %d removido de Running. Replanificando...", proceso_exec->pid);
 
 		if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
 			sem_post(&sem_planificar_FIFO);
 			sem_post(&sem_ejecutar_IO);
 		} else {
 			// semaforos SRT
-		}			
+		}	
+
+		int tiempo_en_bloqueo = calcular_tiempo_que_estara_bloqueado();
+		if(tiempo_en_bloqueo >= config.TIEMPO_MAXIMO_BLOQUEADO) {
+			//se que se va a suspender
+			pthread_mutex_lock(&mutexProcesosQueSeVanASuspender);
+			list_add(procesos_que_se_van_a_suspender, proceso_exec);
+			pthread_mutex_unlock(&mutexProcesosQueSeVanASuspender);
+
+			timer(proceso_exec->timestamp);
+		}
 
 	} else {
 		pthread_mutex_unlock(&mutexExe);
@@ -211,11 +227,95 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 void* pasar_de_ready_a_exec_SRT() {  
 
 }
+/*
+void* pasar_de_bloqueado_a_bloqueado_susp() {
+	int limite = config.TIEMPO_MAXIMO_BLOQUEADO;
+	while(1) {
+		time_t tiempo_actual = time(NULL) * 1000;
+
+		t_list_iterator* iterator = list_iterator_create(cola_blck);
+		PCB* elem_iterado;
+
+		while(list_iterator_has_next(iterator)) {
+			elem_iterado = list_iterator_next(iterator);
+			if(tiempo_actual - elem_iterado->timestamp >= limite) {
+
+				pthread_mutex_lock(&mutexSuspendedBlocked);
+				list_add(cola_suspended_blck, elem_iterado);
+				pthread_mutex_unlock(&mutexSuspendedBlocked);
+				log_info(logger, "Pidiendo a memoria pasar el proceso a swap");
+				solicitar_swap_out_a_memoria(elem_iterado);	
+			}
+		}
+		list_iterator_destroy(iterator);
+	}
+}*/
+
+void timer(int tiempo) {
+    int tiempo_medido, delta_tiempo = 0;
+
+    while(delta_tiempo < config.TIEMPO_MAXIMO_BLOQUEADO) {
+        tiempo_medido = time(NULL) * 1000;
+        delta_tiempo = tiempo_medido - tiempo;
+    }
+	//sale del while cuando se cumple el tiempo maximo de bloqueo
+	sem_post(&sem_hilo_blocked_a_blocked_susp);
+}
+
+void* pasar_de_bloqueado_a_bloqueado_susp() {
+	while(1) {
+		sem_wait(&sem_hilo_blocked_a_blocked_susp);
+
+		pthread_mutex_lock(&mutexProcesosQueSeVanASuspender);
+		PCB* pcb = list_remove(procesos_que_se_van_a_suspender, 0);
+		pthread_mutex_unlock(&mutexProcesosQueSeVanASuspender);
+
+		bool tienen_mismo_pid(void* elemento) {
+			if(pcb->pid == ((PCB*) elemento)->pid)
+				return true;
+			else
+				return false;
+		}
+
+		pthread_mutex_lock(&mutexBlock);
+		list_remove_by_condition(cola_blck, tienen_mismo_pid);
+		pthread_mutex_unlock(&mutexBlock);
+
+		pthread_mutex_lock(&mutexSuspendedBlocked);
+		list_add(cola_suspended_blck, pcb);
+		pthread_mutex_unlock(&mutexSuspendedBlocked);
+
+		log_info(logger, "Pidiendo a memoria pasar el proceso a swap. PROCESO %d SUSPENDIDO", pcb->pid);
+		solicitar_swap_out_a_memoria(pcb);
+
+		sem_post(&sem_grado_multiprogramacion);	
+
+	}
+}
+
+int calcular_tiempo_que_estara_bloqueado() {
+	pthread_mutex_lock(&mutexBlock);
+	
+	t_list_iterator* iterator = list_iterator_create(cola_blck);
+	PCB* elem_iterado;
+	int tiempo_total = 0;
+
+	while(list_iterator_has_next(iterator)) {
+		elem_iterado = list_iterator_next(iterator);
+		tiempo_total += elem_iterado->tiempo_bloqueo;
+	}
+	
+	log_info(logger, "Tiempo que estará bloqueado: %d", tiempo_total);
+	list_iterator_destroy(iterator);
+
+	pthread_mutex_unlock(&mutexBlock);
+
+	return tiempo_total;	
+}
 
 /* ********** DISPOSITIVO IO ********** */
 
 void* ejecutar_IO() {
-	int tiempo_max_bloqueo = config.TIEMPO_MAXIMO_BLOQUEADO;
 	while(1) {
 		log_info(logger, "Dispositivo de IO listo");
 		sem_wait(&sem_ejecutar_IO);
@@ -225,39 +325,58 @@ void* ejecutar_IO() {
 		bool IO_esta_ocupado = IO_ocupado;
 		pthread_mutex_unlock(&mutex_vg_io);
 
-		if(!IO_esta_ocupado) {
-			pthread_mutex_lock(&mutexBlock);
-			PCB* pcb = list_remove(cola_blck, 0);
-			pthread_mutex_unlock(&mutexBlock);
-
-			// Ejecuta rafaga de IO
+		pthread_mutex_lock(&mutexSuspendedBlocked);
+		if(!IO_esta_ocupado && list_size(cola_suspended_blck) > 0) {
+			PCB* pcb = list_get(cola_suspended_blck, 0);
+			pthread_mutex_unlock(&mutexSuspendedBlocked);
 			int rafaga_io = pcb->tiempo_bloqueo;
 
 			sleep(rafaga_io / 1000);
 
-			sem_post(&IO_esta_disponible);
 			pthread_mutex_lock(&mutex_vg_io);
 			IO_esta_ocupado = false;
 			pthread_mutex_unlock(&mutex_vg_io);
-
 			
-			bool se_suspendio_al_proceso; // hacer
-			if(!se_suspendio_al_proceso) {
-				pthread_mutex_lock(&mutexReady);
-				list_add(cola_ready, pcb);
-				pthread_mutex_unlock(&mutexReady);
+			sem_post(&IO_esta_disponible);
 
-				sem_post(&sem_hay_procesos_en_ready);
-			} else {
+			pthread_mutex_lock(&mutexSuspendedBlocked);
+			list_remove(cola_suspended_blck, 0);
+			pthread_mutex_unlock(&mutexSuspendedBlocked);
 
-				/* Sacar de blocked susp y pasar a ready susp*/
-			}
+			pasar_de_blocked_susp_a_ready_susp();
+			log_info(logger, "Pasando proceso %d a Ready/Susp", pcb->pid);
+		} else {
+			pthread_mutex_unlock(&mutexSuspendedBlocked);
 
+			pthread_mutex_lock(&mutexBlock);
+			PCB* pcb = list_get(cola_blck, 0);
+			pthread_mutex_unlock(&mutexBlock);
 
+			int rafaga_io = pcb->tiempo_bloqueo;
+
+			sleep(rafaga_io / 1000);
+
+			pthread_mutex_lock(&mutex_vg_io);
+			IO_esta_ocupado = false;
+			pthread_mutex_unlock(&mutex_vg_io);
 			
+			sem_post(&IO_esta_disponible);
+
+			pthread_mutex_lock(&mutexBlock);
+			list_remove(cola_blck, 0);
+			pthread_mutex_unlock(&mutexBlock);
+			log_info(logger, "Removiendo proceso %d de Blocked", pcb->pid);
+
+			pthread_mutex_lock(&mutexReady);
+			list_add(cola_ready, pcb);
+			pthread_mutex_unlock(&mutexReady);
+			log_info(logger, "Proceso %d agregado a Ready", pcb->pid);
+
+			sem_post(&sem_hay_procesos_en_ready);	
 		}
 	}
 }
+
 /*
 	while(1) {
 		log_info(logger, "Ejecutando fifo");
