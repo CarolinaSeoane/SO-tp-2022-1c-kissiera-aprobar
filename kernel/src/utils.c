@@ -51,6 +51,9 @@ void inicializar_semaforos() {
     sem_init(&sem_planificar_FIFO, 0, 1);
     sem_init(&sem_hay_procesos_en_ready, 0, 0);
     sem_init(&finalizar, 0, 0);
+    sem_init(&sem_ejecutar_IO, 0, 0);
+    sem_init(&IO_esta_disponible, 0, 1);
+    sem_init(&sem_grado_multiprogramacion, 0, config.GRADO_MULTIPROGRAMACION);
 }
 
 void inicializar_logger() {
@@ -90,13 +93,19 @@ void inicializar_planificacion() {
     hay_un_proceso_ejecutando = 0;
     pthread_mutex_unlock(&mutex_vg_ex);
 
+    pthread_mutex_lock(&mutex_vg_io);
+    IO_ocupado = 0;
+    pthread_mutex_unlock(&mutex_vg_io);
+
     pthread_create(&hilo_new_ready, NULL, intentar_pasar_de_new_a_ready, NULL);
-    pthread_create(&hilo_bloqueado_a_bloqueado_susp, NULL, pasar_de_bloqueado_a_susp, NULL);
+    pthread_create(&hilo_bloqueado_a_bloqueado_susp, NULL, pasar_de_bloqueado_a_bloqueado_susp, NULL);
     pthread_create(&hilo_ready_susp_ready, NULL, pasar_de_ready_susp_a_ready, NULL);
 
     if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
 		pthread_create(&hilo_ready_exec, NULL, pasar_de_ready_a_exec_FIFO, NULL);
 	} else {
 		pthread_create(&hilo_ready_exec, NULL, pasar_de_ready_a_exec_SRT, NULL);
-	}  
+	} 
+
+    pthread_create(&hilo_IO, NULL, ejecutar_IO, NULL);
 }

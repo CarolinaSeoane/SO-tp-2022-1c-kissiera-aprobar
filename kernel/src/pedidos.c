@@ -1,6 +1,5 @@
 #include "../include/pedidos.h"
 
-
 void* atender_pedidos_consolas(void* void_args) {
     args_thread* args = (args_thread*) void_args;
 
@@ -32,9 +31,13 @@ void* atender_pedidos_consolas(void* void_args) {
 			log_info(logger, "Nuevo proceso agregado a NEW, cantidad de procesos en NEW: %d", cola_new->elements_count);
 			sem_post(&sem_hilo_new_ready);
 
-			sem_wait(&finalizar);
+			// Espera que el planificador de largo plazo le diga que puede finalizar
+			sem_wait(&pcb.puedo_finalizar);
 
-			//free(stream);
+			sem_destroy(&pcb.puedo_finalizar);
+			free(stream);
+			close(args->cliente_fd);
+			log_info(logger, "Termine");
 			break;
 		default:
 			log_warning_sh(logger, "Operacion desconocida.");

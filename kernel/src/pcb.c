@@ -15,4 +15,5 @@ void crear_pcb(PCB* pcb, int tam, void* stream, int len_instrucciones, int est_i
     (*pcb).tabla_paginas = 0; // hay que pedirlo a memoria
     (*pcb).estimacion_rafaga = est_inicial; // si es fifo el planificador no lo va a usar
     (*pcb).cliente_fd = cliente;
+    sem_init(&(pcb->puedo_finalizar), 0, 0);
 }

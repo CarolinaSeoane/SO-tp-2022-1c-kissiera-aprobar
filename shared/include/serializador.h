@@ -10,6 +10,7 @@
 #include<string.h>
 #include<netdb.h>
 #include"protocolo.h"
+#include <semaphore.h>
 
 typedef enum {
 	NO_OP,
@@ -46,6 +47,7 @@ typedef struct {
 	int estimacion_rafaga;
 	int cliente_fd;
 	int tiempo_bloqueo;
+	sem_t puedo_finalizar;
 } PCB; // Estructura de un proceso.
 
 

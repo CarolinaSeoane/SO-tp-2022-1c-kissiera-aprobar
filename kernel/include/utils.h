@@ -42,11 +42,15 @@ int conexion_dispatch;
 int conexion_interrupt;
 int conexion_memoria;
 
+// Hilo IO
+pthread_t hilo_IO; 
+
 // Hilos Planificadores
 pthread_t hilo_new_ready; 
 pthread_t hilo_ready_susp_ready;
 pthread_t hilo_ready_exec;
 pthread_t hilo_bloqueado_a_bloqueado_susp;
+pthread_t hilo_bloqueado_susp_a_susp_ready;
 
 // Hilos dispatch e interrupt
 pthread_t hilo_atender_pedidos_dispatch;
@@ -54,10 +58,15 @@ pthread_t hilo_atender_pedidos_dispatch;
 // Semaforos para eventos de planificadores
 sem_t sem_hilo_new_ready;
 sem_t sem_hilo_ready_susp_ready;
+sem_t sem_hilo_bloqueado_a_bloqueado_susp;
+sem_t sem_hilo_bloqueado_susp_a_susp_ready;
 sem_t sem_planificar_FIFO;
 sem_t sem_hay_procesos_en_ready;
 sem_t sem_hilo_exec_exit;
 sem_t finalizar;
+sem_t sem_ejecutar_IO;
+sem_t IO_esta_disponible;
+sem_t sem_grado_multiprogramacion;
 
 // Mutex - Estados del proceso
 pthread_mutex_t mutexNew;
@@ -68,8 +77,10 @@ pthread_mutex_t mutexExit;
 pthread_mutex_t mutexSuspendedBlocked;
 pthread_mutex_t mutexSuspendedReady;
 
+
 // Mutex - Variables globales
 pthread_mutex_t mutex_vg_ex;
+pthread_mutex_t mutex_vg_io;
 
 // Listas - Estados del proceso
 t_list *cola_new;
@@ -89,5 +100,6 @@ void inicializar_servidor();
 void inicializar_conexiones();
 void destroy_recursos();
 void inicializar_planificacion();
+void* ejecutar_IO();
 
 #endif
