@@ -62,7 +62,7 @@ sem_t sem_hay_procesos_en_ready;
 sem_t sem_hilo_exec_exit;
 sem_t finalizar;
 sem_t sem_ejecutar_IO;
-sem_t elegir_proceso_para_usar_IO;
+sem_t IO_esta_disponible;
 sem_t sem_grado_multiprogramacion;
 
 // Mutex - Estados del proceso

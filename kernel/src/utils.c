@@ -52,7 +52,7 @@ void inicializar_semaforos() {
     sem_init(&sem_hay_procesos_en_ready, 0, 0);
     sem_init(&finalizar, 0, 0);
     sem_init(&sem_ejecutar_IO, 0, 0);
-    sem_init(&elegir_proceso_para_usar_IO, 0, 1);
+    sem_init(&IO_esta_disponible, 0, 1);
     sem_init(&sem_grado_multiprogramacion, 0, config.GRADO_MULTIPROGRAMACION);
 }
 

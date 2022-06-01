@@ -219,22 +219,42 @@ void* pasar_de_ready_a_exec_SRT() {
 /* ********** DISPOSITIVO IO ********** */
 
 void* ejecutar_IO() {
-	while(1) {/*
-		log_info(logger, "IO disponible");
-		wait(&sem_ejecutar_IO);
-		wait(&elegir_proceso_para_usar_IO);
+	int tiempo_max_bloqueo = config.TIEMPO_MAXIMO_BLOQUEADO;
+	while(1) {
+		log_info(logger, "Dispositivo de IO listo");
+		sem_wait(&sem_ejecutar_IO);
+		sem_wait(&IO_esta_disponible);
 
 		pthread_mutex_lock(&mutex_vg_io);
 		bool IO_esta_ocupado = IO_ocupado;
 		pthread_mutex_unlock(&mutex_vg_io);
 
-		PCB* pcb;
-
 		if(!IO_esta_ocupado) {
 			pthread_mutex_lock(&mutexBlock);
-			pcb = 
+			PCB* pcb = list_remove(cola_blck, 0);
 			pthread_mutex_unlock(&mutexBlock);
-		}*/
+
+			// Ejecuta rafaga de IO
+			int rafaga_io = pcb->tiempo_bloqueo;
+
+			if(rafaga_io <= tiempo_max_bloqueo) {
+				// Hace su rafaga de IO sin suspenderse
+				sleep(rafaga_io / 1000);
+
+				pthread_mutex_lock(&mutexReady);
+				list_add(cola_ready, pcb);
+				pthread_mutex_unlock(&mutexReady);
+
+				sem_post(&IO_esta_disponible);
+				sem_post(&sem_hay_procesos_en_ready);	
+				
+				pthread_mutex_lock(&mutex_vg_io);
+				IO_esta_ocupado = false;
+				pthread_mutex_unlock(&mutex_vg_io);
+			} else {
+				/* hacer rafaga de IO con suspension*/
+			}
+		}
 	}
 }
 /*
