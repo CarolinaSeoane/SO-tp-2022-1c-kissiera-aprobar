@@ -28,6 +28,7 @@ int calcular_tiempo_que_estara_bloqueado();
 void pasar_de_blocked_susp_a_ready_susp();
 void* pasar_de_bloqueado_a_bloqueado_susp();
 void timer(int);
+void* pasar_de_bloqueado_susp_a_susp_ready();
 
 PCB* proceso_exec;
 bool hay_un_proceso_ejecutando;

@@ -71,46 +71,66 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 }
 
 /* ********** PLANIFICADOR MEDIANO PLAZO ********** */
+<<<<<<< HEAD
 /*
 void* pasar_de_bloqueado_a_bloqueado_susp() { //ver
+=======
+
+void* pasar_de_bloqueado_a_bloqueado_susp() { 
+>>>>>>> 563773e771a05ffedc6d24e3562d3e17af8fffc4
 	while(1) {
 
-		sem_wait(&sem_hilo_ready_susp_ready); // Fijate que este semaforo lo usamos para cuando un proceso quiere pasar de Ready/Susp a Ready. Aca tendriamos que usar otro
-
-
-	pthread_mutex_lock(&mutexSuspendedBlocked); // nunca se le hace unlock
+		sem_wait(&sem_hilo_bloqueado_a_bloqueado_susp);
 	
-	PCB* elem_iterado;
+	PCB* proceso_block;
 	int TIEMPO_MAXIMO_BLOQUEADO = config.TIEMPO_MAXIMO_BLOQUEADO;
-	int TIEMPO_BLOQUEADO = 0 ; //elem_iterado-> tiempo_en_blok;   despues corro un hilo para verificar el tiempo en blok 
-	int pid_bloqueado;
+	int TIEMPO_BLOQUEADO = proceso_block->tiempo_bloqueo ; //nose si funciona tan simple, o hay que hacer un hilo que verifique el tiempo bloqueado
+	//int pid_bloqueado;
 
-	pthread_mutex_lock(&mutex_vg_ex); 
-	bool cpu_ocupada = hay_un_proceso_ejecutando; //no es necesario consultar esta variable
-	pthread_mutex_unlock(&mutex_vg_ex);
+    pthread_mutex_lock(&mutexBlock);
 
-	while( TIEMPO_BLOQUEADO < TIEMPO_MAXIMO_BLOQUEADO ){
+	if( TIEMPO_BLOQUEADO >= TIEMPO_MAXIMO_BLOQUEADO ){
        
 		pthread_mutex_lock(&mutexBlock);
-		elem_iterado = list_remove(cola_blck, 0);
+		proceso_block = list_remove(cola_blck, 0);
 		pthread_mutex_unlock(&mutexBlock);
 
-		log_info(logger, "Pidiendo a memoria pasarel proceso a swap ");
-		solicitar_swap_out_a_memoria(elem_iterado);	
+		log_info(logger, "Pidiendo a memoria pasar el proceso a swap ");
+		solicitar_swap_out_a_memoria(proceso_block);	
           
 		pthread_mutex_lock(&mutexSuspendedBlocked);
-		list_add(cola_suspended_blck, elem_iterado);
+		list_add(cola_suspended_blck, proceso_block);
 		pthread_mutex_unlock(&mutexSuspendedBlocked);
 
-		log_info(logger, "Proceso %d removido de Block, cantidad en Block: %d", elem_iterado->pid, cola_new->elements_count);
+		log_info(logger, "Proceso %d removido de Block, cantidad en Block: %d", proceso_block->pid, cola_new->elements_count);
 		log_info(logger, "Cantidad en Susoendido: %d", cola_suspended_blck->elements_count);
-		sem_post(&sem_hilo_new_ready); // no corresponde hacerle signal a este semaforo
-    	
+		sem_post(&sem_hilo_bloqueado_susp_a_susp_ready); 	
 		sem_post(&sem_grado_multiprogramacion); //recordar hacer este
-	
      }
+	 else{
+	 pthread_mutex_unlock(&mutexBlock);
+	 }
    }
 }*/
+
+void* pasar_de_bloqueado_susp_a_susp_ready(){
+while(1) {
+sem_wait(&sem_hilo_bloqueado_susp_a_susp_ready);
+
+PCB* proceso_susp;
+
+pthread_mutex_lock(&mutexSuspendedBlocked);
+proceso_block = list_remove(cola_suspended_blck, 0);
+pthread_mutex_lock(&mutexSuspendedBlocked);
+
+pthread_mutex_lock(&mutexSuspendedBlocked);
+list_add(cola_suspended_ready, proceso_block);
+pthread_mutex_unlock(&mutexSuspendedBlocked);
+
+sem_post(&sem_hilo_ready_susp_ready);
+
+    }
+}
 
 void* pasar_de_ready_susp_a_ready() {
 	while(1) {
@@ -135,6 +155,7 @@ void* pasar_de_ready_susp_a_ready() {
 			}*/
 		}
 		pthread_mutex_unlock(&mutexSuspendedReady);
+		log_info(logger, "No hay procesos para suspender");
 	}
 }
 
