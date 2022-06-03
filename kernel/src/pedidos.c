@@ -26,10 +26,10 @@ void* atender_pedidos_consolas(void* void_args) {
 			list_add(cola_new, &pcb);
 			pthread_mutex_unlock(&mutexNew);
 
-			// Signal al hilo new - ready
+			// Signal a la funcion priorizar, para priorizar los suspendidos sobre los new a ready
 			log_info(logger, "EVENTO: Proceso %d agregado a NEW", pcb.pid);
 			print_colas();
-			sem_post(&sem_hilo_new_ready);
+			sem_post(&sem_priorizar);
 
 			// Espera que el planificador de largo plazo le diga que puede finalizar
 			sem_wait(&pcb.puedo_finalizar);

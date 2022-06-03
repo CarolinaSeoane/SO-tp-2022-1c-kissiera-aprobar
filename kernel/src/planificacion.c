@@ -2,11 +2,15 @@
 
 /* ********** PLANIFICADOR LARGO PLAZO ********** */
 
-void* intentar_pasar_de_new_a_ready() {
-	while(1) {
-		sem_wait(&sem_hilo_new_ready);
-		sem_wait(&sem_grado_multiprogramacion);	//FALTA ARREGLAR LA PRIORIDAD DE READY SUSP. NO SE ME OCURRE COMO HACERLO
-		pasar_de_new_a_ready();
+void* priorizar_procesos_suspendidos_ready_sobre_new() {
+   while(1){
+	sem_wait(&sem_priorizar);
+	sem_wait(&sem_grado_multiprogramacion);
+	  	if(list_size(cola_suspended_ready)) {
+        	pasar_de_ready_susp_a_ready();
+        } else { 
+          	pasar_de_new_a_ready();
+   		}
     }
 }
 
@@ -84,13 +88,14 @@ void pasar_de_blocked_susp_a_ready_susp() {
 	log_info(logger, "EVENTO: Proceso %d removido de SUSP/BLOCKED y agregado a SUSP/READY", pcb->pid);
 	print_colas();
 
-	sem_post(&sem_hilo_ready_susp_ready);
+	//sem_post(&sem_hilo_ready_susp_ready);
+	pasar_de_ready_susp_a_ready();
   
 }
 
-void* pasar_de_ready_susp_a_ready() {
-	while(1) {
-		sem_wait(&sem_hilo_ready_susp_ready); // hay que hacerle signal cuando pasa de block/susp a ready/susp
+void pasar_de_ready_susp_a_ready() {
+	//while(1) {
+		//sem_wait(&sem_hilo_ready_susp_ready); // hay que hacerle signal cuando pasa de block/susp a ready/susp
 		sem_wait(&sem_grado_multiprogramacion);
 
 		pthread_mutex_lock(&mutexSuspendedReady);
@@ -108,7 +113,7 @@ void* pasar_de_ready_susp_a_ready() {
 		}
 		pthread_mutex_unlock(&mutexSuspendedReady);
 		log_info(logger, "No hay procesos para suspender");
-	}
+	//}
 }
 
 /* ********** PLANIFICADOR CORTO PLAZO ********** */

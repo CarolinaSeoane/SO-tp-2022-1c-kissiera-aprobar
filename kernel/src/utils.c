@@ -101,9 +101,9 @@ void inicializar_planificacion() {
     IO_ocupado = 0;
     pthread_mutex_unlock(&mutex_vg_io);
 
-    pthread_create(&hilo_new_ready, NULL, intentar_pasar_de_new_a_ready, NULL);
+    pthread_create(&hilo_new_ready, NULL, priorizar_procesos_suspendidos_ready_sobre_new, NULL);
     pthread_create(&hilo_bloqueado_a_bloqueado_susp, NULL, pasar_de_bloqueado_a_bloqueado_susp, NULL);
-    pthread_create(&hilo_ready_susp_ready, NULL, pasar_de_ready_susp_a_ready, NULL);
+   // pthread_create(&hilo_ready_susp_ready, NULL, pasar_de_ready_susp_a_ready, NULL);
 
     if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
 		pthread_create(&hilo_ready_exec, NULL, pasar_de_ready_a_exec_FIFO, NULL);

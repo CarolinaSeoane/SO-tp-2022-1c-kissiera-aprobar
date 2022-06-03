@@ -16,13 +16,13 @@
 #include <unistd.h>
 #include <time.h>
 
-void* intentar_pasar_de_new_a_ready();
+void* priorizar_procesos_suspendidos_ready_sobre_new();
 void pasar_de_new_a_ready(); 
 void* pasar_de_ready_a_exec_FIFO();
 void* pasar_de_ready_a_exec_SRT();
 void pasar_de_exec_a_exit(int, int);
 //void* pasar_de_bloqueado_a_bloqueado_susp(int) 
-void* pasar_de_ready_susp_a_ready();
+void pasar_de_ready_susp_a_ready();
 void pasar_de_exec_a_bloqueado(int, int, int);
 int calcular_tiempo_que_estara_bloqueado();
 void* pasar_de_bloqueado_a_bloqueado_susp();
