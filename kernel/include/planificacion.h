@@ -29,6 +29,7 @@ void pasar_de_blocked_susp_a_ready_susp();
 void* pasar_de_bloqueado_a_bloqueado_susp();
 void timer(int);
 void* pasar_de_bloqueado_susp_a_susp_ready();
+void* priorizar_procesos_suspendidos_ready_sobre_new();
 
 PCB* proceso_exec;
 bool hay_un_proceso_ejecutando;

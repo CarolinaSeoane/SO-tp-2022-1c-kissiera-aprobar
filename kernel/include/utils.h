@@ -68,6 +68,7 @@ sem_t sem_ejecutar_IO;
 sem_t IO_esta_disponible;
 sem_t sem_grado_multiprogramacion;
 sem_t sem_hilo_blocked_a_blocked_susp;
+sem_t sem_priorizar;
 
 // Mutex - Estados del proceso
 pthread_mutex_t mutexNew;
