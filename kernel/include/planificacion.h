@@ -25,10 +25,13 @@ void pasar_de_exec_a_exit(int, int);
 void* pasar_de_ready_susp_a_ready();
 void pasar_de_exec_a_bloqueado(int, int, int);
 int calcular_tiempo_que_estara_bloqueado();
-void pasar_de_blocked_susp_a_ready_susp();
 void* pasar_de_bloqueado_a_bloqueado_susp();
-void timer(int);
-void* pasar_de_bloqueado_susp_a_susp_ready();
+void* timer(void*);
+void pasar_de_blocked_susp_a_ready_susp();
+
+typedef struct {
+    int tiempo;
+} args_timer;
 
 PCB* proceso_exec;
 bool hay_un_proceso_ejecutando;

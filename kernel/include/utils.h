@@ -88,10 +88,8 @@ pthread_mutex_t mutex_vg_io;
 t_list *cola_new;
 t_list *cola_ready;
 t_list *cola_blck;
-t_list *cola_finish;
 t_list *cola_suspended_ready;
 t_list *cola_suspended_blck;
-t_list *cola_procesos_con_socket;
 
 t_list *procesos_que_se_van_a_suspender;
 
@@ -105,5 +103,7 @@ void inicializar_conexiones();
 void destroy_recursos();
 void inicializar_planificacion();
 void* ejecutar_IO();
+void print_colas();
+void print_elementos_de_una_cola(t_list *);
 
 #endif

@@ -30,10 +30,8 @@ void inicializar_colas() {
 	cola_new = list_create();
 	cola_ready = list_create();
 	cola_blck = list_create();
-	cola_finish = list_create();
     cola_suspended_ready = list_create();
 	cola_suspended_blck = list_create();
-    cola_procesos_con_socket = list_create();
 
     procesos_que_se_van_a_suspender = list_create();
 }
@@ -114,4 +112,33 @@ void inicializar_planificacion() {
 	} 
 
     pthread_create(&hilo_IO, NULL, ejecutar_IO, NULL);
+}
+
+void print_colas() {
+    log_info(logger, "NEW:");
+    print_elementos_de_una_cola(cola_new);
+    log_info(logger, "READY:");
+    print_elementos_de_una_cola(cola_ready);
+    log_info(logger, "BLOCKED:");
+    print_elementos_de_una_cola(cola_blck);
+    log_info(logger, "SUSP/READY:");
+    print_elementos_de_una_cola(cola_suspended_ready);
+    log_info(logger, "SUSP/BLOCKED:");
+    print_elementos_de_una_cola(cola_suspended_blck);
+    log_info(logger, "PROCESOS QUE SE VAN A SUSPENDER:");
+    print_elementos_de_una_cola(procesos_que_se_van_a_suspender);
+    log_info(logger, " ");
+    log_info(logger, " ");
+}
+
+void print_elementos_de_una_cola(t_list *cola) {
+    t_list_iterator* iterator = list_iterator_create(cola);
+	PCB* elem_iterado;
+
+	while(list_iterator_has_next(iterator)) {
+		elem_iterado = list_iterator_next(iterator);        
+		log_info(logger, "%d", elem_iterado->pid);
+	}
+
+	list_iterator_destroy(iterator);
 }

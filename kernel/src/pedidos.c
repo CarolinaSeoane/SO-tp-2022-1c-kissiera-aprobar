@@ -5,7 +5,6 @@ void* atender_pedidos_consolas(void* void_args) {
 
 	int accion;
 	recv(args->cliente_fd, &accion, sizeof(accion), 0);
-	log_info(logger, "Acción: %d", accion);
 
 	switch(accion) {
 		case ENVIAR_INSTRUCCIONES: ;
@@ -28,7 +27,8 @@ void* atender_pedidos_consolas(void* void_args) {
 			pthread_mutex_unlock(&mutexNew);
 
 			// Signal al hilo new - ready
-			log_info(logger, "Nuevo proceso agregado a NEW, cantidad de procesos en NEW: %d", cola_new->elements_count);
+			log_info(logger, "EVENTO: Proceso %d agregado a NEW", pcb.pid);
+			print_colas();
 			sem_post(&sem_hilo_new_ready);
 
 			// Espera que el planificador de largo plazo le diga que puede finalizar
@@ -37,7 +37,7 @@ void* atender_pedidos_consolas(void* void_args) {
 			sem_destroy(&pcb.puedo_finalizar);
 			free(stream);
 			close(args->cliente_fd);
-			log_info(logger, "Termine");
+			//log_info(logger, "Termine");
 			break;
 		default:
 			log_warning_sh(logger, "Operacion desconocida.");
@@ -51,7 +51,6 @@ void* atender_pedidos_dispatch() {
 	while(conexion_dispatch != -1) {
 		int accion;
 		recv(conexion_dispatch, &accion, sizeof(accion), 0);
-		log_info(logger, "Acción: %d", accion);
 
 		switch(accion) {
 			case EXIT_PROCESO: ;
@@ -59,9 +58,10 @@ void* atender_pedidos_dispatch() {
 				int program_counter;
 
 				recv_exit_proceso(&pid_a_finalizar, &program_counter);
-				log_info(logger, "Proceso %d con pc %d por finalizar", pid_a_finalizar, program_counter);
-
 				pasar_de_exec_a_exit(pid_a_finalizar, program_counter);
+				log_info(logger, "EVENTO: Proceso %d removido de EXEC y FINALIZA", pid_a_finalizar);
+				print_colas();
+				
 				//avisar_a_memoria_proceso_finalizado(pid_a_finalizar);	//Avisar a memoria que elimine las estructuras(mandar operacion + pid)
 				//Mover el proceso de running a exit con mutex
 				//Mandar signal de mutex_popular_cola_ready ya que el grado de multiprogramacion decrementa

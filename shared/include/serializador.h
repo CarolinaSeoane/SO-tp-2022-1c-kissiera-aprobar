@@ -49,7 +49,7 @@ typedef struct {
 	int cliente_fd;
 	int tiempo_bloqueo;
 	sem_t puedo_finalizar;
-	time_t timestamp;
+	int timestamp;
 } PCB; // Estructura de un proceso.
 
 
