@@ -18,8 +18,8 @@ void* atender_pedidos_consolas(void* void_args) {
 			recv(args->cliente_fd, stream, len_instrucciones*sizeof(instruccion), 0);
 
 			PCB pcb;
-			crear_pcb(&pcb, tamanio_proceso, stream, len_instrucciones, config.ESTIMACION_INICIAL, args->cliente_fd);
-			log_info(logger, "PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %d", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
+			crear_pcb(&pcb, tamanio_proceso, stream, len_instrucciones, args->cliente_fd);
+			log_info(logger, "PCB creado: PDI es %d - Tamaño: %d - PC: %d - Tabla de páginas: %d - Estimación Inicial: %f", pcb.pid, pcb.tamanio_proceso, pcb.program_counter , pcb.tabla_paginas, pcb.estimacion_rafaga);
 			
 			// Agrego el proceso a New
 			pthread_mutex_lock(&mutexNew);

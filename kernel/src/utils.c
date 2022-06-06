@@ -11,7 +11,7 @@ void cargarConfig(char* path, Config* config) {
         (*config).PUERTO_CPU_INTERRUPT         = strdup(config_get_string_value(t_config, "PUERTO_CPU_INTERRUPT"));
         (*config).PUERTO_ESCUCHA               = strdup(config_get_string_value(t_config, "PUERTO_ESCUCHA"));
         (*config).ALGORITMO_PLANIFICACION      = strdup(config_get_string_value(t_config, "ALGORITMO_PLANIFICACION"));
-        (*config).ESTIMACION_INICIAL           = config_get_int_value(t_config, "ESTIMACION_INICIAL");
+        (*config).ESTIMACION_INICIAL           = config_get_double_value(t_config, "ESTIMACION_INICIAL");
         (*config).ALFA                         = config_get_double_value(t_config, "ALFA");
         (*config).GRADO_MULTIPROGRAMACION      = config_get_int_value(t_config, "GRADO_MULTIPROGRAMACION");
         (*config).TIEMPO_MAXIMO_BLOQUEADO      = config_get_int_value(t_config, "TIEMPO_MAXIMO_BLOQUEADO");
@@ -53,6 +53,7 @@ void inicializar_semaforos() {
     sem_init(&sem_hilo_exec_exit, 0, 0);
     sem_init(&sem_hilo_ready_susp_ready, 0, 0);
     sem_init(&sem_planificar_FIFO, 0, 1);
+    sem_init(&sem_planificar_SRT, 0, 1);
     sem_init(&sem_hay_procesos_en_ready, 0, 0);
     sem_init(&finalizar, 0, 0);
     sem_init(&sem_ejecutar_IO, 0, 0);

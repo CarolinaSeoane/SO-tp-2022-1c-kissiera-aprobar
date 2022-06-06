@@ -73,7 +73,7 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy) {
 
 		case NO_OP:
 			log_info(logger, "Proceso %d ejecuta NO_OP", (*proceso).pid);
-			sleep(config.RETARDO_NOOP / 1000);
+			usleep(config.RETARDO_NOOP * 1000);
 			break;
 		case IO:;
 			log_info(logger, "Proceso %d ejecuta IO", (*proceso).pid);

@@ -31,7 +31,7 @@ void *list_get_max_priority(t_list*);
 void pasar_de_exec_a_ready();
 
 typedef struct {
-    int tiempo;
+    time_t tiempo;
 } args_timer;
 
 PCB* proceso_exec;

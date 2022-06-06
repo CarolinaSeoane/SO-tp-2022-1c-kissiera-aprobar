@@ -14,6 +14,7 @@
 #include "pedidos.h"
 #include "planificacion.h"
 #include <semaphore.h>
+#include <time.h>
 
 typedef struct {
 	char* IP_MEMORIA;
@@ -61,6 +62,7 @@ sem_t sem_hilo_ready_susp_ready;
 sem_t sem_hilo_bloqueado_a_bloqueado_susp;
 sem_t sem_hilo_bloqueado_susp_a_susp_ready;
 sem_t sem_planificar_FIFO;
+sem_t sem_planificar_SRT;
 sem_t sem_hay_procesos_en_ready;
 sem_t sem_hilo_exec_exit;
 sem_t finalizar;

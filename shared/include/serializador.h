@@ -45,13 +45,13 @@ typedef struct {
 	void* stream;
 	int program_counter;
 	int tabla_paginas;
-	int estimacion_rafaga;
+	float estimacion_rafaga;
 	int cliente_fd;
 	int tiempo_bloqueo;
 	sem_t puedo_finalizar;
-	int timestamp_blocked;
-	int timestamp_exec;
-	int ult_rafaga_real_CPU;
+	time_t timestamp_blocked;
+	time_t timestamp_exec;
+	double ult_rafaga_real_CPU;
 } PCB; // Estructura de un proceso.
 
 

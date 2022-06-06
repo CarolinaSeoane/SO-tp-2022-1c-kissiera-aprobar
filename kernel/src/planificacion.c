@@ -68,7 +68,7 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 			if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
 				sem_post(&sem_planificar_FIFO);
 			} else {
-				// semaforos SRT
+				sem_post(&sem_planificar_SRT);
 			}	
 			sem_post(&(proceso_exec->puedo_finalizar));	
 			sem_post(&sem_grado_multiprogramacion);
@@ -170,12 +170,13 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 
 		proceso_exec->program_counter = pc;
 		proceso_exec->tiempo_bloqueo = tiempo_bloqueo;
-		int tiempo_actual = time(NULL) * 1000;
+		time_t tiempo_actual = time(NULL);
+		
 		proceso_exec->timestamp_blocked = tiempo_actual; //guardo cuando ingreso a la cola blocked. time devuelve segundos, lo paso a milisegundos
 
 		// Sumo a la rafaga real de cpu y calculo la nueva estimacion
 		if(!strcmp(config.ALGORITMO_PLANIFICACION, "SRT")) {
-			proceso_exec->ult_rafaga_real_CPU += (proceso_exec->timestamp_exec - proceso_exec->timestamp_blocked);
+			proceso_exec->ult_rafaga_real_CPU += difftime(proceso_exec->timestamp_blocked, proceso_exec->timestamp_exec);
 
 			float alpha = config.ALFA;
 			proceso_exec->estimacion_rafaga = (alpha * proceso_exec->ult_rafaga_real_CPU) + ((1 - alpha) * proceso_exec->estimacion_rafaga);
@@ -191,9 +192,15 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 		hay_un_proceso_ejecutando = false;
 		pthread_mutex_unlock(&mutex_vg_ex);
 
+		if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
+			sem_post(&sem_planificar_FIFO);
+		} else {
+			sem_post(&sem_planificar_SRT);
+		}
+
 		////
 		//if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
-			sem_post(&sem_planificar_FIFO);
+			
 			sem_post(&sem_ejecutar_IO);
 			log_info(logger, "EVENTO: Proceso %d removido de EXEC y agregado a BLOCKED", proceso_exec->pid);
 			print_colas();
@@ -230,7 +237,7 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 
 void* pasar_de_ready_a_exec_SRT() {  
 	while(1) {
-		sem_wait(&sem_planificar_FIFO);
+		sem_wait(&sem_planificar_SRT);
 		sem_wait(&sem_hay_procesos_en_ready);
 
 		pthread_mutex_lock(&mutex_vg_ex);
@@ -250,12 +257,14 @@ void* pasar_de_ready_a_exec_SRT() {
 
 			pthread_mutex_unlock(&mutexReady);
 
-			int tiempo_actual = time(NULL) * 1000;
+			time_t tiempo_actual = time(NULL);
 			
 			pthread_mutex_lock(&mutexExe);
 			pcb->timestamp_exec = tiempo_actual;
 			proceso_exec = pcb;
 			pthread_mutex_unlock(&mutexExe);
+
+			//log_info(logger, "Timestamp de cuando proceso %d pasa a exec: %f", pcb->pid, pcb->timestamp_exec);
 
 			pthread_mutex_lock(&mutex_vg_ex);
 			hay_un_proceso_ejecutando = true;
@@ -277,8 +286,8 @@ void* menor_tiempo_restante(PCB* p1, PCB* p2) {
 
 void *list_get_max_priority(t_list *lista) {	
 	PCB* pcb = list_get_minimum(lista, (void*) menor_tiempo_restante);
-	log_info(logger, "Tiene mayor prioridad el pid %d", pcb->pid);
-	return list_get_minimum(lista, (void*) menor_tiempo_restante);
+	log_info(logger, "Tiene mayor prioridad el pid %d, tiene %lf", pcb->pid, (pcb->estimacion_rafaga - pcb->ult_rafaga_real_CPU));
+	return pcb;
 }
 
 void pasar_de_exec_a_ready() {
@@ -289,9 +298,6 @@ void pasar_de_exec_a_ready() {
 	pthread_mutex_unlock(&mutex_vg_ex);
 
 	if(cpu_ocupada) {
-
-		pthread_mutex_lock(&mutexExe);		
-		proceso_exec->ult_rafaga_real_CPU += ((time(NULL) * 1000) - proceso_exec->timestamp_exec); // Sumo a la rafaga real de cpu
 
 		// Pido a cpu que devuelva el proceso
 		int* co_op = malloc(sizeof(int));
@@ -314,6 +320,13 @@ void pasar_de_exec_a_ready() {
 
 			log_info(logger, "Voy a desalojar al proceso %d", pid_a_finalizar);
 			
+			pthread_mutex_lock(&mutexExe);		
+			time_t tiempo_actual = time(NULL);
+			//log_info(logger, "Ultimo timestamp: %d, time de ahora: %d", proceso_exec->timestamp_exec, tiempo_actual);
+			//log_info(logger, "Timestamp de cuando proceso %d es desalojado: %f", proceso_exec->pid, (float) tiempo_actual * 1000);
+			proceso_exec->ult_rafaga_real_CPU += difftime(tiempo_actual, proceso_exec->timestamp_exec); // Sumo a la rafaga real de cpu
+
+			log_info(logger, "El proceso %d ejecuto %lf", proceso_exec->pid, proceso_exec->ult_rafaga_real_CPU);
 			pthread_mutex_lock(&mutexReady);
 			list_add(cola_ready, proceso_exec);
 			pthread_mutex_unlock(&mutexReady);
@@ -323,7 +336,7 @@ void pasar_de_exec_a_ready() {
 			hay_un_proceso_ejecutando = false;
 			pthread_mutex_unlock(&mutex_vg_ex);
 		
-			sem_post(&sem_planificar_FIFO);
+			sem_post(&sem_planificar_SRT);
 			sem_post(&sem_hay_procesos_en_ready);
 		} else {
 			log_info(logger, "Interrupt recibio una operacion desconocida");
@@ -332,12 +345,13 @@ void pasar_de_exec_a_ready() {
 }
 
 void* timer(void* void_args) {
-    int tiempo_medido, delta_tiempo = 0;
+    float delta_tiempo = 0;
+	time_t tiempo_medido;
 	args_timer* args = (args_timer*) void_args;
 
-    while(delta_tiempo < config.TIEMPO_MAXIMO_BLOQUEADO) {
-        tiempo_medido = time(NULL) * 1000;
-        delta_tiempo = tiempo_medido - args->tiempo;
+    while(delta_tiempo < config.TIEMPO_MAXIMO_BLOQUEADO / 1000) {
+        tiempo_medido = time(NULL);
+        delta_tiempo = difftime(tiempo_medido, args->tiempo);
     }
 	//sale del while cuando se cumple el tiempo maximo de bloqueo
 	sem_post(&sem_hilo_blocked_a_blocked_susp);

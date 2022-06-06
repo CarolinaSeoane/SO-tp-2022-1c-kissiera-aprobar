@@ -12,6 +12,6 @@ int ULT_PID;
 pthread_mutex_t mutex_PID;
 
 int generar_pid();
-void crear_pcb(PCB*, int, void*, int, int, int);
+void crear_pcb(PCB*, int, void*, int, int);
 
 #endif 
