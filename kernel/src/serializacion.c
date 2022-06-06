@@ -7,6 +7,14 @@ void send_proceso_a_cpu(PCB* pcb, int size_stream) {
     free(a_enviar);
 }
 
+void send_desalojo_a_cpu(PCB* pcb, int size_stream) {
+    int bytes_a_enviar = sizeof(int);
+    int* codigo = malloc(sizeof(int));
+    *codigo = INTERRUPCION;         
+    send(conexion_interrupt, codigo, bytes_a_enviar, 0);
+    free(codigo);
+}
+
 void* serializar_proceso(PCB* pcb, int bytes) {
     void* paquete = malloc(bytes);
     
@@ -101,7 +109,12 @@ void recv_proceso_bloqueado(int* pid, int* pc, int* tiempo_bloqueo) {
     recv(conexion_dispatch, tiempo_bloqueo, sizeof(int), 0);
 }
 
-void recv_exit_proceso(int* pid_a_finalizar, int* program_counter) {
+void recv_proceso_cpu(int* pid_a_finalizar, int* program_counter) {
     recv(conexion_dispatch, pid_a_finalizar, sizeof(int), 0);
     recv(conexion_dispatch, program_counter, sizeof(int), 0);
+}
+
+void recv_proceso_cpu_desalojado(int* pid_a_finalizar, int* program_counter) {
+    recv(conexion_interrupt, pid_a_finalizar, sizeof(int), 0);
+    recv(conexion_interrupt, program_counter, sizeof(int), 0);
 }

@@ -37,6 +37,7 @@ void inicializar_colas() {
 }
 
 void inicializar_semaforos() {
+    pthread_mutex_init(&mutex_PID, NULL);
 	pthread_mutex_init(&mutexSuspendedBlocked, NULL);
 	pthread_mutex_init(&mutexSuspendedReady, NULL);
 	pthread_mutex_init(&mutexNew, NULL);
@@ -58,6 +59,7 @@ void inicializar_semaforos() {
     sem_init(&IO_esta_disponible, 0, 1);
     sem_init(&sem_grado_multiprogramacion, 0, config.GRADO_MULTIPROGRAMACION);
     sem_init(&sem_hilo_blocked_a_blocked_susp, 0, 0);
+    sem_init(&sem_desalojar, 0, 0);
 }
 
 void inicializar_logger() {
@@ -103,7 +105,6 @@ void inicializar_planificacion() {
 
     pthread_create(&hilo_new_ready, NULL, priorizar_procesos_suspendidos_ready_sobre_new, NULL);
     pthread_create(&hilo_bloqueado_a_bloqueado_susp, NULL, pasar_de_bloqueado_a_bloqueado_susp, NULL);
-   // pthread_create(&hilo_ready_susp_ready, NULL, pasar_de_ready_susp_a_ready, NULL);
 
     if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
 		pthread_create(&hilo_ready_exec, NULL, pasar_de_ready_a_exec_FIFO, NULL);

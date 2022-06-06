@@ -20,10 +20,6 @@ typedef struct {
     char* PUERTO_ESCUCHA_INTERRUPT;
 } Config;
 
-typedef struct {
-    int cliente_interrupt_fd;
-} args_interrupt;
-
 t_log* logger;
 Config config;
 int tamanio_pagina;
@@ -34,7 +30,8 @@ int conexion_memoria;
 
 int dispatch;
 int interrupt;
-int cliente_dispatch; //hacer lo mismo para interrupt
+int cliente_dispatch;
+int cliente_interrupt;
 
 pthread_mutex_t mutex_flag_interrupcion;
 

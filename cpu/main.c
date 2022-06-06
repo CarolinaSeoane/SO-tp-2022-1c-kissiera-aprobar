@@ -11,10 +11,8 @@ int main() {
 
 	// ------ RECIBE INTERRUPCIONES DE KERNEL
 	pthread_t hilo_interrupt;
-	int cliente_interrupt = esperar_cliente(interrupt, logger);
-	args_interrupt *args_i = malloc(sizeof(args_interrupt));
-	args_i->cliente_interrupt_fd = cliente_interrupt;
-	pthread_create(&hilo_interrupt, NULL, atender_interrupt, (void*) args_i);
+	cliente_interrupt = esperar_cliente(interrupt, logger);
+	pthread_create(&hilo_interrupt, NULL, atender_interrupt, NULL);
 	
 	// ------ RECIBE PROCESOS DE KERNEL
 	pthread_t hilo_dispatch;

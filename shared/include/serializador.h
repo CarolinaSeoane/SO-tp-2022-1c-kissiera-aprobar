@@ -49,7 +49,9 @@ typedef struct {
 	int cliente_fd;
 	int tiempo_bloqueo;
 	sem_t puedo_finalizar;
-	int timestamp;
+	int timestamp_blocked;
+	int timestamp_exec;
+	int ult_rafaga_real_CPU;
 } PCB; // Estructura de un proceso.
 
 
