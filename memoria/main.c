@@ -9,7 +9,7 @@ int main(void) {
 	inicializar_memoria_principal();
 	inicializar_tablas_de_paginas();
 
-    log_info(logger, "Inicializacion de Memoria terminada");
+    log_info(logger, "Inicializacion de Memoria terminada\n\n");
 
     while(server_escuchar(memoria_server));
 

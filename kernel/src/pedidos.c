@@ -40,7 +40,7 @@ void* atender_pedidos_consolas(void* void_args) {
 			//log_info(logger, "Termine");
 			break;
 		default:
-			log_warning_sh(logger, "Operacion desconocida.");
+			log_warning_sh(logger, "Operacion desconocida. Recibi de una Consola: %d", accion);
 			close(args->cliente_fd);
 			break;
 	}
@@ -109,7 +109,7 @@ void* atender_pedidos_dispatch() {
 				break;
 
 			default:
-				log_error(logger, "Operacion desconocida.");
+				log_error(logger, "Operacion desconocida. Recibi de CPU: %d", accion);
 				break;
 		}
 	}  
