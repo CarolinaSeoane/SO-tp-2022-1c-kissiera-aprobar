@@ -109,11 +109,17 @@ void inicializar_planificacion() {
 
     if(!strcmp(config.ALGORITMO_PLANIFICACION, "FIFO")) {
 		pthread_create(&hilo_ready_exec, NULL, pasar_de_ready_a_exec_FIFO, NULL);
+        pthread_detach(hilo_ready_exec);
 	} else {
 		pthread_create(&hilo_ready_exec, NULL, pasar_de_ready_a_exec_SRT, NULL);
+        pthread_detach(hilo_ready_exec);
 	} 
 
     pthread_create(&hilo_IO, NULL, ejecutar_IO, NULL);
+
+    pthread_detach(hilo_new_ready);
+    pthread_detach(hilo_bloqueado_a_bloqueado_susp);
+    pthread_detach(hilo_IO);
 }
 
 void print_colas() {

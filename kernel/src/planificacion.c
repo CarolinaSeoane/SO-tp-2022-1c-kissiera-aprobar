@@ -281,7 +281,15 @@ void* pasar_de_ready_a_exec_SRT() {
 }
 
 void* menor_tiempo_restante(PCB* p1, PCB* p2) {
-    return (p1->estimacion_rafaga - p1->ult_rafaga_real_CPU) <= (p2->estimacion_rafaga - p2->ult_rafaga_real_CPU) ? p1 : p2;
+    float tiempo_restante_p1 = p1->estimacion_rafaga - p1->ult_rafaga_real_CPU;
+	float tiempo_restante_p2 = p2->estimacion_rafaga - p2->ult_rafaga_real_CPU;
+	if(tiempo_restante_p1 < 0) {
+		tiempo_restante_p1 = 0;
+	} 
+	if(tiempo_restante_p2 < 0) {
+		tiempo_restante_p2 = 0;
+	}
+	return tiempo_restante_p1 <= tiempo_restante_p2 ? p1 : p2;
 }
 
 void *list_get_max_priority(t_list *lista) {	
