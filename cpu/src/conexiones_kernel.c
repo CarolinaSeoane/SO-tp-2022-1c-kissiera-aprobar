@@ -90,7 +90,7 @@ void send_proceso_finalizado(Proceso_CPU* proceso) {
 void send_proceso_desalojado(Proceso_CPU* proceso) {
     void* paquete_desalojado = malloc(sizeof(int)*3);
     serializar_proceso_desalojado(proceso, paquete_desalojado);
-    send(cliente_interrupt, paquete_desalojado, sizeof(int)*3, 0);
+    send(cliente_dispatch, paquete_desalojado, sizeof(int)*3, 0);
     free(paquete_desalojado);
 }
 

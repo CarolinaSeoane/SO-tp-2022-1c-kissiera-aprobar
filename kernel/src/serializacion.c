@@ -113,8 +113,3 @@ void recv_proceso_cpu(int* pid_a_finalizar, int* program_counter) {
     recv(conexion_dispatch, pid_a_finalizar, sizeof(int), 0);
     recv(conexion_dispatch, program_counter, sizeof(int), 0);
 }
-
-void recv_proceso_cpu_desalojado(int* pid_a_finalizar, int* program_counter) {
-    recv(conexion_interrupt, pid_a_finalizar, sizeof(int), 0);
-    recv(conexion_interrupt, program_counter, sizeof(int), 0);
-}

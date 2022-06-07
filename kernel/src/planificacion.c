@@ -176,9 +176,9 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 
 		// Sumo a la rafaga real de cpu y calculo la nueva estimacion
 		if(!strcmp(config.ALGORITMO_PLANIFICACION, "SRT")) {
-			proceso_exec->ult_rafaga_real_CPU += difftime(proceso_exec->timestamp_blocked, proceso_exec->timestamp_exec);
+			proceso_exec->ult_rafaga_real_CPU += difftime(proceso_exec->timestamp_blocked, proceso_exec->timestamp_exec) * 1000;
 
-			float alpha = config.ALFA;
+			double alpha = config.ALFA;
 			proceso_exec->estimacion_rafaga = (alpha * proceso_exec->ult_rafaga_real_CPU) + ((1 - alpha) * proceso_exec->estimacion_rafaga);
 		}
 
@@ -299,56 +299,18 @@ void *list_get_max_priority(t_list *lista) {
 }
 
 void pasar_de_exec_a_ready() {
-	//sem_wait(&sem_desalojar);
 
 	pthread_mutex_lock(&mutex_vg_ex);
 	bool cpu_ocupada = hay_un_proceso_ejecutando;
 	pthread_mutex_unlock(&mutex_vg_ex);
 
 	if(cpu_ocupada) {
-
 		// Pido a cpu que devuelva el proceso
 		int* co_op = malloc(sizeof(int));
 		*co_op = INTERRUPCION;
 		send(conexion_interrupt, co_op, sizeof(int), 0);
 		free(co_op);
-
-		int accion;
-		recv(conexion_interrupt, &accion, sizeof(int), 0);
-
-		log_info(logger, "OP RECIBIDA: %d", accion);
-
-		if(accion == DESALOJO_PROCESO) {
-			
-			int pid_a_finalizar;
-			int program_counter;
-			recv_proceso_cpu_desalojado(&pid_a_finalizar, &program_counter);
-		
-			proceso_exec->program_counter = program_counter;
-
-			log_info(logger, "Voy a desalojar al proceso %d", pid_a_finalizar);
-			
-			pthread_mutex_lock(&mutexExe);		
-			time_t tiempo_actual = time(NULL);
-			//log_info(logger, "Ultimo timestamp: %d, time de ahora: %d", proceso_exec->timestamp_exec, tiempo_actual);
-			//log_info(logger, "Timestamp de cuando proceso %d es desalojado: %f", proceso_exec->pid, (float) tiempo_actual * 1000);
-			proceso_exec->ult_rafaga_real_CPU += difftime(tiempo_actual, proceso_exec->timestamp_exec); // Sumo a la rafaga real de cpu
-
-			log_info(logger, "El proceso %d ejecuto %lf", proceso_exec->pid, proceso_exec->ult_rafaga_real_CPU);
-			pthread_mutex_lock(&mutexReady);
-			list_add(cola_ready, proceso_exec);
-			pthread_mutex_unlock(&mutexReady);
-			pthread_mutex_unlock(&mutexExe);
-
-			pthread_mutex_lock(&mutex_vg_ex);
-			hay_un_proceso_ejecutando = false;
-			pthread_mutex_unlock(&mutex_vg_ex);
-		
-			sem_post(&sem_planificar_SRT);
-			sem_post(&sem_hay_procesos_en_ready);
-		} else {
-			log_info(logger, "Interrupt recibio una operacion desconocida");
-		}
+		// El recv de esto se hace pos dispatch en pedidos.c
 	}
 }
 
