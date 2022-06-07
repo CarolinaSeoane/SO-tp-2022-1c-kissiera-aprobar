@@ -95,18 +95,4 @@ void log_warning_sh(t_log* logger, char* editor) {
 	// log_warning(logger,editor);
 }
 
-/*
-int recibir_operacion(int socket_cliente)
-{
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-
-	if(recv(socket_cliente, &(paquete->codigo_operacion), sizeof(uint8_t), 0) != 0)
-		return paquete->codigo_operacion;
-	else
-	{
-		close(socket_cliente);
-		return -1;
-	}
-
-}*/
 

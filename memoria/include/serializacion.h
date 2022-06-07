@@ -5,11 +5,9 @@
 #include <stdlib.h>
 #include "../../shared/include/shared.h"
 #include "utils.h"
-#include <math.h>
 
 void recv_proceso_init(int*, int*, int);
 void send_cpu_handshake(void*);
 void send_tabla_primer_nivel(int, uint32_t);
-void asignar_memoria_y_estructuras(int, int, uint32_t*);
 
 #endif

@@ -8,11 +8,11 @@ void* atender_pedido(void* void_args) {
 
 		int accion;
 		recv(args->cliente_fd, &accion, sizeof(accion), 0);
-		log_info(logger, "Acción: %d", accion);
 
 		switch(accion) {
 			case INIT_PROCESO:;
 
+				log_info(logger, "Recibi INIT_PROCESO");
 				int pid;
 				int tamanio_proceso;
 				uint32_t tabla_primer_nivel;
@@ -20,29 +20,30 @@ void* atender_pedido(void* void_args) {
 				recv_proceso_init(&pid, &tamanio_proceso, args->cliente_fd);
 				log_info(logger, "Recibi proceso PID: %d TAM: %d", pid, tamanio_proceso);
 
-				/* Asignar frames */
-
 				asignar_memoria_y_estructuras(pid, tamanio_proceso, &tabla_primer_nivel);
 				send_tabla_primer_nivel(args->cliente_fd, tabla_primer_nivel);
 
-				/*
-				int* a_enviar = malloc(sizeof(int));
-				*a_enviar = 9;   			
-				send(args->cliente_fd, a_enviar, sizeof(int), 0);
-    			free(a_enviar);
-				*/
+				break;
+
+			case EXIT_PROCESO_M:
+
+				log_info(logger, "Recibi EXIT_PROCESO_M");
 
 				break;
 
 			case ENVIAR_TABLA_PRIMER_NIVEL:
 	
+				log_info(logger, "Recibi ENVIAR_TABLA_PRIMER_NIVEL");
 				break;
 			
 			case ENVIAR_TABLA_SEGUNDO_NIVEL:
 
+				log_info(logger, "Recibi ENVIAR_TABLA_SEGUNDO_NIVEL");
 				break;
 
 			case READ_M:;
+
+				log_info(logger, "Recibi READ_M");
 				int leer_en;
 				recv(args->cliente_fd, &leer_en, sizeof(int), 0);
 				log_info(logger, "tengo que leer en la posicion %d", leer_en);
@@ -62,20 +63,27 @@ void* atender_pedido(void* void_args) {
 
 			case WRITE_M:
 				
-				break;
-
-			case SUSP_PROCESO:
-				
+				log_info(logger, "Recibi WRITE_M");
 				break;
 
 			case HANDSHAKE_MEMORIA:
-				log_info(logger, "Se recibio un handshake con CPU");
+
+				log_info(logger, "Recibi HANDSHAKE_MEMORIA\n\n");
 				send_cpu_handshake((void*) args);
 				break;
+
 			case SWAP_IN:
+
+				log_info(logger, "Recibi SWAP_IN");
 				break;
+
+			case SWAP_OUT:
+
+				log_info(logger, "Recibi SWAP_OUT");
+				break;
+
 			default:
-				log_warning_sh(logger, "Operacion desconocida.");
+				log_warning_sh(logger, "Operacion desconocida.\n\n");
 				close(args->cliente_fd);
 				break;
 		}
