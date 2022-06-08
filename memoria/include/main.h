@@ -11,5 +11,8 @@
 #include <pthread.h>
 #include "utils.h"
 #include "pedidos.h"
+#include "serializacion.h"
+
+int server_escuchar(int);
 
 #endif

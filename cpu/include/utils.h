@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include "../../shared/include/shared.h"
+#include <pthread.h>
 
 typedef struct {
     int ENTRADAS_TLB;
@@ -19,12 +20,28 @@ typedef struct {
     char* PUERTO_ESCUCHA_INTERRUPT;
 } Config;
 
-typedef struct {
-    int cliente_fd
-} args_dispatch;
-
 t_log* logger;
+Config config;
+int tamanio_pagina;
+int cant_entradas_tabla;
+int flag_interrupcion;
+int flag_syscall;
+int conexion_memoria;
+
+int dispatch;
+int interrupt;
+int cliente_dispatch;
+int cliente_interrupt;
+
+pthread_mutex_t mutex_flag_interrupcion;
 
 void cargarConfig(char*, Config*);
+void inicializar_semaforos();
+void inicializar_flags();
+void inicializar_logger();
+void inicializar_config();
+void inicializar_conexiones();
+void inicializar_servidores();
+void destroy_recursos();
 
-#endif
+#endif /* UTILS_H_ */

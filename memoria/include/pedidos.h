@@ -2,7 +2,9 @@
 #define PEDIDOS_H_
 
 #include "utils.h"
+#include "serializacion.h"
+#include "manejo_memoria.h"
 
-int atender_pedido(int);
+void* atender_pedido(void*);
 
 #endif

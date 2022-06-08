@@ -3,7 +3,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "utils.h"
 
-void atender_interrupt();
+void* atender_interrupt();
 
-#endif
+#endif /* INTERRUPT_H_ */

@@ -1,15 +1,17 @@
 #ifndef SERIALIZADOR_H_
 #define SERIALIZADOR_H_
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<commons/log.h>
-#include<commons/string.h>
-#include<commons/config.h>
-#include<readline/readline.h>
-#include<string.h>
-#include<netdb.h>
-#include"protocolo.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <commons/log.h>
+#include <commons/string.h>
+#include <commons/config.h>
+#include <readline/readline.h>
+#include <string.h>
+#include <netdb.h>
+#include "protocolo.h"
+#include <semaphore.h>
+#include <time.h>
 
 typedef enum {
 	NO_OP,
@@ -28,8 +30,7 @@ typedef struct {
 } instruccion; // La instruccion en si.
 
 
-typedef struct
-{
+typedef struct {
 	accion id_accion;
 	int length_instrucciones;
 	int tamanio_proceso;
@@ -37,14 +38,20 @@ typedef struct
 } t_paquete_instrucciones; // Paquete para mandar instrucciones. Consola a Kernel.
 
 
-typedef struct
-{
+typedef struct {
 	int pid;
 	int tamanio_proceso;
+	int len_instrucciones;
 	void* stream;
 	int program_counter;
 	int tabla_paginas;
-	int estimacion_rafaga;
+	float estimacion_rafaga;
+	int cliente_fd;
+	int tiempo_bloqueo;
+	sem_t puedo_finalizar;
+	time_t timestamp_blocked;
+	time_t timestamp_exec;
+	double ult_rafaga_real_CPU;
 } PCB; // Estructura de un proceso.
 
 
@@ -54,6 +61,5 @@ typedef struct {
 	int program_counter;
 	int tabla_paginas;
 } Proceso_CPU;
-
 
 #endif

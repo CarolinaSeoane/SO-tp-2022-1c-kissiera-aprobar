@@ -68,11 +68,11 @@ int crear_conexion(char *ip, char* puerto, t_log* logger) {
 
 	// Error conectando
 		if(connect(socket_cliente, server_info->ai_addr, server_info->ai_addrlen) == -1) {
-			log_error(logger, "Error al conectarse con IP: %s y PUERTO: %s\n", ip, puerto);
+			log_error(logger, "Error al conectarse con IP: %s y PUERTO: %s", ip, puerto);
 			freeaddrinfo(server_info);
 			return 0;
 		} else
-			log_info(logger, "Cliente conectado en IP: %s y PUERTO: %s\n", ip, puerto);
+			log_info(logger, "Cliente conectado en IP: %s y PUERTO: %s", ip, puerto);
 
 	freeaddrinfo(server_info);
 
@@ -95,18 +95,4 @@ void log_warning_sh(t_log* logger, char* editor) {
 	// log_warning(logger,editor);
 }
 
-/*
-int recibir_operacion(int socket_cliente)
-{
-	t_paquete* paquete = malloc(sizeof(t_paquete));
-
-	if(recv(socket_cliente, &(paquete->codigo_operacion), sizeof(uint8_t), 0) != 0)
-		return paquete->codigo_operacion;
-	else
-	{
-		close(socket_cliente);
-		return -1;
-	}
-
-}*/
 
