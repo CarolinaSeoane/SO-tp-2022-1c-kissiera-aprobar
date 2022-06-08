@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include "tlb.h"
 
-int traducir_direccion(int);
+int traducir_direccion(int, int tlb[][2], int);
 int calcular_dir_fisica(int);
 
 #endif /* MMU_H_ */

@@ -12,7 +12,7 @@
 #include "interrupt.h"
 #include <pthread.h>
 
-void send_pedido_lectura(Proceso_CPU*, instruccion, int);
+void send_pedido_lectura(Proceso_CPU*, instruccion, int, int tlb[][2], int);
 void send_pedido_escritura(int, int, int);
 int recv_pedido_lectura(int);
 
