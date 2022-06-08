@@ -18,6 +18,9 @@ int iniciar_servidor(char* ip, char* puerto, int cant_conexiones) {
         if (socket_servidor == -1)
             continue;
 
+        int yes = 1;
+        setsockopt(socket_servidor, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes);
+
         if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1) {
             close(socket_servidor);
             continue;
