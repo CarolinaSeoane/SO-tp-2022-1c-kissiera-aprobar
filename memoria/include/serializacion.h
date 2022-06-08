@@ -8,6 +8,6 @@
 
 void recv_proceso_init(int*, int*, int);
 void send_cpu_handshake(void*);
-void send_tabla_primer_nivel(int, uint32_t);
+void send_tabla_primer_nivel(int, int);
 
 #endif

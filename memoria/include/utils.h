@@ -36,6 +36,28 @@ void* memoria_principal;
 t_list* lista_tablas_primer_nivel;
 t_list* lista_tablas_segundo_nivel;
 
+// Estructura Tabla Primer Nivel
+typedef struct {
+    int pid;
+    t_list* entradas_tabla_primer_nivel;
+} Tabla_Primer_Nivel;
+
+typedef struct {
+    int direccion_tabla_segundo_nivel;
+} Entrada_Tabla_Primer_Nivel;
+
+// Estructura Tabla Segundo Nivel
+typedef struct {
+    t_list* entradas_tabla_segundo_nivel;
+} Tabla_Segundo_Nivel;
+
+typedef struct {
+    int marco;
+    int bit_presencia;
+    int bit_modificado;
+    int bit_uso;
+} Entrada_Tabla_Segundo_Nivel;
+
 // Mutex
 pthread_mutex_t mutex_memoria;
 pthread_mutex_t mutex_lista_primer_nivel;

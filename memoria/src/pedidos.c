@@ -15,7 +15,7 @@ void* atender_pedido(void* void_args) {
 				log_info(logger, "Recibi INIT_PROCESO");
 				int pid;
 				int tamanio_proceso;
-				uint32_t tabla_primer_nivel;
+				int tabla_primer_nivel;
 
 				recv_proceso_init(&pid, &tamanio_proceso, args->cliente_fd);
 				log_info(logger, "Recibi proceso PID: %d TAM: %d", pid, tamanio_proceso);

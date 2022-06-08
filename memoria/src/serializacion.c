@@ -28,9 +28,9 @@ void send_cpu_handshake(void* void_args) {
 	free(codigo);
 }
 
-void send_tabla_primer_nivel(int conexion, uint32_t tabla_primer_nivel) {
-	void* paquete = malloc(sizeof(uint32_t));
-	memcpy(paquete, &tabla_primer_nivel, sizeof(uint32_t));
-	send(conexion, paquete, sizeof(uint32_t), 0);
+void send_tabla_primer_nivel(int conexion, int tabla_primer_nivel) {
+	void* paquete = malloc(sizeof(int));
+	memcpy(paquete, &tabla_primer_nivel, sizeof(int));
+	send(conexion, paquete, sizeof(int), 0);
 	free(paquete);
 }
