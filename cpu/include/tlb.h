@@ -5,16 +5,12 @@
 #include <stdlib.h>
 #include "utils.h"
 
-int obtener_dir_tlb(int);
-int esta_en_tlb(int);
-int buscar_direccion_fisica(int, int);
-void inicializar_tlb();
-void agregar_direccion(int, int);
-void printear();
-void eliminar_tlb();
-bool esta_llena();
-
-int tlb[][2];
-int* tamanio;
+int obtener_dir_tlb(int, int tlb[][2], int);
+int esta_en_tlb(int, int tlb[][2], int);
+int buscar_direccion_fisica(int, int, int tlb[][2]);
+void inicializar_tlb(int tlb[][2], int);
+void agregar_direccion(int, int, int tlb[][2], int);
+void printear(int tlb[][2], int);
+bool esta_llena(int tlb[][2], int);
 
 #endif /* TLB_H_ */

@@ -2,29 +2,31 @@
 
 void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
 
-/*	inicializar_tlb();
-	printear();
+	int tamanio = config.ENTRADAS_TLB;
+	int tlb[tamanio][2];
+/*
+	inicializar_tlb(tlb, tamanio);
+
+	printear(tlb, tamanio);
 	//esto es todo de prueba
-	agregar_direccion(4,5);
-	printear();
+	agregar_direccion(4,5, tlb, tamanio);
+	printear(tlb, tamanio);
 	
-	obtener_dir_tlb(4);
-	obtener_dir_tlb(5);
-	obtener_dir_tlb(3);
-	agregar_direccion(3,8);
-	printear();
-	obtener_dir_tlb(3);
+	obtener_dir_tlb(4, tlb, tamanio);
+	obtener_dir_tlb(5, tlb, tamanio);
+	obtener_dir_tlb(3, tlb, tamanio);
+	agregar_direccion(3,8, tlb, tamanio);
+	printear(tlb, tamanio);
+	obtener_dir_tlb(3, tlb, tamanio);
 
-	agregar_direccion(9,6);
-	printear();
-	agregar_direccion(2,7);
-	printear();
+	agregar_direccion(9,6, tlb, tamanio);
+	printear(tlb, tamanio);
+	agregar_direccion(2,7, tlb, tamanio);
+	printear(tlb, tamanio);
 
-	agregar_direccion(5,9);
-	printear();
-	
-	eliminar_tlb();
-*/
+	agregar_direccion(5,9, tlb, tamanio);
+	printear(tlb, tamanio);
+	*/
     instruccion inst;
     int valor_copy;
 	log_info(logger, "Ejecutando ciclos de instruccion del proceso %d", (*proceso).pid);
@@ -38,7 +40,7 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
         }
         
         (*proceso).program_counter++;
-        execute(proceso, inst, valor_copy);
+        execute(proceso, inst, valor_copy, tlb, tamanio);
     }
 	if(!flag_syscall) {
 		log_info(logger, "El proceso %d es desalojado", (*proceso).pid);
@@ -67,7 +69,7 @@ int fetch_operands(Proceso_CPU* proceso, instruccion inst) {
 	return 1; //recv_pedido_lectura(conexion_memoria);
 }
 
-void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy) {
+void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, int tlb[][2], int tamanio) {
 	
 	switch(inst.id_operacion) {
 
@@ -85,7 +87,7 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy) {
 			break;
 		case READ:;
 			log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
-			//send_pedido_lectura(proceso, inst, conexion_memoria);
+			send_pedido_lectura(proceso, inst, conexion_memoria, tlb, tamanio);
 			
 			//int leido = recv_pedido_lectura(conexion_memoria);
 			
