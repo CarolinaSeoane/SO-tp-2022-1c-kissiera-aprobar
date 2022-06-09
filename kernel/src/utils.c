@@ -89,6 +89,30 @@ void inicializar_conexiones() {
 }
 
 void destroy_recursos() {
+    pthread_mutex_destroy(&mutex_PID);
+	pthread_mutex_destroy(&mutexSuspendedBlocked);
+	pthread_mutex_destroy(&mutexSuspendedReady);
+	pthread_mutex_destroy(&mutexNew);
+	pthread_mutex_destroy(&mutexReady);
+	pthread_mutex_destroy(&mutexBlock);
+	pthread_mutex_destroy(&mutexExe);
+	pthread_mutex_destroy(&mutexExit);
+	pthread_mutex_destroy(&mutex_vg_ex);
+    pthread_mutex_destroy(&mutexProcesosQueSeVanASuspender);
+    
+    sem_destroy(&sem_hilo_new_ready);
+    sem_destroy(&sem_hilo_exec_exit);
+    sem_destroy(&sem_hilo_ready_susp_ready);
+    sem_destroy(&sem_planificar_FIFO);
+    sem_destroy(&sem_planificar_SRT);
+    sem_destroy(&sem_hay_procesos_en_ready);
+    sem_destroy(&finalizar);
+    sem_destroy(&sem_ejecutar_IO);
+    sem_destroy(&IO_esta_disponible);
+    sem_destroy(&sem_grado_multiprogramacion);
+    sem_destroy(&sem_hilo_blocked_a_blocked_susp);
+    sem_destroy(&sem_desalojar);
+
     log_destroy(logger);
     close(conexion_dispatch);
     close(conexion_interrupt);
