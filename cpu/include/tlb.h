@@ -12,5 +12,7 @@ void inicializar_tlb(int tlb[][2], int);
 void agregar_direccion(int, int, int tlb[][2], int);
 void printear(int tlb[][2], int);
 bool esta_llena(int tlb[][2], int);
+void reemplazo_fifo(int, int, int tlb[][2], int);
+void reemplazo_lru(int, int, int tlb[][2], int);
 
 #endif /* TLB_H_ */

@@ -4,10 +4,10 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
 
 	int tamanio = config.ENTRADAS_TLB;
 	int tlb[tamanio][2];
-/*
+
 	inicializar_tlb(tlb, tamanio);
 
-	printear(tlb, tamanio);
+	/*printear(tlb, tamanio);
 	//esto es todo de prueba
 	agregar_direccion(4,5, tlb, tamanio);
 	printear(tlb, tamanio);
@@ -24,9 +24,13 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
 	agregar_direccion(2,7, tlb, tamanio);
 	printear(tlb, tamanio);
 
-	agregar_direccion(5,9, tlb, tamanio);
-	printear(tlb, tamanio);
-	*/
+	agregar_direccion(5,0, tlb, tamanio);
+	agregar_direccion(1,1, tlb, tamanio);
+	agregar_direccion(3,3, tlb, tamanio);
+	agregar_direccion(7,7, tlb, tamanio);
+	agregar_direccion(6,6, tlb, tamanio);
+	agregar_direccion(2,3, tlb, tamanio);*/
+	
     instruccion inst;
     int valor_copy;
 	log_info(logger, "Ejecutando ciclos de instruccion del proceso %d", (*proceso).pid);

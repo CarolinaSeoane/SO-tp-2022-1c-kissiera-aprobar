@@ -14,7 +14,15 @@ void agregar_direccion(int dir_logica, int dir_fisica, int tlb[][2], int tamanio
 
     if(esta_llena(tlb, tamanio)) {
         log_info(logger, "TLB llena. Se procede a eliminar entradas anteriores");
-        //llamar algoritmo de reemplazo
+
+        if(!strcmp(config.REEMPLAZO_TLB, "FIFO")) {
+            reemplazo_fifo(dir_logica, dir_fisica, tlb, tamanio);
+        } else {
+            reemplazo_lru(dir_logica, dir_fisica, tlb, tamanio);
+        }
+
+        log_info(logger, "Entrada %d %d insertada correctamente", dir_logica, dir_fisica);
+
     } else {
         log_info(logger, "Insertando nueva entrada en TLB: %d %d", dir_logica, dir_fisica);
 
@@ -72,4 +80,20 @@ int esta_en_tlb(int direccion_logica, int tlb[][2], int tamanio) {
 int buscar_direccion_fisica(int direccion_logica, int indice, int tlb[][2]) {
     log_info(logger, "La direccion logica %d corresponde a la direccion fisica %d", direccion_logica, tlb[indice][1]);
     return tlb[indice][1];
+}
+
+void reemplazo_fifo(int dir_logica, int dir_fisica, int tlb[][2], int tamanio) {
+    for (int i = 0; i < tamanio - 1; i++) {
+        tlb[i][0] = tlb[i+1][0];
+        tlb[i][1] = tlb[i+1][1];
+    }
+
+    tlb[tamanio-1][0] = dir_logica;
+    tlb[tamanio-1][1] = dir_fisica; 
+
+    printear(tlb, tamanio);
+}
+
+void reemplazo_lru(int dir_logica, int dir_fisica, int tlb[][2], int tamanio) {
+
 }
