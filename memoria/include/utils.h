@@ -43,7 +43,7 @@ typedef struct {
 } Tabla_Primer_Nivel;
 
 typedef struct {
-    int direccion_tabla_segundo_nivel;
+    int index_tabla_segundo_nivel;
 } Entrada_Tabla_Primer_Nivel;
 
 // Estructura Tabla Segundo Nivel

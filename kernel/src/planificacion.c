@@ -23,7 +23,7 @@ void pasar_de_new_a_ready() {
 
 		//log_info(logger, "Pidiendo tabla de paginas a memoria");
 		elem_iterado->tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado);
-		//log_info(logger, "Recibi tabla de paginas: %d", elem_iterado->tabla_paginas);
+		log_info(logger, "Recibi tabla de paginas de index: %d", elem_iterado->tabla_paginas);
 
 		pthread_mutex_lock(&mutexReady);
 		list_add(cola_ready, elem_iterado);
