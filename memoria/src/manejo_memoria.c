@@ -45,7 +45,8 @@ void asignar_memoria_y_estructuras(int pid, int tamanio_proceso, uint32_t* index
     
     // La tabla de primer nivel esta llena, la agrego a la lista
     pthread_mutex_lock(&mutex_lista_primer_nivel);
-    *index_tabla_primer_nivel = list_add(lista_tablas_primer_nivel, tabla_primer_nivel);
+    *index_tabla_primer_nivel = pid;
+    list_add_in_index(lista_tablas_primer_nivel, pid, tabla_primer_nivel);
     pthread_mutex_unlock(&mutex_lista_primer_nivel);
 
     // Estos valores son los reales que necesita el proceso. 

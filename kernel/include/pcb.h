@@ -7,7 +7,7 @@
 #include "utils.h"
 #include <pthread.h>
 
-int ULT_PID;
+int ULT_PID = -1;
 
 pthread_mutex_t mutex_PID;
 
