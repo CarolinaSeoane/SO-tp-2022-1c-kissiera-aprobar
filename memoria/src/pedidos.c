@@ -15,12 +15,12 @@ void* atender_pedido(void* void_args) {
 				log_info(logger, "Recibi INIT_PROCESO");
 				int pid;
 				int tamanio_proceso;
-				int tabla_primer_nivel;
+				uint32_t tabla_primer_nivel;
 
 				recv_proceso_init(&pid, &tamanio_proceso, args->cliente_fd);
 				log_info(logger, "Recibi proceso PID: %d TAM: %d", pid, tamanio_proceso);
 
-				asignar_memoria_y_estructuras(pid, tamanio_proceso, &tabla_primer_nivel);
+				tabla_primer_nivel = asignar_memoria_y_estructuras(pid, tamanio_proceso);
 				send_tabla_primer_nivel(args->cliente_fd, tabla_primer_nivel);
 
 				break;
@@ -46,7 +46,7 @@ void* atender_pedido(void* void_args) {
 				log_info(logger, "Recibi READ_M");
 				int leer_en;
 				recv(args->cliente_fd, &leer_en, sizeof(int), 0);
-				log_info(logger, "tengo que leer en la posicion %d", leer_en);
+				//log_info(logger, "tengo que leer en la posicion %d", leer_en);
 
 				//buscar el valor a leer
 				int valor_leido = 6; // de prueba

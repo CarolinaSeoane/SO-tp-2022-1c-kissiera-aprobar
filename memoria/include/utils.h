@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include "../../shared/include/shared.h"
 #include <pthread.h>
+#include "swap.h"
 
 typedef struct {
     char* PUERTO_ESCUCHA;
@@ -27,6 +28,13 @@ typedef struct {
     int cliente_fd;
 } args_thread_memoria;
 
+typedef struct {
+    int co_op;
+    int pid;
+    int tamanio_proceso;
+    // completar
+} pedido_swap;
+
 t_log* logger;
 Config config;
 int memoria_server;
@@ -35,6 +43,7 @@ void* memoria_principal;
 // Listas
 t_list* lista_tablas_primer_nivel;
 t_list* lista_tablas_segundo_nivel;
+t_list* cola_pedidos_a_swap;
 
 // Estructura Tabla Primer Nivel
 typedef struct {
@@ -58,10 +67,17 @@ typedef struct {
     int bit_uso;
 } Entrada_Tabla_Segundo_Nivel;
 
+//Hilo swap
+pthread_t hilo_swap; 
+
 // Mutex
 pthread_mutex_t mutex_memoria;
 pthread_mutex_t mutex_lista_primer_nivel;
 pthread_mutex_t mutex_lista_segundo_nivel;
+pthread_mutex_t mutexColaSwap;
+
+sem_t realizar_op_de_swap;
+sem_t swap_esta_libre;
 
 void cargarConfig(char*, Config*);
 void inicializar_logger();
@@ -71,5 +87,7 @@ void destroy_recursos();
 void inicializar_semaforos();
 void inicializar_memoria_principal();
 void inicializar_tablas_de_paginas();
+void inicializar_swap();
+char* get_file_name(int);
 
 #endif

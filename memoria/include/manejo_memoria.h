@@ -7,7 +7,7 @@
 #include "utils.h"
 #include <math.h>
 
-void asignar_memoria_y_estructuras(int, int, uint32_t*);
+uint32_t asignar_memoria_y_estructuras(int, int);
 void verificar_memoria();
 void mostrar_lista_tablas_primer_nivel();
 

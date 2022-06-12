@@ -41,11 +41,23 @@ void inicializar_servidor() {
 
 void inicializar_semaforos() {
     pthread_mutex_init(&mutex_memoria, NULL);
+    pthread_mutex_init(&mutex_lista_primer_nivel, NULL);
+    pthread_mutex_init(&mutex_lista_segundo_nivel, NULL);
+    pthread_mutex_init(&mutexColaSwap, NULL);
+    sem_init(&realizar_op_de_swap, 0, 0);
+    sem_init(&swap_esta_libre, 0, 1);
 }
 
 void destroy_recursos() {
     log_destroy(logger);
+
     pthread_mutex_destroy(&mutex_memoria);
+    pthread_mutex_destroy(&mutex_lista_primer_nivel);
+    pthread_mutex_destroy(&mutex_lista_segundo_nivel);
+    pthread_mutex_destroy(&mutexColaSwap);
+    sem_destroy(&realizar_op_de_swap);
+    sem_destroy(&swap_esta_libre);
+
     free(memoria_principal);
 }
 
@@ -57,4 +69,22 @@ void inicializar_memoria_principal() {
 void inicializar_tablas_de_paginas() {
     lista_tablas_primer_nivel = list_create();
     lista_tablas_segundo_nivel = list_create();
+}
+
+void inicializar_swap() {
+    pthread_create(&hilo_swap, NULL, atender_pedidos_swap, NULL);
+    pthread_detach(hilo_swap);
+    cola_pedidos_a_swap = list_create();
+}
+
+char* get_file_name(int pid) {
+    char file_name[5];
+    sprintf(file_name, "%d", pid);
+
+    char* path = strdup(config.PATH_SWAP);
+    string_append(&path, "/");
+    string_append(&path, file_name);
+    string_append(&path, ".swap");
+
+    return path;
 }

@@ -1,6 +1,6 @@
 #include "../include/manejo_memoria.h"
 
-void asignar_memoria_y_estructuras(int pid, int tamanio_proceso, uint32_t* index_tabla_primer_nivel) {
+uint32_t asignar_memoria_y_estructuras(int pid, int tamanio_proceso) {
 
     // Despues delegar a funciones para hacer más prolijo
     uint32_t cant_max_marcos = (uint32_t) ceil((double)config.MARCOS_POR_PROCESO); //A todos se les asigna esto independientemente de su tamaño
@@ -46,7 +46,6 @@ void asignar_memoria_y_estructuras(int pid, int tamanio_proceso, uint32_t* index
     
     // La tabla de primer nivel esta llena, la agrego a la lista
     pthread_mutex_lock(&mutex_lista_primer_nivel);
-    *index_tabla_primer_nivel = pid;
     list_add_in_index(lista_tablas_primer_nivel, pid, tabla_primer_nivel);
     pthread_mutex_unlock(&mutex_lista_primer_nivel);
 
@@ -57,6 +56,19 @@ void asignar_memoria_y_estructuras(int pid, int tamanio_proceso, uint32_t* index
     log_info(logger, "Asigno %d tablas de segundo nivel\n\n", cant_tablas_segundo_nivel);
 
     verificar_memoria();
+
+    // Pedir INIT a swap
+    pedido_swap *pedido = malloc(sizeof(pedido_swap));
+	pedido->co_op = INIT_PROCESO;
+    pedido->pid = pid;
+    pedido->tamanio_proceso = tamanio_proceso;
+
+	pthread_mutex_lock(&mutexColaSwap);
+	list_add(cola_pedidos_a_swap, pedido);
+	pthread_mutex_unlock(&mutexColaSwap);
+    sem_post(&realizar_op_de_swap);
+
+    return pid;
 
 }
 
