@@ -1,5 +1,7 @@
 #include "../include/pcb.h"
 
+int ULT_PID=-1;
+
 int generar_pid() {
     pthread_mutex_lock(&mutex_PID);
     ULT_PID++;

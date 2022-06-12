@@ -3,9 +3,10 @@
 void asignar_memoria_y_estructuras(int pid, int tamanio_proceso, uint32_t* index_tabla_primer_nivel) {
 
     // Despues delegar a funciones para hacer más prolijo
-    uint32_t cant_marcos = (uint32_t) ceil((double)config.MARCOS_POR_PROCESO); //A todos se les asigna esto independientemente de su tamaño. Despues vemos si hay que swappear 
+    uint32_t cant_max_marcos = (uint32_t) ceil((double)config.MARCOS_POR_PROCESO); //A todos se les asigna esto independientemente de su tamaño
+    uint32_t cant_marcos = (uint32_t) ceil((double)tamanio_proceso / config.TAM_PAGINA);
     uint32_t cant_tablas_segundo_nivel = (uint32_t) ceil((double)cant_marcos / config.ENTRADAS_POR_TABLA);
-    uint32_t cant_entradas_tabla_primer_nivel = cant_tablas_segundo_nivel;
+    uint32_t cant_entradas_tabla_primer_nivel = config.ENTRADAS_POR_TABLA;
 
     // Cada proceso tiene una tabla de primer nivel
     Tabla_Primer_Nivel* tabla_primer_nivel = malloc(sizeof(Tabla_Primer_Nivel));
