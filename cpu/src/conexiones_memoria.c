@@ -1,7 +1,7 @@
 #include "../include/conexiones_memoria.h"
 
 // Faltaria la traduccion de dirección lógica a física
-void send_pedido_lectura(Proceso_CPU* proceso, instruccion inst, int conexion_memoria, int tlb[][2], int tamanio) {
+void send_pedido_lectura(Proceso_CPU* proceso, instruccion inst, int conexion_memoria, int tlb[][3], int tamanio) {
 	
 	int direccion_logica = inst.operando1;
 
@@ -25,9 +25,9 @@ void send_pedido_lectura(Proceso_CPU* proceso, instruccion inst, int conexion_me
 }
 
 // Faltaria la traduccion de dirección lógica a física
-void send_pedido_escritura(int direccion, int valor, int conexion_memoria) {
+void send_pedido_escritura(int direccion_logica, int valor, int conexion_memoria, int tlb[][3], int tamanio) {
 
-	// int direccion_fisica = traducir_direccion(direccion_logica);
+	int direccion_fisica = traducir_direccion(direccion_logica, tlb, tamanio);
 
 	int* codigo = malloc(sizeof(int));
 	*codigo = WRITE_M;
@@ -37,7 +37,7 @@ void send_pedido_escritura(int direccion, int valor, int conexion_memoria) {
 	int offset = 0;
 	memcpy(paquete, &(*codigo), sizeof(int));
 	offset += sizeof(int);
-	memcpy(paquete + offset, &(direccion), sizeof(int)); // Sería la física
+	memcpy(paquete + offset, &(direccion_fisica), sizeof(int));
 	offset += sizeof(int);
 	memcpy(paquete + offset, &(valor), sizeof(int));
 
