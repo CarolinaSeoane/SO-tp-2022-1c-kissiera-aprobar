@@ -12,8 +12,8 @@
 #include "interrupt.h"
 #include <pthread.h>
 
-void send_pedido_lectura(Proceso_CPU*, instruccion, int, int tlb[][2], int);
-void send_pedido_escritura(int, int, int);
+void send_pedido_lectura(Proceso_CPU*, instruccion, int, int tlb[][3], int);
+void send_pedido_escritura(int, int, int, int tlb[][3], int);
 int recv_pedido_lectura(int);
 
 #endif /* CONEXIONES_MEMORIA_H_ */
