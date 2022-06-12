@@ -25,7 +25,7 @@ void send_pedido_lectura(Proceso_CPU* proceso, instruccion inst, int conexion_me
 }
 
 // Faltaria la traduccion de dirección lógica a física
-void send_pedido_escritura(int direccion, int valor, int conexion_memoria, int tlb[][3], int tamanio) {
+void send_pedido_escritura(int direccion_logica, int valor, int conexion_memoria, int tlb[][3], int tamanio) {
 
 	int direccion_fisica = traducir_direccion(direccion_logica, tlb, tamanio);
 
