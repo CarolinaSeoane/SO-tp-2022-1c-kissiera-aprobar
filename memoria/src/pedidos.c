@@ -10,15 +10,13 @@ void* atender_pedido(void* void_args) {
 		recv(args->cliente_fd, &accion, sizeof(accion), 0);
 
 		switch(accion) {
-			case INIT_PROCESO:;
-
-				log_info(logger, "Recibi INIT_PROCESO");
+			case INIT_PROCESO: ;
 				int pid;
 				int tamanio_proceso;
 				uint32_t tabla_primer_nivel;
 
 				recv_proceso_init(&pid, &tamanio_proceso, args->cliente_fd);
-				log_info(logger, "Recibi proceso PID: %d TAM: %d", pid, tamanio_proceso);
+				log_info(logger, "Recibi INIT_PROCESO PID: %d TAM: %d", pid, tamanio_proceso);
 
 				tabla_primer_nivel = asignar_memoria_y_estructuras(pid, tamanio_proceso);
 				send_tabla_primer_nivel(args->cliente_fd, tabla_primer_nivel);

@@ -12,20 +12,23 @@ void* atender_pedidos_swap() {
     while(1) {
         sem_wait(&swap_esta_libre);
         sem_wait(&realizar_op_de_swap);
-        log_info(logger, "EJECUTA SWAP");
+        usleep(config.RETARDO_SWAP * 1000); // Retardo swap
         
-        pedido_swap *pedido = list_remove(cola_pedidos_a_swap, 0);
+        pedido_swap *pedido = list_remove(cola_pedidos_a_swap, 0); //Obtengo pedido
 
         switch(pedido->co_op) {
             case INIT_PROCESO:
                 log_info(logger, "SWAP RECIBE INIT PARA PID %d", pedido->pid);
 
                 char* path = get_file_name(pedido->pid);
+                FILE* f = fopen(path,"w");
 
-                if (fopen(path,"w") == NULL) {
+                if (f == NULL) {
 			        log_error(logger, "Error al crear archivo para PID %d en %s", pedido->pid, path);
 			        exit(EXIT_FAILURE);
-		        }
+		        } else {
+                    list_add_in_index(lista_files, pedido->pid, f);
+                }
 
                 free(pedido);
                 free(path);

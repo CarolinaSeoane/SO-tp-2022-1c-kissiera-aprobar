@@ -97,15 +97,14 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, int tlb[][3
 			log_info(logger, "Proceso %d ejecuta NO_OP", (*proceso).pid);
 			usleep(config.RETARDO_NOOP * 1000);
 			break;
-		case IO:;
+
+		case IO:
 			log_info(logger, "Proceso %d ejecuta IO", (*proceso).pid);
 			flag_syscall = 1;
 			send_proceso_bloqueado(proceso, inst.operando1);
-			/* aca solo hace falta devolverle el pid, pc y el bloqueo que lei recien. 
-			dsp en kernel hay que buscar el proceso con ese pid, actualizarle el pc 
-			y mandarlo a bloqueo */
 			break;
-		case READ:;
+
+		case READ:
 			log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
 			send_pedido_lectura(proceso, inst, conexion_memoria, tlb, tamanio);
 			
@@ -113,19 +112,23 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, int tlb[][3
 			
 			//log_info(logger, "El valor leido es %d", leido);
 			break;
+
 		case WRITE:
 			log_info(logger, "Proceso %d ejecuta WRITE", (*proceso).pid);
 			//send_pedido_escritura(inst.operando1, inst.operando2, conexion_memoria, tlb, tamanio);
 			break;
+
 		case COPY:
 			log_info(logger, "Proceso %d ejecuta COPY", (*proceso).pid);
 			// send_pedido_escritura(inst.operando1, valor_copy, conexion_memoria, tlb, tamanio);
 			break;
+
 		case EXIT:
 			log_info(logger, "Proceso %d ejecuta EXIT", (*proceso).pid);
 			flag_syscall = 1;
 			send_proceso_finalizado(proceso);
 			break;
+
 		default:
 			log_error(logger, "Operacion desconocida");
 	}
