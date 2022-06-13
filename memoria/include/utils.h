@@ -5,12 +5,14 @@
 #include <stdlib.h>
 #include <commons/config.h>
 #include <commons/log.h>
+#include <commons/bitarray.h>
 #include <commons/collections/list.h>
 #include <string.h>
 #include <sys/socket.h>
 #include "../../shared/include/shared.h"
 #include <pthread.h>
 #include "swap.h"
+#include <math.h>
 
 typedef struct {
     char* PUERTO_ESCUCHA;
@@ -39,6 +41,7 @@ t_log* logger;
 Config config;
 int memoria_server;
 void* memoria_principal;
+t_bitarray* marcos_libres;
 
 // Listas
 t_list* lista_tablas_primer_nivel;
@@ -89,5 +92,6 @@ void inicializar_memoria_principal();
 void inicializar_tablas_de_paginas();
 void inicializar_swap();
 char* get_file_name(int);
+char* asignar_bytes(int);
 
 #endif

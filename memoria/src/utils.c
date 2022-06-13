@@ -58,12 +58,16 @@ void destroy_recursos() {
     sem_destroy(&realizar_op_de_swap);
     sem_destroy(&swap_esta_libre);
 
+    bitarray_destroy(marcos_libres);
     free(memoria_principal);
 }
 
 void inicializar_memoria_principal() {
     memoria_principal = malloc(sizeof(config.TAM_MEMORIA));
-    log_info(logger, "Memoria inicializada con %d frames", config.TAM_MEMORIA / config.TAM_PAGINA);
+    int cantidad_marcos = config.TAM_MEMORIA / config.TAM_PAGINA;
+    char* data = asignar_bytes(cantidad_marcos);
+    marcos_libres = bitarray_create_with_mode(data, cantidad_marcos/8, MSB_FIRST);
+    log_info(logger, "Memoria inicializada con %d frames", cantidad_marcos);
 }
 
 void inicializar_tablas_de_paginas() {
@@ -87,4 +91,19 @@ char* get_file_name(int pid) {
     string_append(&path, ".swap");
 
     return path;
+}
+
+char* asignar_bytes(int cantidad_frames) {
+    char* buffer;
+    int bytes;
+    if(cantidad_frames < 8)
+        bytes = 1;
+    else
+    {
+        double c = (double) cantidad_frames;
+        bytes = (int) ceil(c/8.0);
+    }
+    buffer = malloc(bytes);
+    memset(buffer,0,bytes);
+    return buffer;
 }
