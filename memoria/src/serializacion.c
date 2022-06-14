@@ -34,3 +34,18 @@ void send_tabla_primer_nivel(int conexion, int tabla_primer_nivel) {
 	send(conexion, paquete, sizeof(int), 0);
 	free(paquete);
 }
+
+// Es la misma funcion. Se puede mejorar
+void send_tabla_segundo_nivel(int conexion, int tabla_segundo_nivel) {
+	void* paquete = malloc(sizeof(int));
+	memcpy(paquete, &tabla_segundo_nivel, sizeof(int));
+	send(conexion, paquete, sizeof(int), 0);
+	free(paquete);
+}
+
+void send_marco(int conexion, int marco) {
+	void* paquete = malloc(sizeof(int));
+	memcpy(paquete, &marco, sizeof(int));
+	send(conexion, paquete, sizeof(int), 0);
+	free(paquete);
+}

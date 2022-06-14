@@ -106,9 +106,9 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, int tlb[][3
 
 		case READ:
 			log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
-			send_pedido_lectura(proceso, inst, conexion_memoria, tlb, tamanio);
+			send_pedido_lectura(proceso, inst, tlb, tamanio, (*proceso).pid);
 			
-			//int leido = recv_pedido_lectura(conexion_memoria);
+			int leido = recv_pedido_lectura(conexion_memoria);
 			
 			//log_info(logger, "El valor leido es %d", leido);
 			break;

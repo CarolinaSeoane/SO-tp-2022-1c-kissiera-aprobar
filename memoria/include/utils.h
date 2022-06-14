@@ -51,7 +51,7 @@ t_list* lista_files;
 
 // Estructura Tabla Primer Nivel
 typedef struct {
-    int pid;
+    int pid; // No habria que borrarlo ahora que usamos el index?
     t_list* entradas_tabla_primer_nivel;
 } Tabla_Primer_Nivel;
 
