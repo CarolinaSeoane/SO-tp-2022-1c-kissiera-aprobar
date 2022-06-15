@@ -50,11 +50,13 @@ bool esta_llena(int tlb[][3], int tamanio) {
 void printear(int tlb[][3], int tamanio) {
     log_info(logger, "Comenzando printeo");
 
+    log_info(logger, "\tL | F | T ");
     for (int i = 0; i < tamanio; i++) {
-        for (int j = 0; j < 3; j++) {
-            printf("%d ", tlb[i][j]);
+        if (tlb[i][0] == -1) {
+            log_info(logger, "\t- | - | -");
+        } else {
+            log_info(logger, "\t%d | %d | %d", tlb[i][0], tlb[i][1], tlb[i][2]);
         }
-    printf("\n");
     }
 }
 
@@ -81,8 +83,6 @@ int esta_en_tlb(int direccion_logica, int tlb[][3], int tamanio) {
 int buscar_direccion_fisica(int direccion_logica, int indice, int tlb[][3]) {
     log_info(logger, "La direccion logica %d corresponde a la direccion fisica %d", direccion_logica, tlb[indice][1]);
     tlb[indice][2] = time(NULL); //le actualizo el tiempo porque la esta usando ahora
-    log_info(logger, "ACTUALICE EL TIEMPO");
-    log_info(logger, "");
     return tlb[indice][1];
 }
 

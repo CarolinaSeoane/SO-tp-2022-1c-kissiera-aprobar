@@ -83,7 +83,14 @@ void* atender_pedido(void* void_args) {
 						} 					
 					}
 					if (pagina_libre == -1){
-						//Ejecuto algoritmo de sustitucion para elegir la pagina victima a liberar
+
+						if(!strcmp(config.ALGORITMO_REEMPLAZO, "CLOCK")) {
+							//CLOCK
+							//Ejecuto algoritmo de sustitucion para elegir la pagina victima a liberar
+						} else {
+							//CLOCK-M
+						}
+						
 						//Libero y obtengo la pagina libre 
 						log_info(logger, "Pagina #%d liberada por algoritmo de sustitucion %s\n\n", pagina_libre, config.ALGORITMO_REEMPLAZO);
 					}
@@ -99,9 +106,9 @@ void* atender_pedido(void* void_args) {
 			case READ_M:;
 
 				log_info(logger, "Recibi READ_M\n\n");
-				int leer_en;
-				recv(args->cliente_fd, &leer_en, sizeof(int), 0);
-				//log_info(logger, "tengo que leer en la posicion %d", leer_en);
+				int direccion_fisica;
+				recv(args->cliente_fd, &direccion_fisica, sizeof(int), 0);
+				//log_info(logger, "tengo que leer en la posicion %d", direccion_fisica);
 
 				//buscar el valor a leer
 				int valor_leido = 8; // de prueba
@@ -119,6 +126,25 @@ void* atender_pedido(void* void_args) {
 			case WRITE_M:
 				
 				log_info(logger, "Recibi WRITE_M");
+
+				int dir_fisica;
+				recv(args->cliente_fd, &dir_fisica, sizeof(int), 0);
+
+				int valor_a_escribir;
+				recv(args->cliente_fd, &valor_a_escribir, sizeof(int), 0);
+
+				//escribir el valor en la direccion
+				
+				int operacion_exitosa; //si no fue exitoso, del lado de cpu se cierra el programa. no deberia ocurrir.
+
+				void* a_enviar = malloc(sizeof(int));
+
+				memcpy(a_enviar, &operacion_exitosa, sizeof(int));
+
+				send(args->cliente_fd, a_enviar, sizeof(int), 0);
+
+				free(a_enviar);
+
 				break;
 
 			case HANDSHAKE_MEMORIA:

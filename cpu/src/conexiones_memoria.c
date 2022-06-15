@@ -48,11 +48,11 @@ void send_pedido_escritura(int direccion_logica, int valor, int tlb[][3], int ta
 
 }
 
-int recv_pedido_lectura(int conexion_memoria) {
+int recv_pedido() {
 	int valor;
 	recv(conexion_memoria, &valor, sizeof(int), 0);
 	return valor;
-}
+} //usamos el mismo recv para distintos pedidos
 
 void send_pedido_tabla_segundo_nivel(int entrada_tabla_primer_nivel, int pid) {
 

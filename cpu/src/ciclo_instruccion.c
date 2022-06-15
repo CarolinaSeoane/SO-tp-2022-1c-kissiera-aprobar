@@ -56,7 +56,7 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
         bool es_copy = decode(inst.id_operacion);
         
 	    if (es_copy) { 
-            valor_copy = fetch_operands(proceso, inst); // Para que saque el segundo operando y se comunique con memoria
+            valor_copy = fetch_operands(proceso, inst, tlb, tamanio); // Para que saque el segundo operando y se comunique con memoria
         }
         
         (*proceso).program_counter++;
@@ -84,9 +84,9 @@ bool decode(int co_op) {
     return co_op == COPY;
 }
 
-int fetch_operands(Proceso_CPU* proceso, instruccion inst) {
-	//send_pedido_lectura(proceso, inst, conexion_memoria);
-	return 1; //recv_pedido_lectura(conexion_memoria);
+int fetch_operands(Proceso_CPU* proceso, instruccion inst, int tlb[][3], int tamanio) {
+	send_pedido_lectura(proceso, inst, tlb, tamanio, (*proceso).pid);
+	return recv_pedido();
 }
 
 void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, int tlb[][3], int tamanio) {
@@ -108,14 +108,21 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, int tlb[][3
 			log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
 			send_pedido_lectura(proceso, inst, tlb, tamanio, (*proceso).pid);
 			
-			int leido = recv_pedido_lectura(conexion_memoria);
+			int leido = recv_pedido();
 			
 			//log_info(logger, "El valor leido es %d", leido);
 			break;
 
 		case WRITE:
 			log_info(logger, "Proceso %d ejecuta WRITE", (*proceso).pid);
-			//send_pedido_escritura(inst.operando1, inst.operando2, conexion_memoria, tlb, tamanio);
+			send_pedido_escritura(inst.operando1, inst.operando2, tlb, tamanio, (*proceso).pid);
+
+			int operacion_exitosa = recv_pedido();
+			if(!operacion_exitosa) {
+				log_error(logger, "Error al tratar de escribir en memoria. Cerrando programa");
+				exit(0);
+			}
+
 			break;
 
 		case COPY:
