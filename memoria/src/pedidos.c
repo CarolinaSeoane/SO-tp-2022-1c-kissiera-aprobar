@@ -59,6 +59,8 @@ void* atender_pedido(void* void_args) {
 				log_info(logger, "Recibi ENVIAR_TABLA_SEGUNDO_NIVEL");
 				log_info(logger, "Recibi index %d y entrada %d", index_tabla_segundo_nivel, entrada_tabla_segundo_nivel);
 
+				//No estoy seguro si necesitamos mutext para acceder a la lista de las tablas de 2do nivel del proceso 
+				//Supuestamente nunca tendrias accesos simultaneos a una lista de tablas de 2do nivel
 				pthread_mutex_lock(&mutex_lista_segundo_nivel);
 				Tabla_Segundo_Nivel* t_segundo_nivel = list_get(lista_tablas_segundo_nivel, index_tabla_segundo_nivel);
 				pthread_mutex_unlock(&mutex_lista_segundo_nivel);
@@ -68,8 +70,23 @@ void* atender_pedido(void* void_args) {
 					log_info(logger, "Pagina encontrada. Devolviendo frame %d\n\n", entrada_segundo_nivel->marco);
 					send_marco(args->cliente_fd, entrada_segundo_nivel->marco);
 				} else {
-
+					int cant_de_entradas = t_segundo_nivel->entradas_tabla_segundo_nivel->elements_count;
+					int pagina_libre = -1;
 					log_info(logger, "Page Fault. Buscando página en memoria\n\n");
+					for(int i=0; i<cant_de_entradas; i++){
+
+						entrada_segundo_nivel = list_get(t_segundo_nivel->entradas_tabla_segundo_nivel, i);
+						if(entrada_segundo_nivel->bit_presencia == 0) {
+							pagina_libre = i;
+							log_info(logger, "Pagina libre para llenar con swap encontrada %d\n\n", i);
+							break;
+						} 					
+					}
+					if (pagina_libre == -1){
+						//Ejecuto algoritmo de sustitucion para elegir la pagina victima a liberar
+						//Libero y obtengo la pagina libre 
+						log_info(logger, "Pagina #%d liberada por algoritmo de sustitucion %s\n\n", pagina_libre, config.ALGORITMO_REEMPLAZO);
+					}
 
 					// Acá hay que agregar todo el proceso de buscar pagina en swap,
 					// reemplazar paginas si es necesario, etc. 
