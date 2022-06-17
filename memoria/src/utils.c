@@ -108,3 +108,32 @@ char* asignar_bytes(int cantidad_frames) {
     memset(buffer,0,bytes);
     return buffer;
 }
+
+int paginas_con_marco_cargado_presente(int index_tabla_primer_nivel){
+
+    pthread_mutex_lock(&mutex_lista_primer_nivel);
+    Tabla_Primer_Nivel* t_primer_nivel = list_get(lista_tablas_primer_nivel, index_tabla_primer_nivel);
+    pthread_mutex_unlock(&mutex_lista_primer_nivel);
+
+    int paginas_ocupadas;
+
+    pthread_mutex_lock(&mutex_lista_segundo_nivel);
+
+    for(int i=0; i<t_primer_nivel->entradas_tabla_primer_nivel->elements_count; i++){
+        
+        Entrada_Tabla_Primer_Nivel * entrada_primer_nivel = list_get(t_primer_nivel->entradas_tabla_primer_nivel, i);
+        Tabla_Segundo_Nivel * tabla_segundo_nivel = list_get(lista_tablas_segundo_nivel, entrada_primer_nivel->index_tabla_segundo_nivel);
+
+        for(int j=0; j<tabla_segundo_nivel->entradas_tabla_segundo_nivel->elements_count;){
+
+            Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
+            entrada_segundo_nivel -> bit_presencia;
+            if(entrada_segundo_nivel->bit_presencia == 1) {
+                paginas_ocupadas += 1;
+                log_info(logger, "Paginas ocupadas %d\n\n", paginas_ocupadas);
+			} 
+        }
+        
+    }
+    pthread_mutex_unlock(&mutex_lista_segundo_nivel);
+}

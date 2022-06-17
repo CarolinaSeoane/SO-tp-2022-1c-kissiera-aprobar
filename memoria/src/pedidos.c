@@ -70,18 +70,15 @@ void* atender_pedido(void* void_args) {
 					log_info(logger, "Pagina encontrada. Devolviendo frame %d\n\n", entrada_segundo_nivel->marco);
 					send_marco(args->cliente_fd, entrada_segundo_nivel->marco);
 				} else {
-					int cant_de_entradas = t_segundo_nivel->entradas_tabla_segundo_nivel->elements_count;
-					int pagina_libre = -1;
 					log_info(logger, "Page Fault. Buscando página en memoria\n\n");
-					for(int i=0; i<cant_de_entradas; i++){
 
-						entrada_segundo_nivel = list_get(t_segundo_nivel->entradas_tabla_segundo_nivel, i);
-						if(entrada_segundo_nivel->bit_presencia == 0) {
-							pagina_libre = i;
-							log_info(logger, "Pagina libre para llenar con swap encontrada %d\n\n", i);
-							break;
-						} 					
-					}
+					//Aca en realidad buscas la cantidad de paginas cargadas en memoria (cantidad de marcos asignados a paginas con bit de presencia en 1)
+					//Como es paginacion bajo demanda, los primeros N marcos que se carguen (los permitidos por el config) van a pasar por el chequeo.
+					//Despues todo lo demas que se necesite va a ser bajar una pagina a swap y cargar otra
+					
+					//Necesito el pid para pasarlo como parametro
+					int paginas_ocupadas = paginas_con_marco_cargado_presente();
+					int pagina_libre = -1;
 					if (pagina_libre == -1){
 
 						if(!strcmp(config.ALGORITMO_REEMPLAZO, "CLOCK")) {
