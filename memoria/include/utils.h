@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include "swap.h"
 #include <math.h>
+#include "manejo_memoria.h"
 
 typedef struct {
     char* PUERTO_ESCUCHA;
@@ -34,7 +35,7 @@ typedef struct {
     int co_op;
     int pid;
     int tamanio_proceso;
-    int marco;
+    int numero_pagina;
 } pedido_swap;
 
 t_log* logger;
@@ -42,6 +43,9 @@ Config config;
 int memoria_server;
 void* memoria_principal;
 t_bitarray* marcos_libres;
+
+// Pagina para intercambio entre swap y memoria
+void* pagina_en_intercambio;
 
 // Listas
 t_list* lista_tablas_primer_nivel;
@@ -79,9 +83,12 @@ pthread_mutex_t mutex_memoria;
 pthread_mutex_t mutex_lista_primer_nivel;
 pthread_mutex_t mutex_lista_segundo_nivel;
 pthread_mutex_t mutexColaSwap;
+pthread_mutex_t mutex_pagina_en_intercambio;
+pthread_mutex_t mutex_bitarray;
 
 sem_t realizar_op_de_swap;
 sem_t swap_esta_libre;
+sem_t swap_respondio;
 
 void cargarConfig(char*, Config*);
 void inicializar_logger();
@@ -95,5 +102,6 @@ void inicializar_swap();
 char* get_file_name(int);
 char* asignar_bytes(int);
 int paginas_con_marco_cargado_presente();
+int buscar_frame_libre();
 
 #endif

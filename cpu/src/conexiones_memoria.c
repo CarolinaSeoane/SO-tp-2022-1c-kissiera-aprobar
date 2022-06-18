@@ -75,21 +75,23 @@ void send_pedido_tabla_segundo_nivel(int entrada_tabla_primer_nivel, int pid) {
 
 }
 
-void send_pedido_marco(int direc_tabla_segundo_nivel, int entrada_tabla_segundo_nivel) {
+void send_pedido_marco(int pid, int direc_tabla_segundo_nivel, int entrada_tabla_segundo_nivel) {
 
 	int* codigo = malloc(sizeof(int));
 	*codigo = ENVIAR_TABLA_SEGUNDO_NIVEL;
 
-	void* paquete = malloc(sizeof(int)*3);
+	void* paquete = malloc(sizeof(int)*4);
 
 	int offset = 0;
 	memcpy(paquete, &(*codigo), sizeof(int));
+	offset += sizeof(int);
+	memcpy(paquete + offset, &(pid), sizeof(int));
 	offset += sizeof(int);
 	memcpy(paquete + offset, &(direc_tabla_segundo_nivel), sizeof(int));
 	offset += sizeof(int);
 	memcpy(paquete + offset, &(entrada_tabla_segundo_nivel), sizeof(int));
 
-	send(conexion_memoria, paquete, sizeof(int)*3, 0);
+	send(conexion_memoria, paquete, sizeof(int)*4, 0);
 
 	free(codigo);
 	free(paquete);

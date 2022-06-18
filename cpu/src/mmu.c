@@ -22,10 +22,11 @@ int calcular_dir_fisica(int direccion_logica, int pid) {
     log_info(logger, "Recibi direccion tabla segundo nivel: %d", direc_tabla_segundo_nivel);
     
     int entrada_tabla_segundo_nivel = numero_pagina % cant_entradas_tabla;
-    send_pedido_marco(direc_tabla_segundo_nivel, entrada_tabla_segundo_nivel);
+    send_pedido_marco(pid, direc_tabla_segundo_nivel, entrada_tabla_segundo_nivel);
 
     int marco;
     recv(conexion_memoria, &marco, sizeof(int), 0);
+    log_info(logger, "Recibi marco: %d", marco);
 
     int direccion_fisica = marco + (direccion_logica - numero_pagina * tamanio_pagina);
     log_info(logger, "La direccion fisica final es %d", direccion_fisica);

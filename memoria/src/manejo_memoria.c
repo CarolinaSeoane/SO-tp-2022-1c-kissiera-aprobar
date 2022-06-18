@@ -77,8 +77,8 @@ void verificar_memoria() {
     pthread_mutex_lock(&mutex_lista_primer_nivel);
     pthread_mutex_lock(&mutex_lista_segundo_nivel);
 
-    log_info(logger, "Hay %d tablas de primer nivel", list_size(lista_tablas_primer_nivel));
-    log_info(logger, "Hay %d tablas de segundo nivel\n\n", list_size(lista_tablas_segundo_nivel));
+    //log_info(logger, "Hay %d tablas de primer nivel", list_size(lista_tablas_primer_nivel));
+    //log_info(logger, "Hay %d tablas de segundo nivel\n\n", list_size(lista_tablas_segundo_nivel));
 
     mostrar_lista_tablas_primer_nivel();
 
@@ -90,7 +90,7 @@ void verificar_memoria() {
 
 void mostrar_lista_tablas_primer_nivel() {
 
-    log_info(logger, "LISTA DE TABLAS DE PRIMER NIVEL");
+    log_info(logger, "-- ESTADO TABLAS DE PAGINAS --");
 
     t_list_iterator* iterator = list_iterator_create(lista_tablas_primer_nivel);
     Tabla_Primer_Nivel* elem_iterado;
@@ -114,6 +114,8 @@ void mostrar_lista_tablas_primer_nivel() {
                 elem_iterado_3 = list_iterator_next(iterator3);
                 log_info(logger, "\tM %d | P %d | M %d | U %d", elem_iterado_3->marco, elem_iterado_3->bit_presencia, elem_iterado_3->bit_modificado, elem_iterado_3->bit_uso);
             }
+
+            list_iterator_destroy(iterator3);
             
         }
         
@@ -123,5 +125,57 @@ void mostrar_lista_tablas_primer_nivel() {
     }
 
     list_iterator_destroy(iterator);
+
+}
+
+void solicitar_pagina_a_swap(int pid, int numero_pagina) {
+
+    pedido_swap *pedido = malloc(sizeof(pedido_swap));
+	pedido->co_op = SWAP_OUT_PAGINA;
+    pedido->pid = pid;
+    pedido->numero_pagina = numero_pagina;
+
+	pthread_mutex_lock(&mutexColaSwap);
+	list_add(cola_pedidos_a_swap, pedido);
+	pthread_mutex_unlock(&mutexColaSwap);
+    sem_post(&realizar_op_de_swap);
+
+    log_info(logger, "Envie pedido de pagina a swap");
+
+}
+
+int cargar_pagina_en_memoria(int pid, void* pagina) {
+
+    int frame = buscar_frame_libre();
+
+    pthread_mutex_lock(&mutex_memoria);
+    memcpy(memoria_principal + frame*config.TAM_PAGINA, pagina, config.TAM_PAGINA);
+    pthread_mutex_unlock(&mutex_memoria);
+
+    log_info(logger, "Se copio la pagina en el frame %d", frame);
+    return frame; 
+}
+
+void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabla_segundo_nivel, int marco) {
+
+    pthread_mutex_lock(&mutex_lista_segundo_nivel);
+	Tabla_Segundo_Nivel* t_segundo_nivel = list_get(lista_tablas_segundo_nivel, index_tabla_segundo_nivel);
+    
+    t_list_iterator* iterator = list_iterator_create(t_segundo_nivel->entradas_tabla_segundo_nivel);
+    Entrada_Tabla_Segundo_Nivel* elem_iterado;
+            
+    int i = 0;
+    while(list_iterator_has_next(iterator) && i!=entrada_tabla_segundo_nivel) {
+        elem_iterado = list_iterator_next(iterator);
+        i++;
+    }
+
+    elem_iterado->marco = marco;
+    elem_iterado->bit_presencia = 1;
+    elem_iterado->bit_modificado = 0;
+    elem_iterado->bit_uso = 1;
+	pthread_mutex_unlock(&mutex_lista_segundo_nivel);
+
+    log_info(logger, "Se actualizo la tabla de paginas\n\n");
 
 }

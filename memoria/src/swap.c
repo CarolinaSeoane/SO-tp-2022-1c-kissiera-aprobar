@@ -33,6 +33,13 @@ void* atender_pedidos_swap() {
                 free(pedido);
                 free(path);
                 break;
+            case SWAP_OUT_PAGINA:
+                log_info(logger, "SWAP RECIBE SWAP OUT PARA PID %d Y PAGINA %d", pedido->pid, pedido->numero_pagina);
+                
+                // Copiar pagina a memoria principal
+
+                sem_post(&swap_respondio);
+                break;
             default:
                 log_warning_sh(logger, "Operacion desconocida de Swap");
                 break;

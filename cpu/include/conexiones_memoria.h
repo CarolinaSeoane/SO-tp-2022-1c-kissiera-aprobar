@@ -15,7 +15,7 @@
 void send_pedido_lectura(Proceso_CPU*, instruccion, int tlb[][3], int, int);
 void send_pedido_escritura(int, int, int tlb[][3], int, int);
 void send_pedido_tabla_segundo_nivel(int, int);
-void send_pedido_marco(int, int);
+void send_pedido_marco(int, int, int);
 int recv_pedido();
 
 #endif /* CONEXIONES_MEMORIA_H_ */
