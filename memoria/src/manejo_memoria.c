@@ -136,7 +136,6 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
     pthread_mutex_unlock(&mutex_lista_primer_nivel);
 
     int marcos_a_liberar = paginas_con_marco_cargado_presente(index_tabla_primer_nivel);
-paginas_con_marco_cargado_presente
     pthread_mutex_lock(&mutex_lista_segundo_nivel);
 
     log_info(logger,"Tengo que liberar %d marcos del proceso %d", marcos_a_liberar, index_tabla_primer_nivel);
@@ -170,7 +169,9 @@ paginas_con_marco_cargado_presente
     memcpy(a_enviar, &(*codigo), sizeof(int));
     send(socket, a_enviar, sizeof(int), 0);
     free(codigo);
-    free(a_enviar);    
+    free(a_enviar);   
+
+} 
 
 void solicitar_pagina_a_swap(int pid, int numero_pagina) {
 
