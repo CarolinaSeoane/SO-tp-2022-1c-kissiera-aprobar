@@ -44,8 +44,11 @@ void inicializar_semaforos() {
     pthread_mutex_init(&mutex_lista_primer_nivel, NULL);
     pthread_mutex_init(&mutex_lista_segundo_nivel, NULL);
     pthread_mutex_init(&mutexColaSwap, NULL);
+    pthread_mutex_init(&mutex_pagina_en_intercambio, NULL);
+    pthread_mutex_init(&mutex_bitarray, NULL);
     sem_init(&realizar_op_de_swap, 0, 0);
     sem_init(&swap_esta_libre, 0, 1);
+    sem_init(&swap_respondio, 0, 0);
 }
 
 void destroy_recursos() {
@@ -80,6 +83,7 @@ void inicializar_swap() {
     pthread_create(&hilo_swap, NULL, atender_pedidos_swap, NULL);
     pthread_detach(hilo_swap);
     cola_pedidos_a_swap = list_create();
+    pagina_en_intercambio = malloc(sizeof(config.TAM_PAGINA));
 }
 
 char* get_file_name(int pid) {
@@ -136,4 +140,23 @@ int paginas_con_marco_cargado_presente(int index_tabla_primer_nivel){
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
     
     return paginas_ocupadas;
+
+}
+
+int buscar_frame_libre() {
+
+    pthread_mutex_lock(&mutex_bitarray);
+    int cantidad_bits = bitarray_get_max_bit(marcos_libres);
+    int i = 0; 
+    while(i < cantidad_bits) {
+        if(!bitarray_test_bit(marcos_libres, i)) {
+            bitarray_set_bit(marcos_libres, i);
+            pthread_mutex_unlock(&mutex_bitarray);
+            return i;
+            break;
+        } else {
+            i++;
+        }
+    }
+
 }

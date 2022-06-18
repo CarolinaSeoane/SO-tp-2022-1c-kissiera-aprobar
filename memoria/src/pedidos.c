@@ -54,20 +54,21 @@ void* atender_pedido(void* void_args) {
 			
 			case ENVIAR_TABLA_SEGUNDO_NIVEL: ;
 
+				int proceso_pid;
 				int index_tabla_segundo_nivel;
 				int entrada_tabla_segundo_nivel;
+				recv(args->cliente_fd, &proceso_pid, sizeof(int), 0);
 				recv(args->cliente_fd, &index_tabla_segundo_nivel, sizeof(int), 0);
 				recv(args->cliente_fd, &entrada_tabla_segundo_nivel, sizeof(int), 0);
 				log_info(logger, "Recibi ENVIAR_TABLA_SEGUNDO_NIVEL");
-				log_info(logger, "Recibi index %d y entrada %d", index_tabla_segundo_nivel, entrada_tabla_segundo_nivel);
+				log_info(logger, "Recibi pid %d, index %d y entrada %d", proceso_pid,  index_tabla_segundo_nivel, entrada_tabla_segundo_nivel);
 
 				//No estoy seguro si necesitamos mutext para acceder a la lista de las tablas de 2do nivel del proceso 
 				//Supuestamente nunca tendrias accesos simultaneos a una lista de tablas de 2do nivel
 				pthread_mutex_lock(&mutex_lista_segundo_nivel);
 				Tabla_Segundo_Nivel* t_segundo_nivel = list_get(lista_tablas_segundo_nivel, index_tabla_segundo_nivel);
-				pthread_mutex_unlock(&mutex_lista_segundo_nivel);
-
 				Entrada_Tabla_Segundo_Nivel* entrada_segundo_nivel = list_get(t_segundo_nivel->entradas_tabla_segundo_nivel, entrada_tabla_segundo_nivel);
+				pthread_mutex_unlock(&mutex_lista_segundo_nivel);
 				if(entrada_segundo_nivel->bit_presencia == 1) {
 					log_info(logger, "Pagina encontrada. Devolviendo frame %d\n\n", entrada_segundo_nivel->marco);
 					send_marco(args->cliente_fd, entrada_segundo_nivel->marco);
@@ -78,10 +79,13 @@ void* atender_pedido(void* void_args) {
 					//Como es paginacion bajo demanda, los primeros N marcos que se carguen (los permitidos por el config) van a pasar por el chequeo.
 					//Despues todo lo demas que se necesite va a ser bajar una pagina a swap y cargar otra
 					
-					//Necesito el pid para pasarlo como parametro
-					//int paginas_ocupadas = paginas_con_marco_cargado_presente();
-					int pagina_libre = -1;
-					if (pagina_libre == -1){
+
+					int paginas_ocupadas = paginas_con_marco_cargado_presente(proceso_pid);
+					int marco;
+
+
+					log_info(logger, "Este proceso tiene %d paginas ocupadas", paginas_ocupadas);
+					if (paginas_ocupadas == config.MARCOS_POR_PROCESO){
 
 						if(!strcmp(config.ALGORITMO_REEMPLAZO, "CLOCK")) {
 							//CLOCK
@@ -91,13 +95,23 @@ void* atender_pedido(void* void_args) {
 						}
 						
 						//Libero y obtengo la pagina libre 
-						log_info(logger, "Pagina #%d liberada por algoritmo de sustitucion %s\n\n", pagina_libre, config.ALGORITMO_REEMPLAZO);
-					}
+						//log_info(logger, "Pagina #%d liberada por algoritmo de sustitucion %s\n\n", pagina_libre, config.ALGORITMO_REEMPLAZO);
+					} else {
 
-					// Acá hay que agregar todo el proceso de buscar pagina en swap,
-					// reemplazar paginas si es necesario, etc. 
+						solicitar_pagina_a_swap(proceso_pid, entrada_tabla_segundo_nivel);	
+						sem_wait(&swap_respondio);
+
+						pthread_mutex_lock(&mutex_pagina_en_intercambio);
+						marco = cargar_pagina_en_memoria(proceso_pid, pagina_en_intercambio);
+						pthread_mutex_unlock(&mutex_pagina_en_intercambio);
+						
+						actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco);
+						verificar_memoria();
+						
+					}
 					
-					send_marco(args->cliente_fd, 5);
+					send_marco(args->cliente_fd, marco);
+					log_info(logger, "Se envio el marco %d a CPU", marco);
 				}
 
 				break;
