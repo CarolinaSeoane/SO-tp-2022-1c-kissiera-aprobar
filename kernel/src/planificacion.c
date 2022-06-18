@@ -50,8 +50,10 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 	pthread_mutex_lock(&mutex_vg_ex);
 	bool cpu_ocupada = hay_un_proceso_ejecutando;
 	pthread_mutex_unlock(&mutex_vg_ex);
-		
+
+
 	if(cpu_ocupada) {
+		
 		pthread_mutex_lock(&mutexExe);
 		proceso_exec->program_counter = pc;
 		consola = proceso_exec->cliente_fd;
@@ -59,6 +61,8 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 		pthread_mutex_unlock(&mutexExe);
 
 		if(pid_exec == pid) {
+			log_info(logger, "Envio pedido a memoria para que libere estructuras");
+			pedir_finalizar_estructuras_y_esperar_confirmacion(pid);
 			send_proceso_finalizado_a_consola(pid, consola);
 
 			pthread_mutex_lock(&mutex_vg_ex);
@@ -76,6 +80,7 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 			log_error(logger, "Error grave de planificacion");
 		}
 	}
+
 }
 
 /* ********** PLANIFICADOR MEDIANO PLAZO ********** */

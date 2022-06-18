@@ -94,6 +94,6 @@ void inicializar_tablas_de_paginas();
 void inicializar_swap();
 char* get_file_name(int);
 char* asignar_bytes(int);
-int paginas_con_marco_cargado_presente();
+int paginas_con_marco_cargado_presente(int);
 
 #endif

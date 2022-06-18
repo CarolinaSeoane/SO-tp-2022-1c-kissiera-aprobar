@@ -14,5 +14,6 @@ void recv_proceso_bloqueado(int*, int*, int*);
 void recv_proceso_cpu(int*, int*);
 void send_proceso_finalizado_a_consola(int, int);
 void recv_proceso_cpu_desalojado(int*, int*);
+void pedir_finalizar_estructuras_y_esperar_confirmacion(int);
 
 #endif

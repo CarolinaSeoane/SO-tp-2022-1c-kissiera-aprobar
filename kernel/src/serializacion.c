@@ -113,3 +113,23 @@ void recv_proceso_cpu(int* pid_a_finalizar, int* program_counter) {
     recv(conexion_dispatch, pid_a_finalizar, sizeof(int), 0);
     recv(conexion_dispatch, program_counter, sizeof(int), 0);
 }
+
+void pedir_finalizar_estructuras_y_esperar_confirmacion(int pid){
+    int bytes_a_enviar = sizeof(int) * 2; //OPERACION, PID
+	void* a_enviar = malloc(bytes_a_enviar);
+    int* codigo = malloc(sizeof(int));
+    *codigo = EXIT_PROCESO_M;
+    int offset = 0;
+
+    memcpy(a_enviar, &(*codigo), sizeof(int));
+	offset += sizeof(int);
+	memcpy(a_enviar + offset, &(pid), sizeof(int));
+
+    send(conexion_memoria, a_enviar, bytes_a_enviar, 0);
+
+    int proceso_finalizado;
+	recv(conexion_memoria, &proceso_finalizado, sizeof(int), MSG_WAITALL);
+    log_info(logger,"Memoria me avisa que liberó las estructuras del proceso %d", pid);
+    free(codigo);
+    free(a_enviar);
+}

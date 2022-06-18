@@ -125,3 +125,48 @@ void mostrar_lista_tablas_primer_nivel() {
     list_iterator_destroy(iterator);
 
 }
+
+ 
+void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_nivel, int socket){
+    
+    pthread_mutex_lock(&mutex_lista_primer_nivel);
+    Tabla_Primer_Nivel* t_primer_nivel = list_get(lista_tablas_primer_nivel, index_tabla_primer_nivel);
+    pthread_mutex_unlock(&mutex_lista_primer_nivel);
+
+    int marcos_a_liberar = paginas_con_marco_cargado_presente(index_tabla_primer_nivel);
+
+    pthread_mutex_lock(&mutex_lista_segundo_nivel);
+
+    log_info(logger,"Tengo que liberar %d marcos del proceso %d", marcos_a_liberar, index_tabla_primer_nivel);
+    for(int i=0; i<t_primer_nivel->entradas_tabla_primer_nivel->elements_count; i++){
+        Entrada_Tabla_Primer_Nivel * entrada_primer_nivel = list_get(t_primer_nivel->entradas_tabla_primer_nivel, i);
+        Tabla_Segundo_Nivel * tabla_segundo_nivel = list_get(lista_tablas_segundo_nivel, entrada_primer_nivel->index_tabla_segundo_nivel);
+
+        for(int j=0; j<tabla_segundo_nivel->entradas_tabla_segundo_nivel->elements_count; j++){
+
+            Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
+            entrada_segundo_nivel -> bit_presencia;
+            if(entrada_segundo_nivel->bit_presencia == 1) {
+
+                entrada_segundo_nivel->marco = 0;
+                entrada_segundo_nivel->bit_presencia = 0;
+                entrada_segundo_nivel->bit_modificado = 0;
+                entrada_segundo_nivel->bit_uso = 0;
+
+                log_info(logger, "Liberacion de paginas del proceso  %d :- Paginas %d liberada\n\n", index_tabla_primer_nivel, j);
+			} 
+        }
+        
+    }
+    
+    log_info(logger, "Ya reinice estructuras, ahora mando confirmacion a kernel");
+    pthread_mutex_unlock(&mutex_lista_segundo_nivel);
+    int bytes_a_enviar = sizeof(int);
+    void* a_enviar = malloc(bytes_a_enviar);
+    int* codigo = malloc(sizeof(int));
+    *codigo = 1;
+    memcpy(a_enviar, &(*codigo), sizeof(int));
+    send(socket, a_enviar, sizeof(int), 0);
+    free(codigo);
+    free(a_enviar);    
+}

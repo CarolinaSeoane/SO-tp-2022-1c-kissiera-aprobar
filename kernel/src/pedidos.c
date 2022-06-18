@@ -54,10 +54,12 @@ void* atender_pedidos_dispatch() {
 
 		switch(accion) {
 			case EXIT_PROCESO: ;
+
 				int pid_a_finalizar;
 				int program_counter;
 
 				recv_proceso_cpu(&pid_a_finalizar, &program_counter);
+
 				pasar_de_exec_a_exit(pid_a_finalizar, program_counter);
 				log_info(logger, "EVENTO: Proceso %d removido de EXEC y FINALIZA", pid_a_finalizar);
 				print_colas();

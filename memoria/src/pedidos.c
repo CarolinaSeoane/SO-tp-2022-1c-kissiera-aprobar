@@ -23,10 +23,12 @@ void* atender_pedido(void* void_args) {
 
 				break;
 
-			case EXIT_PROCESO_M:
-
-				log_info(logger, "Recibi EXIT_PROCESO_M");
-
+			case EXIT_PROCESO_M:;
+				int proceso;
+				recv(args->cliente_fd, &proceso, sizeof(int), 0);
+				log_info(logger, "Recibi EXIT_PROCESO_M del proceso %d",proceso);
+				finalizar_estructuras_del_proceso_y_avisar_a_kernel(proceso, args->cliente_fd);
+				log_info(logger, "La confirmación a Kernel fue enviada.\n");
 				break;
 
 			case ENVIAR_TABLA_PRIMER_NIVEL: ;
@@ -77,7 +79,7 @@ void* atender_pedido(void* void_args) {
 					//Despues todo lo demas que se necesite va a ser bajar una pagina a swap y cargar otra
 					
 					//Necesito el pid para pasarlo como parametro
-					int paginas_ocupadas = paginas_con_marco_cargado_presente();
+					//int paginas_ocupadas = paginas_con_marco_cargado_presente();
 					int pagina_libre = -1;
 					if (pagina_libre == -1){
 

@@ -10,5 +10,6 @@
 uint32_t asignar_memoria_y_estructuras(int, int);
 void verificar_memoria();
 void mostrar_lista_tablas_primer_nivel();
+void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int,int);
 
 #endif
