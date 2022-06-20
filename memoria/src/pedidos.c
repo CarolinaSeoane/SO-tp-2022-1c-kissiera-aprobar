@@ -28,7 +28,7 @@ void* atender_pedido(void* void_args) {
 				recv(args->cliente_fd, &proceso, sizeof(int), 0);
 				log_info(logger, "Recibi EXIT_PROCESO_M del proceso %d",proceso);
 				finalizar_estructuras_del_proceso_y_avisar_a_kernel(proceso, args->cliente_fd);
-				log_info(logger, "La confirmación a Kernel fue enviada.\n");
+				log_info(logger, "La confirmación a Kernel fue enviada\n");
 				break;
 
 			case ENVIAR_TABLA_PRIMER_NIVEL: ;

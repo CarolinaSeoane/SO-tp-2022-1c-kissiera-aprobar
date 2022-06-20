@@ -132,11 +132,12 @@ int paginas_con_marco_cargado_presente(int index_tabla_primer_nivel){
             Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
             if(entrada_segundo_nivel->bit_presencia == 1) {
                 paginas_ocupadas += 1;
-                log_info(logger, "Paginas ocupadas %d\n\n", paginas_ocupadas);
+                
 			} 
         }
         
     }
+    log_info(logger, "Páginas cargadas en memoria del proceso: %d\n\n", paginas_ocupadas);
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
     
     return paginas_ocupadas;
