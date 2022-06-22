@@ -166,9 +166,17 @@ void* atender_pedido(void* void_args) {
 				send_cpu_handshake((void*) args);
 				break;
 
-			case SWAP_IN:
+			case SWAP_IN: ;
 
-				log_info(logger, "Recibi SWAP_IN");
+				int pid_proceso_swap_in;
+				recv(args->cliente_fd, &pid_proceso_swap_in, sizeof(int), 0);
+				log_info(logger, "Recibi SWAP_IN PARA PID %d", pid_proceso_swap_in);
+
+				pedir_swap_in_a_swap(pid_proceso_swap_in);
+
+				// avisar al proceso que finalizo la operacion de swap. Ver como hacer para que los planificadores no se pisen al
+				// hacer recv de mensajes de memoria
+
 				break;
 
 			case SWAP_OUT:

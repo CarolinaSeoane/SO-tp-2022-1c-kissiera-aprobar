@@ -224,3 +224,16 @@ void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabl
     log_info(logger, "Se actualizo la tabla de paginas\n\n");
 
 }
+
+void pedir_swap_in_a_swap(int pid) {
+    pedido_swap *pedido = malloc(sizeof(pedido_swap));
+	pedido->co_op = SWAP_IN;
+    pedido->pid = pid;
+
+	pthread_mutex_lock(&mutexColaSwap);
+	list_add(cola_pedidos_a_swap, pedido);
+	pthread_mutex_unlock(&mutexColaSwap);
+    sem_post(&realizar_op_de_swap);
+
+    log_info(logger, "Envie pedido de swap in a swap");
+}

@@ -111,13 +111,16 @@ void pasar_de_ready_susp_a_ready() {
 		pthread_mutex_lock(&mutexSuspendedReady);
 		if(list_size(cola_suspended_ready)) {
 			
-			PCB* elem_iterado = list_remove(cola_suspended_ready, 0);
+			PCB* pcb = list_remove(cola_suspended_ready, 0);
+
+			solicitar_swap_in_a_memoria(pcb);
+			esperar_confirmacion_de_swap_in();
 
 			pthread_mutex_lock(&mutexReady);
-			list_add(cola_ready, elem_iterado);
+			list_add(cola_ready, pcb);
 			pthread_mutex_unlock(&mutexReady);
 
-			log_info(logger, "EVENTO: Proceso %d removido de SUSP/READY y agregado a READY", elem_iterado->pid);
+			log_info(logger, "EVENTO: Proceso %d removido de SUSP/READY y agregado a READY", pcb->pid);
 			print_colas();
 			sem_post(&sem_hay_procesos_en_ready);
 

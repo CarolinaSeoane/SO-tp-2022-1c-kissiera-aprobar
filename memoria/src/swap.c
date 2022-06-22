@@ -27,12 +27,14 @@ void* atender_pedidos_swap() {
 			        log_error(logger, "Error al crear archivo para PID %d en %s", pedido->pid, path);
 			        exit(EXIT_FAILURE);
 		        } else {
+                    ftruncate(fileno(f), pedido->tamanio_proceso);
                     list_add_in_index(lista_files, pedido->pid, f);
                 }
 
-                free(pedido);
+                fclose(f);
                 free(path);
                 break;
+
             case SWAP_OUT_PAGINA:
                 log_info(logger, "SWAP RECIBE SWAP OUT PARA PID %d Y PAGINA %d", pedido->pid, pedido->numero_pagina);
                 
@@ -40,10 +42,16 @@ void* atender_pedidos_swap() {
 
                 sem_post(&swap_respondio);
                 break;
+
+            case SWAP_IN:
+                log_info(logger, "SWAP RECIBE SWAP IN PARA PID %d", pedido->pid);
+                break;
+
             default:
                 log_warning_sh(logger, "Operacion desconocida de Swap");
                 break;
         }
         sem_post(&swap_esta_libre);
+        free(pedido);
     }
 }

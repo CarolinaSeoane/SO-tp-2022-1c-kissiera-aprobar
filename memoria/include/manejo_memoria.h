@@ -14,6 +14,7 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int,int);
 void solicitar_pagina_a_swap(int, int);
 int cargar_pagina_en_memoria(int, void*);
 void actualizar_tabla_de_paginas(int, int, int);
+void pedir_swap_in_a_swap(int);
 
 
 #endif

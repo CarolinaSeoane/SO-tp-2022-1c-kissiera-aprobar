@@ -44,8 +44,8 @@ clean:
 # Ejecutar terminales
 
 instruccion:
-	gnome-terminal -- bash -c './consola.out instrucciones.txt 9; sleep 20'
-	gnome-terminal -- bash -c './consola.out inexit.txt 4; sleep 20' 
+	gnome-terminal -- bash -c './consola.out instrucciones.txt 250; sleep 20'
+	gnome-terminal -- bash -c './consola.out inexit.txt 640; sleep 20' 
 
 base:
 	gnome-terminal -- bash -c './consola.out pruebas/BASE_1.txt 200; sleep 20'

@@ -103,6 +103,26 @@ int solicitar_swap_out_a_memoria(PCB* proceso) { // hacer
     return 7;//tabla_primer_nivel;
 }
 
+void solicitar_swap_in_a_memoria(PCB* proceso) {
+    int bytes_a_enviar = sizeof(int) * 2; // OPERACION, PID
+	void* a_enviar = malloc(bytes_a_enviar);
+    int* codigo = malloc(sizeof(int));
+    *codigo = SWAP_IN;
+    int offset = 0;
+
+    memcpy(a_enviar, &(*codigo), sizeof(int));
+	offset += sizeof(int);
+	memcpy(a_enviar + offset, &(proceso->pid), sizeof(int));
+	
+    send(conexion_memoria, a_enviar, bytes_a_enviar, 0);
+    free(codigo);
+    free(a_enviar);
+}
+
+void esperar_confirmacion_de_swap_in() {
+    // ??
+}
+
 void recv_proceso_bloqueado(int* pid, int* pc, int* tiempo_bloqueo) {
     recv(conexion_dispatch, pid, sizeof(int), 0);
     recv(conexion_dispatch, pc, sizeof(int), 0);
