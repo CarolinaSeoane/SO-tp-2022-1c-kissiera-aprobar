@@ -77,6 +77,7 @@ void inicializar_tablas_de_paginas() {
     lista_tablas_primer_nivel = list_create();
     lista_tablas_segundo_nivel = list_create();
     lista_files = list_create();
+    lista_paginas_cargadas_en_orden = list_create();
 }
 
 void inicializar_swap() {

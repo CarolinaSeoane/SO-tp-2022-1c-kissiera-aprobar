@@ -52,6 +52,7 @@ t_list* lista_tablas_primer_nivel;
 t_list* lista_tablas_segundo_nivel;
 t_list* cola_pedidos_a_swap;
 t_list* lista_files;
+t_list* lista_paginas_cargadas_en_orden;
 
 // Estructura Tabla Primer Nivel
 typedef struct {

@@ -1,5 +1,13 @@
 #include "../include/manejo_memoria.h"
 
+int ORD_DE_CARGA=-1;
+
+int generar_orden_de_carga() {
+    ORD_DE_CARGA++;
+    int val = ORD_DE_CARGA;
+    return val;
+}
+
 uint32_t asignar_memoria_y_estructuras(int pid, int tamanio_proceso) {
 
     // Despues delegar a funciones para hacer más prolijo
@@ -32,7 +40,7 @@ uint32_t asignar_memoria_y_estructuras(int pid, int tamanio_proceso) {
             entrada->bit_modificado = 0;
             entrada->bit_uso =0;
             entrada->orden_de_carga = -1;
-            entrada->bit_puntero = -1;
+            entrada->bit_puntero = 0;
             list_add(tabla_segundo_nivel->entradas_tabla_segundo_nivel, entrada);
         } 
             
@@ -157,7 +165,7 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
                 entrada_segundo_nivel->bit_modificado = 0;
                 entrada_segundo_nivel->bit_uso = 0;
                 entrada_segundo_nivel->orden_de_carga = -1;
-                entrada_segundo_nivel->bit_puntero = -1;
+                entrada_segundo_nivel->bit_puntero = 0;
 
                 log_info(logger, "Liberación de páginas del proceso  %d : Página %d de la tabla %d de segundo nivel liberada\n\n", index_tabla_primer_nivel, j, i);
 			} 
@@ -224,6 +232,7 @@ void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabl
     elem_iterado->bit_presencia = 1;
     elem_iterado->bit_modificado = 0;
     elem_iterado->bit_uso = 1;
+    elem_iterado->orden_de_carga = generar_orden_de_carga();
 	pthread_mutex_unlock(&mutex_lista_segundo_nivel);
 
     log_info(logger, "Se actualizo la tabla de paginas\n\n");
@@ -242,3 +251,7 @@ void pedir_swap_in_a_swap(int pid) {
 
     log_info(logger, "Envie pedido de swap in a swap");
 }
+
+/*void generar_lista_de_paginas_cargadas_en_orden(int proceso_pid){
+
+}*/
