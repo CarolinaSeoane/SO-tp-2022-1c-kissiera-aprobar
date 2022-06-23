@@ -73,6 +73,8 @@ typedef struct {
     int bit_presencia;
     int bit_modificado;
     int bit_uso;
+    int orden_de_carga;
+    int bit_puntero;
 } Entrada_Tabla_Segundo_Nivel;
 
 //Hilo swap
