@@ -89,6 +89,7 @@ void* atender_pedido(void* void_args) {
 
 						//Consigo la lista de paginas cargadas ordenada por orden_de_carga
 						//Luego se lo paso al algoritmo que se necesite ejecutar para loopear sobre la misma
+						
 						//generar_lista_de_paginas_cargadas_en_orden(proceso_pid);
 
 						if(!strcmp(config.ALGORITMO_REEMPLAZO, "CLOCK")) {

@@ -39,6 +39,9 @@ uint32_t asignar_memoria_y_estructuras(int pid, int tamanio_proceso) {
             entrada->bit_presencia = 0;
             entrada->bit_modificado = 0;
             entrada->bit_uso =0;
+            //int lower = 1, upper=16;
+            //int num = (rand() % (upper - lower+1)) + lower;
+            //entrada->orden_de_carga = num;
             entrada->orden_de_carga = -1;
             entrada->bit_puntero = 0;
             list_add(tabla_segundo_nivel->entradas_tabla_segundo_nivel, entrada);
@@ -79,7 +82,6 @@ uint32_t asignar_memoria_y_estructuras(int pid, int tamanio_proceso) {
     sem_post(&realizar_op_de_swap);
 
     return pid;
-
 }
 
 void verificar_memoria() {
@@ -252,6 +254,46 @@ void pedir_swap_in_a_swap(int pid) {
     log_info(logger, "Envie pedido de swap in a swap");
 }
 
-/*void generar_lista_de_paginas_cargadas_en_orden(int proceso_pid){
+bool comparator_orden_de_carga(void* elem1, void* elem2){
+    Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel_1 = elem1;
+    Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel_2 = elem2;
+    return entrada_segundo_nivel_1->orden_de_carga < entrada_segundo_nivel_2->orden_de_carga;
+    
+}
 
-}*/
+void ordenar_lista_con_paginas_cargadas_segun_orden_de_carga(){
+    list_sort(lista_paginas_cargadas_en_orden, comparator_orden_de_carga);
+    Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel_iter;
+    log_info(logger,"---\n\nInicio comprobación lista de carga de paginas ordenada----\n");
+    for(int i=0; i<lista_paginas_cargadas_en_orden->elements_count;i++){
+        entrada_segundo_nivel_iter = list_get(lista_paginas_cargadas_en_orden, i);
+        log_info(logger,"El orden de carga de la entrada es: %d", entrada_segundo_nivel_iter->orden_de_carga);
+    }
+    log_info(logger,"---\n\nFin comprobación lista de carga de paginas ordenada----\n\n");
+}
+
+void generar_lista_de_paginas_cargadas_en_orden(int index_tabla_primer_nivel){
+
+    pthread_mutex_lock(&mutex_lista_primer_nivel);
+    Tabla_Primer_Nivel* t_primer_nivel = list_get(lista_tablas_primer_nivel, index_tabla_primer_nivel);
+    pthread_mutex_unlock(&mutex_lista_primer_nivel);
+
+    pthread_mutex_lock(&mutex_lista_segundo_nivel);
+    for(int i=0; i<t_primer_nivel->entradas_tabla_primer_nivel->elements_count; i++){
+        
+        Entrada_Tabla_Primer_Nivel * entrada_primer_nivel = list_get(t_primer_nivel->entradas_tabla_primer_nivel, i);
+        Tabla_Segundo_Nivel * tabla_segundo_nivel = list_get(lista_tablas_segundo_nivel, entrada_primer_nivel->index_tabla_segundo_nivel);
+
+        for(int j=0; j<tabla_segundo_nivel->entradas_tabla_segundo_nivel->elements_count; j++){
+
+            Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
+            if(entrada_segundo_nivel->bit_presencia == 1) {
+                list_add(lista_paginas_cargadas_en_orden,entrada_segundo_nivel);
+			} 
+        }
+        
+    }
+    pthread_mutex_unlock(&mutex_lista_segundo_nivel);
+    log_info(logger, "Lista con páginas cargadas en orden populada. Ahora ordeno.\n\n");
+    ordenar_lista_con_paginas_cargadas_segun_orden_de_carga();
+}
