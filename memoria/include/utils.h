@@ -52,7 +52,7 @@ t_list* lista_tablas_primer_nivel;
 t_list* lista_tablas_segundo_nivel;
 t_list* cola_pedidos_a_swap;
 t_list* lista_files;
-t_list* lista_paginas_cargadas_en_orden;
+t_list* lista_paginas_cargadas;
 
 // Estructura Tabla Primer Nivel
 typedef struct {
@@ -74,7 +74,6 @@ typedef struct {
     int bit_presencia;
     int bit_modificado;
     int bit_uso;
-    int orden_de_carga;
     int bit_puntero;
 } Entrada_Tabla_Segundo_Nivel;
 

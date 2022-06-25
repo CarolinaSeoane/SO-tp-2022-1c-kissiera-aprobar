@@ -1,12 +1,5 @@
 #include "../include/manejo_memoria.h"
 
-int ORD_DE_CARGA=-1;
-
-int generar_orden_de_carga() {
-    ORD_DE_CARGA++;
-    int val = ORD_DE_CARGA;
-    return val;
-}
 
 uint32_t asignar_memoria_y_estructuras(int pid, int tamanio_proceso) {
 
@@ -39,10 +32,6 @@ uint32_t asignar_memoria_y_estructuras(int pid, int tamanio_proceso) {
             entrada->bit_presencia = 0;
             entrada->bit_modificado = 0;
             entrada->bit_uso =0;
-            //int lower = 1, upper=16;
-            //int num = (rand() % (upper - lower+1)) + lower;
-            //entrada->orden_de_carga = num;
-            entrada->orden_de_carga = -1;
             entrada->bit_puntero = 0;
             list_add(tabla_segundo_nivel->entradas_tabla_segundo_nivel, entrada);
         } 
@@ -124,8 +113,7 @@ void mostrar_lista_tablas_primer_nivel() {
             
             while(list_iterator_has_next(iterator3)) {
                 elem_iterado_3 = list_iterator_next(iterator3);
-                //log_info(logger, "\tM %d | P %d | M %d | U %d", elem_iterado_3->marco, elem_iterado_3->bit_presencia, elem_iterado_3->bit_modificado, elem_iterado_3->bit_uso);
-                log_info(logger, "\tM %d | P %d | M %d | U %d | # %d |* %d", elem_iterado_3->marco, elem_iterado_3->bit_presencia, elem_iterado_3->bit_modificado, elem_iterado_3->bit_uso, elem_iterado_3->orden_de_carga, elem_iterado_3->bit_puntero);
+                log_info(logger, "\tM %d | P %d | M %d | U %d |* %d", elem_iterado_3->marco, elem_iterado_3->bit_presencia, elem_iterado_3->bit_modificado, elem_iterado_3->bit_uso, elem_iterado_3->bit_puntero);
             }
 
             list_iterator_destroy(iterator3);
@@ -166,7 +154,6 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
                 entrada_segundo_nivel->bit_presencia = 0;
                 entrada_segundo_nivel->bit_modificado = 0;
                 entrada_segundo_nivel->bit_uso = 0;
-                entrada_segundo_nivel->orden_de_carga = -1;
                 entrada_segundo_nivel->bit_puntero = 0;
 
                 log_info(logger, "Liberación de páginas del proceso  %d : Página %d de la tabla %d de segundo nivel liberada\n\n", index_tabla_primer_nivel, j, i);
@@ -234,21 +221,20 @@ void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabl
     elem_iterado->bit_presencia = 1;
     elem_iterado->bit_modificado = 0;
     elem_iterado->bit_uso = 1;
-    elem_iterado->orden_de_carga = generar_orden_de_carga();
 	pthread_mutex_unlock(&mutex_lista_segundo_nivel);
 
     log_info(logger, "Se actualizo la tabla de paginas\n\n");
 
 }
 
-bool comparator_orden_de_carga(void* elem1, void* elem2){
+/*bool comparator_orden_de_carga(void* elem1, void* elem2){
     Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel_1 = elem1;
     Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel_2 = elem2;
     return entrada_segundo_nivel_1->orden_de_carga < entrada_segundo_nivel_2->orden_de_carga;
     
-}
+}*/
 
-void ordenar_lista_con_paginas_cargadas_segun_orden_de_carga(){
+/*void ordenar_lista_con_paginas_cargadas_segun_orden_de_carga(){
     list_sort(lista_paginas_cargadas_en_orden, comparator_orden_de_carga);
     Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel_iter;
     log_info(logger,"---\n\nInicio comprobación lista de carga de paginas ordenada----\n");
@@ -257,9 +243,9 @@ void ordenar_lista_con_paginas_cargadas_segun_orden_de_carga(){
         log_info(logger,"El orden de carga de la entrada es: %d", entrada_segundo_nivel_iter->orden_de_carga);
     }
     log_info(logger,"---\n\nFin comprobación lista de carga de paginas ordenada----\n\n");
-}
+}*/
 
-void generar_lista_de_paginas_cargadas_en_orden(int index_tabla_primer_nivel){
+void generar_lista_de_paginas_cargadas(int index_tabla_primer_nivel){
 
     pthread_mutex_lock(&mutex_lista_primer_nivel);
     Tabla_Primer_Nivel* t_primer_nivel = list_get(lista_tablas_primer_nivel, index_tabla_primer_nivel);
@@ -275,12 +261,12 @@ void generar_lista_de_paginas_cargadas_en_orden(int index_tabla_primer_nivel){
 
             Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
             if(entrada_segundo_nivel->bit_presencia == 1) {
-                list_add(lista_paginas_cargadas_en_orden,entrada_segundo_nivel);
+                list_add(lista_paginas_cargadas,entrada_segundo_nivel);
 			} 
         }
         
     }
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
-    log_info(logger, "Lista con páginas cargadas en orden populada. Ahora ordeno.\n\n");
-    ordenar_lista_con_paginas_cargadas_segun_orden_de_carga();
+    log_info(logger, "Lista con páginas cargadas populada.\n\n");
+    //ordenar_lista_con_paginas_cargadas_segun_orden_de_carga();
 }
