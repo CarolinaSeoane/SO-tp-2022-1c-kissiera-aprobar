@@ -83,26 +83,30 @@ void* atender_pedido(void* void_args) {
 					int paginas_ocupadas = paginas_con_marco_cargado_presente(proceso_pid);
 					int marco;
 
-
 					log_info(logger, "Este proceso tiene %d paginas ocupadas", paginas_ocupadas);
+
 					if (paginas_ocupadas == config.MARCOS_POR_PROCESO){
 
-						//Consigo la lista de paginas cargadas ordenada por orden_de_carga
+						//Consigo la lista de paginas cargadas
 						//Luego se lo paso al algoritmo que se necesite ejecutar para loopear sobre la misma
-						
-						//generar_lista_de_paginas_cargadas_en_orden(proceso_pid);
+						generar_lista_de_paginas_cargadas(proceso_pid);
 
+						//Ejecuto algoritmo de sustitucion para elegir la pagina victima a liberar
 						if(!strcmp(config.ALGORITMO_REEMPLAZO, "CLOCK")) {
 							//CLOCK
-							//Ejecuto algoritmo de sustitucion para elegir la pagina victima a liberar
+							
 						} else {
 							//CLOCK-M
 						}
 						
 						//Libero y obtengo la pagina libre 
+
 						//log_info(logger, "Pagina #%d liberada por algoritmo de sustitucion %s\n\n", pagina_libre, config.ALGORITMO_REEMPLAZO);
+
 						//marco = ...
-						list_clean(lista_paginas_cargadas_en_orden);
+						//Marcar el puntero
+						list_clean(lista_paginas_cargadas);
+
 					} else {
 
 						solicitar_pagina_a_swap(proceso_pid, entrada_tabla_segundo_nivel);	
