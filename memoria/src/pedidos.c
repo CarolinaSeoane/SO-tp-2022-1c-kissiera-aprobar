@@ -179,7 +179,7 @@ void* atender_pedido(void* void_args) {
 				recv(args->cliente_fd, &pid_proceso_swap_in, sizeof(int), 0);
 				log_info(logger, "Recibi SWAP_IN PARA PID %d", pid_proceso_swap_in);
 
-				pedir_swap_in_a_swap(pid_proceso_swap_in);
+				// solamente asignarle MARCOS_POR_PROCESO. Swap no se involucra
 
 				// avisar al proceso que finalizo la operacion de swap. Ver como hacer para que los planificadores no se pisen al
 				// hacer recv de mensajes de memoria

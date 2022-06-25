@@ -241,19 +241,6 @@ void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabl
 
 }
 
-void pedir_swap_in_a_swap(int pid) {
-    pedido_swap *pedido = malloc(sizeof(pedido_swap));
-	pedido->co_op = SWAP_IN;
-    pedido->pid = pid;
-
-	pthread_mutex_lock(&mutexColaSwap);
-	list_add(cola_pedidos_a_swap, pedido);
-	pthread_mutex_unlock(&mutexColaSwap);
-    sem_post(&realizar_op_de_swap);
-
-    log_info(logger, "Envie pedido de swap in a swap");
-}
-
 bool comparator_orden_de_carga(void* elem1, void* elem2){
     Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel_1 = elem1;
     Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel_2 = elem2;

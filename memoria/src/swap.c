@@ -43,10 +43,6 @@ void* atender_pedidos_swap() {
                 sem_post(&swap_respondio);
                 break;
 
-            case SWAP_IN:
-                log_info(logger, "SWAP RECIBE SWAP IN PARA PID %d", pedido->pid);
-                break;
-
             default:
                 log_warning_sh(logger, "Operacion desconocida de Swap");
                 break;

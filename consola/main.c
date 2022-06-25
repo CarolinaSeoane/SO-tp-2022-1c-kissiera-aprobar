@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     log_info(logger, "Sus instrucciones estan en %s", argv[1]);
 
     log_info(logger, "------ PASAJE DE INSTRUCCIONES -------");
-    char* contenido = malloc(sizeof(char*));
+    char* contenido = malloc(sizeof(char));
     int len = 0;
     int cantidad_de_instrucciones = devolver_cantidad_de_instrucciones(argv[1]);
     log_info(logger, "------ CANTIDAD DE INSTRUCCIONES EN ARCHIVO %d-------", cantidad_de_instrucciones);
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
     void* stream = malloc(cantidad_de_instrucciones*sizeof(instruccion));
     int offset=0;
-    char* aux = malloc(sizeof(char*));
+    char* aux = malloc(sizeof(char) * 20); //feo pero resuelve sf
     while (getline(&contenido, &len, archivo) != -1)
         {
     		strcpy(aux, contenido);
