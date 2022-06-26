@@ -108,12 +108,12 @@ void* atender_pedido(void* void_args) {
 						list_clean(lista_paginas_cargadas);
 
 					} else {
-
+						
 						solicitar_pagina_a_swap(proceso_pid, entrada_tabla_segundo_nivel);	
 						sem_wait(&swap_respondio);
 
 						pthread_mutex_lock(&mutex_pagina_en_intercambio);
-						marco = cargar_pagina_en_memoria(proceso_pid, pagina_en_intercambio);
+						marco = cargar_pagina_en_memoria(proceso_pid);
 						pthread_mutex_unlock(&mutex_pagina_en_intercambio);
 						
 						actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco);
@@ -132,41 +132,44 @@ void* atender_pedido(void* void_args) {
 				log_info(logger, "Recibi READ_M\n\n");
 				int direccion_fisica;
 				recv(args->cliente_fd, &direccion_fisica, sizeof(int), 0);
-				//log_info(logger, "tengo que leer en la posicion %d", direccion_fisica);
 
-				//buscar el valor a leer
-				int valor_leido = 8; // de prueba
+				uint32_t valor_leido; 
+				pthread_mutex_lock(&mutex_memoria);
+				memcpy(&valor_leido, memoria_principal+direccion_fisica, sizeof(uint32_t)); 
+				pthread_mutex_unlock(&mutex_memoria);
 
-				void* paquete = malloc(sizeof(int));
+				void* paquete = malloc(sizeof(uint32_t));
+				memcpy(paquete, &valor_leido, sizeof(uint32_t));
+				send(args->cliente_fd, paquete, sizeof(uint32_t), 0);
 
-				memcpy(paquete, &valor_leido, sizeof(int));
-
-				send(args->cliente_fd, paquete, sizeof(int), 0);
-
+				log_info(logger, "Se leyo en la posicion %d de memoria el valor %d", direccion_fisica, valor_leido);
 				free(paquete);
-
-				break;
 
 			case WRITE_M:
 				
 				log_info(logger, "Recibi WRITE_M");
 
+				int pid_write;
+				recv(args->cliente_fd, &pid_write, sizeof(int), 0);
+
 				int dir_fisica;
 				recv(args->cliente_fd, &dir_fisica, sizeof(int), 0);
 
-				int valor_a_escribir;
-				recv(args->cliente_fd, &valor_a_escribir, sizeof(int), 0);
+				uint32_t valor_a_escribir;
+				recv(args->cliente_fd, &valor_a_escribir, sizeof(uint32_t), 0);
 
-				//escribir el valor en la direccion
+				pthread_mutex_lock(&mutex_memoria);
+				memcpy(memoria_principal+dir_fisica, &valor_a_escribir, sizeof(uint32_t)); 
+				pthread_mutex_unlock(&mutex_memoria);
 				
-				int operacion_exitosa; //si no fue exitoso, del lado de cpu se cierra el programa. no deberia ocurrir.
+				int operacion_exitosa = 1;
+				log_info(logger, "Se escribio en la memoria correctamente");
+
+				actualizar_bit_modificado(pid_write, floor((double) dir_fisica/config.TAM_PAGINA));
 
 				void* a_enviar = malloc(sizeof(int));
-
 				memcpy(a_enviar, &operacion_exitosa, sizeof(int));
-
 				send(args->cliente_fd, a_enviar, sizeof(int), 0);
-
 				free(a_enviar);
 
 				break;

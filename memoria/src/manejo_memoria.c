@@ -191,14 +191,14 @@ void solicitar_pagina_a_swap(int pid, int numero_pagina) {
 
 }
 
-int cargar_pagina_en_memoria(int pid, void* pagina) {
+int cargar_pagina_en_memoria(int pid) {
 
     int frame = buscar_frame_libre();
-
+    
     pthread_mutex_lock(&mutex_memoria);
-    memcpy(memoria_principal + frame*config.TAM_PAGINA, pagina, config.TAM_PAGINA);
+    memcpy(memoria_principal + frame*config.TAM_PAGINA, pagina_en_intercambio, config.TAM_PAGINA);
     pthread_mutex_unlock(&mutex_memoria);
-
+    
     log_info(logger, "Se copio la pagina en el frame %d", frame);
     return frame; 
 }
@@ -223,6 +223,7 @@ void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabl
     elem_iterado->bit_uso = 1;
 	pthread_mutex_unlock(&mutex_lista_segundo_nivel);
 
+    list_iterator_destroy(iterator);
     log_info(logger, "Se actualizo la tabla de paginas\n\n");
 
 }
@@ -269,4 +270,10 @@ void generar_lista_de_paginas_cargadas(int index_tabla_primer_nivel){
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
     log_info(logger, "Lista con páginas cargadas populada.\n\n");
     //ordenar_lista_con_paginas_cargadas_segun_orden_de_carga();
+}
+
+void actualizar_bit_modificado(int pid, int marco) {
+
+    // TO DO
+    log_info(logger, "Se actualizo el bit de modificado del marco %d del proceso %d", marco, pid);
 }

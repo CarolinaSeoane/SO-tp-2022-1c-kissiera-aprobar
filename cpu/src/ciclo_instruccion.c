@@ -48,16 +48,18 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
 	*/ //agrego los sleep para las pruebas porque sino ejecuta todo en el mismo instante. probar mejor cuando memoria devuelva resultados
 
     instruccion inst;
-    int valor_copy;
+    uint32_t valor_copy;
 	log_info(logger, "Ejecutando ciclos de instruccion del proceso %d", (*proceso).pid);
     while(!check_interrupt() && !check_syscall()) {
         fetch(proceso, &inst);
         //log_info(logger, "Fetch encontro la instruccion %d con PARAM1 = %d, PARAM2 = %d", inst.id_operacion, inst.operando1, inst.operando2);
         bool es_copy = decode(inst.id_operacion);
         
-	    if (es_copy) { 
-            valor_copy = fetch_operands(proceso, inst, tlb, tamanio); // Para que saque el segundo operando y se comunique con memoria
-        }
+	    if (es_copy) {
+			log_info(logger, "Proceso %d va a ejecutar COPY", (*proceso).pid); 
+            valor_copy = fetch_operands(proceso, inst, tlb, tamanio); 
+			log_info(logger, "El valor que se va a copiar es %d", valor_copy);
+		}
         
         (*proceso).program_counter++;
         execute(proceso, inst, valor_copy, tlb, tamanio);
@@ -84,8 +86,8 @@ bool decode(int co_op) {
     return co_op == COPY;
 }
 
-int fetch_operands(Proceso_CPU* proceso, instruccion inst, int tlb[][3], int tamanio) {
-	send_pedido_lectura(proceso, inst, tlb, tamanio, (*proceso).pid);
+uint32_t fetch_operands(Proceso_CPU* proceso, instruccion inst, int tlb[][3], int tamanio) {
+	send_pedido_lectura(proceso, inst.operando2, tlb, tamanio, (*proceso).pid);
 	return recv_pedido();
 }
 
@@ -106,11 +108,11 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, int tlb[][3
 
 		case READ:
 			log_info(logger, "Proceso %d ejecuta READ", (*proceso).pid);
-			send_pedido_lectura(proceso, inst, tlb, tamanio, (*proceso).pid);
+			send_pedido_lectura(proceso, inst.operando1, tlb, tamanio, (*proceso).pid);
 			
-			int leido = recv_pedido();
-			
-			//log_info(logger, "El valor leido es %d", leido);
+			uint32_t leido = recv_pedido();
+			log_info(logger, "El valor leido es %d\n", leido);
+
 			break;
 
 		case WRITE:
@@ -125,9 +127,16 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, int tlb[][3
 
 			break;
 
-		case COPY:
+		case COPY: 
 			log_info(logger, "Proceso %d ejecuta COPY", (*proceso).pid);
-			// send_pedido_escritura(inst.operando1, valor_copy, conexion_memoria, tlb, tamanio);
+			send_pedido_escritura(inst.operando1, valor_copy, tlb, tamanio, (*proceso).pid);
+			
+			int escritura_exitosa = recv_pedido();
+			if(!escritura_exitosa) {
+				log_error(logger, "Error al tratar de escribir en memoria. Cerrando programa");
+				exit(0);
+			}
+
 			break;
 
 		case EXIT:
