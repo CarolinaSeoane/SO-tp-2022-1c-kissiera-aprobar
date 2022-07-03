@@ -73,7 +73,7 @@ void* atender_pedido(void* void_args) {
 					log_info(logger, "Pagina encontrada. Devolviendo frame %d\n\n", entrada_segundo_nivel->marco);
 					send_marco(args->cliente_fd, entrada_segundo_nivel->marco);
 				} else {
-					log_info(logger, "Page Fault. Buscando página en memoria\n\n");
+					log_info(logger, "Page Fault. Buscando página en disco\n\n");
 
 					//Aca en realidad buscas la cantidad de paginas cargadas en memoria (cantidad de marcos asignados a paginas con bit de presencia en 1)
 					//Como es paginacion bajo demanda, los primeros N marcos que se carguen (los permitidos por el config) van a pasar por el chequeo.
@@ -83,7 +83,7 @@ void* atender_pedido(void* void_args) {
 					int paginas_ocupadas = paginas_con_marco_cargado_presente(proceso_pid);
 					int marco;
 
-					log_info(logger, "Este proceso tiene %d paginas ocupadas", paginas_ocupadas);
+					log_info(logger, "Este proceso tiene %d paginas cargadas en memoria", paginas_ocupadas);
 
 					if (paginas_ocupadas == config.MARCOS_POR_PROCESO){
 
@@ -162,14 +162,27 @@ void* atender_pedido(void* void_args) {
 				memcpy(memoria_principal+dir_fisica, &valor_a_escribir, sizeof(uint32_t)); 
 				pthread_mutex_unlock(&mutex_memoria);
 				
-				int operacion_exitosa = 1;
-				log_info(logger, "Se escribio en la memoria correctamente");
+				log_info(logger, "Se escribio en la posicion %d de memoria el valor %d", dir_fisica, valor_a_escribir);
+
+				uint32_t chequear_valor;
+
+				memcpy(&chequear_valor, memoria_principal+dir_fisica, sizeof(uint32_t));
+
+				uint32_t operacion_exitosa;
+				log_info(logger, "Chequeando valor escrito en memoria");				
+				if(chequear_valor == valor_a_escribir) {
+					log_info(logger, "COINCIDE");					
+					operacion_exitosa = 1;
+				} else {
+					log_info(logger, "NO COINCIDE");					
+					operacion_exitosa = 0;					
+				} //leo en la posicion que acabo de escribir y el valor de ahi deberia ser el mismo que escribi
 
 				actualizar_bit_modificado(pid_write, floor((double) dir_fisica/config.TAM_PAGINA));
 
 				void* a_enviar = malloc(sizeof(int));
-				memcpy(a_enviar, &operacion_exitosa, sizeof(int));
-				send(args->cliente_fd, a_enviar, sizeof(int), 0);
+				memcpy(a_enviar, &operacion_exitosa, sizeof(uint32_t));
+				send(args->cliente_fd, a_enviar, sizeof(uint32_t), 0);
 				free(a_enviar);
 
 				break;

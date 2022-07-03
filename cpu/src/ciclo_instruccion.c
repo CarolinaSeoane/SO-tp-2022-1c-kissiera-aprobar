@@ -91,7 +91,7 @@ uint32_t fetch_operands(Proceso_CPU* proceso, instruccion inst, int tlb[][3], in
 	return recv_pedido();
 }
 
-void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, int tlb[][3], int tamanio) {
+void execute(Proceso_CPU* proceso, instruccion inst, uint32_t valor_copy, int tlb[][3], int tamanio) {
 	
 	switch(inst.id_operacion) {
 
@@ -119,7 +119,7 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, int tlb[][3
 			log_info(logger, "Proceso %d ejecuta WRITE", (*proceso).pid);
 			send_pedido_escritura(inst.operando1, inst.operando2, tlb, tamanio, (*proceso).pid);
 
-			int operacion_exitosa = recv_pedido();
+			uint32_t operacion_exitosa = recv_pedido();
 			if(!operacion_exitosa) {
 				log_error(logger, "Error al tratar de escribir en memoria. Cerrando programa");
 				exit(0);
@@ -131,7 +131,7 @@ void execute(Proceso_CPU* proceso, instruccion inst, int valor_copy, int tlb[][3
 			log_info(logger, "Proceso %d ejecuta COPY", (*proceso).pid);
 			send_pedido_escritura(inst.operando1, valor_copy, tlb, tamanio, (*proceso).pid);
 			
-			int escritura_exitosa = recv_pedido();
+			uint32_t escritura_exitosa = recv_pedido();
 			if(!escritura_exitosa) {
 				log_error(logger, "Error al tratar de escribir en memoria. Cerrando programa");
 				exit(0);

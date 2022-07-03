@@ -43,6 +43,8 @@ void send_pedido_escritura(int direccion_logica, uint32_t valor, int tlb[][3], i
 	free(codigo);
 	free(paquete);
 
+	log_info(logger, "Envie WRITE_M");
+
 }
 
 uint32_t recv_pedido() {

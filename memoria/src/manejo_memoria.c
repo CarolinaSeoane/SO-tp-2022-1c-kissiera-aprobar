@@ -31,7 +31,7 @@ uint32_t asignar_memoria_y_estructuras(int pid, int tamanio_proceso) {
             entrada->marco = 0;
             entrada->bit_presencia = 0;
             entrada->bit_modificado = 0;
-            entrada->bit_uso =0;
+            entrada->bit_uso = 0;
             entrada->bit_puntero = 0;
             list_add(tabla_segundo_nivel->entradas_tabla_segundo_nivel, entrada);
         } 
@@ -217,10 +217,12 @@ void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabl
         i++;
     }
 
+    log_info(logger, "i es %d", i);
     elem_iterado->marco = marco;
     elem_iterado->bit_presencia = 1;
     elem_iterado->bit_modificado = 0;
     elem_iterado->bit_uso = 1;
+    elem_iterado->bit_puntero = 0;
 	pthread_mutex_unlock(&mutex_lista_segundo_nivel);
 
     list_iterator_destroy(iterator);
