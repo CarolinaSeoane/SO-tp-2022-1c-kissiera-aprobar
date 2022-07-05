@@ -36,6 +36,7 @@ typedef struct {
     int pid;
     int tamanio_proceso;
     int numero_pagina;
+    sem_t pedido_finalizado;
 } pedido_swap;
 
 t_log* logger;

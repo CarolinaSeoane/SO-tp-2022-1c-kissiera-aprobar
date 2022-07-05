@@ -12,6 +12,8 @@ void* atender_pedidos_swap() {
     while(1) {
         sem_wait(&swap_esta_libre);
         sem_wait(&realizar_op_de_swap);
+        
+        log_info(logger, "CONECTANDO CON SWAP...");
         usleep(config.RETARDO_SWAP * 1000); // Retardo swap
         
         pedido_swap *pedido = list_remove(cola_pedidos_a_swap, 0); //Obtengo pedido
@@ -47,7 +49,10 @@ void* atender_pedidos_swap() {
                 log_warning_sh(logger, "Operacion desconocida de Swap");
                 break;
         }
+        sem_post(&pedido->pedido_finalizado);
         sem_post(&swap_esta_libre);
+        
+        sem_destroy(&pedido->pedido_finalizado);
         free(pedido);
     }
 }

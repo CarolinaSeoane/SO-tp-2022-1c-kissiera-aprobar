@@ -64,12 +64,14 @@ uint32_t asignar_memoria_y_estructuras(int pid, int tamanio_proceso) {
 	pedido->co_op = INIT_PROCESO;
     pedido->pid = pid;
     pedido->tamanio_proceso = tamanio_proceso;
+    sem_init(&pedido->pedido_finalizado, 0, 0);
 
 	pthread_mutex_lock(&mutexColaSwap);
 	list_add(cola_pedidos_a_swap, pedido);
 	pthread_mutex_unlock(&mutexColaSwap);
     sem_post(&realizar_op_de_swap);
 
+    sem_wait(&pedido->pedido_finalizado);
     return pid;
 }
 
