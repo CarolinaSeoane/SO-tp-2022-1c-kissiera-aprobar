@@ -12,7 +12,7 @@ void* atender_pedidos_swap() {
     while(1) {
         sem_wait(&swap_esta_libre);
         sem_wait(&realizar_op_de_swap);
-        
+
         log_info(logger, "CONECTANDO CON SWAP...");
         usleep(config.RETARDO_SWAP * 1000); // Retardo swap
         
@@ -37,12 +37,11 @@ void* atender_pedidos_swap() {
                 free(path);
                 break;
 
-            case SWAP_OUT_PAGINA:
-                log_info(logger, "SWAP RECIBE SWAP OUT PARA PID %d Y PAGINA %d", pedido->pid, pedido->numero_pagina);
+            case SWAP_IN_PAGINA:
+                log_info(logger, "SWAP RECIBE SWAP IN PARA PID %d Y PAGINA %d y la va a cargar en el frame %d", pedido->pid, pedido->numero_pagina, pedido->frame_libre);
                 
                 // Copiar pagina a memoria principal
 
-                sem_post(&swap_respondio);
                 break;
 
             default:

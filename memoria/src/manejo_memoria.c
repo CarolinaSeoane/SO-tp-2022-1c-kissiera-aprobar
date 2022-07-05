@@ -177,12 +177,16 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
 
 } 
 
-void solicitar_pagina_a_swap(int pid, int numero_pagina) {
+int solicitar_pagina_a_swap(int pid, int numero_pagina) {
+
+    int frame = buscar_frame_libre();
 
     pedido_swap *pedido = malloc(sizeof(pedido_swap));
-	pedido->co_op = SWAP_OUT_PAGINA;
+	pedido->co_op = SWAP_IN_PAGINA;
     pedido->pid = pid;
     pedido->numero_pagina = numero_pagina;
+    pedido->frame_libre = frame;
+    sem_init(&pedido->pedido_finalizado, 0, 0);
 
 	pthread_mutex_lock(&mutexColaSwap);
 	list_add(cola_pedidos_a_swap, pedido);
@@ -190,20 +194,23 @@ void solicitar_pagina_a_swap(int pid, int numero_pagina) {
     sem_post(&realizar_op_de_swap);
 
     log_info(logger, "Envie pedido de pagina a swap");
+    sem_wait(&pedido->pedido_finalizado);
+
+    return frame; 
 
 }
-
+/*
 int cargar_pagina_en_memoria(int pid) {
 
     int frame = buscar_frame_libre();
     
     pthread_mutex_lock(&mutex_memoria);
-    memcpy(memoria_principal + frame*config.TAM_PAGINA, pagina_en_intercambio, config.TAM_PAGINA);
+    memcpy(memoria_principal + frame*config.TAM_PAGINA, pagina_en_intercambio, config.TAM_PAGINA); //esto lo va a hacer swap
     pthread_mutex_unlock(&mutex_memoria);
     
     log_info(logger, "Se copio la pagina en el frame %d", frame);
     return frame; 
-}
+}*/
 
 void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabla_segundo_nivel, int marco) {
 

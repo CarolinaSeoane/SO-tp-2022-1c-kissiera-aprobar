@@ -17,7 +17,7 @@ typedef enum {
 	ENVIAR_TABLA_SEGUNDO_NIVEL,
 	SWAP_IN,
 	SWAP_OUT,
-	SWAP_OUT_PAGINA
+	SWAP_IN_PAGINA
 }accion;
 
 #endif

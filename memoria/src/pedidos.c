@@ -23,7 +23,7 @@ void* atender_pedido(void* void_args) {
 
 				break;
 
-			case EXIT_PROCESO_M:;
+			case EXIT_PROCESO_M: ;
 				int proceso;
 				recv(args->cliente_fd, &proceso, sizeof(int), 0);
 				log_info(logger, "Recibi EXIT_PROCESO_M del proceso %d",proceso);
@@ -48,7 +48,6 @@ void* atender_pedido(void* void_args) {
 
 				log_info(logger, "Envio index tabla segundo nivel %d\n\n", entrada_tabla_primer_nivel->index_tabla_segundo_nivel);
 				send_tabla_segundo_nivel(args->cliente_fd, entrada_tabla_primer_nivel->index_tabla_segundo_nivel);
-				
 
 				break;
 			
@@ -106,12 +105,11 @@ void* atender_pedido(void* void_args) {
 
 					} else {
 						
-						solicitar_pagina_a_swap(proceso_pid, entrada_tabla_segundo_nivel);	
-						sem_wait(&swap_respondio);
+						marco = solicitar_pagina_a_swap(proceso_pid, entrada_tabla_segundo_nivel);
 
-						pthread_mutex_lock(&mutex_pagina_en_intercambio);
-						marco = cargar_pagina_en_memoria(proceso_pid);
-						pthread_mutex_unlock(&mutex_pagina_en_intercambio);
+						//pthread_mutex_lock(&mutex_pagina_en_intercambio);
+						//marco = cargar_pagina_en_memoria(proceso_pid); 		esto lo va a hacer swap directamente (le pasamos el marco libre) asi no hay que copiar la pagina dos veces (al marco y a la variable pagina_en_intercambio)
+						//pthread_mutex_unlock(&mutex_pagina_en_intercambio);
 						
 						actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco);
 						verificar_memoria();
