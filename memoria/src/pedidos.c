@@ -139,8 +139,10 @@ void* atender_pedido(void* void_args) {
 				memcpy(paquete, &valor_leido, sizeof(uint32_t));
 				send(args->cliente_fd, paquete, sizeof(uint32_t), 0);
 
-				log_info(logger, "Se leyo en la posicion %d de memoria el valor %d", direccion_fisica, valor_leido);
 				free(paquete);
+				log_info(logger, "Se leyo en la posicion %d de memoria el valor %d", direccion_fisica, valor_leido);				
+
+				break;
 
 			case WRITE_M:
 				
@@ -167,11 +169,9 @@ void* atender_pedido(void* void_args) {
 
 				uint32_t operacion_exitosa;
 				log_info(logger, "Chequeando valor escrito en memoria");				
-				if(chequear_valor == valor_a_escribir) {
-					log_info(logger, "COINCIDE");					
+				if(chequear_valor == valor_a_escribir) {					
 					operacion_exitosa = 1;
-				} else {
-					log_info(logger, "NO COINCIDE");					
+				} else {					
 					operacion_exitosa = 0;					
 				} //leo en la posicion que acabo de escribir y el valor de ahi deberia ser el mismo que escribi
 
