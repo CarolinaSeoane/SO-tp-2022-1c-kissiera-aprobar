@@ -299,7 +299,7 @@ void actualizar_bit_modificado(int pid, int marco) {
             Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
             // Se podria poner para que tmb el bit de presencia sea 1 pero deberia alcanzar
             if(entrada_segundo_nivel->marco == marco) {
-                entrada_segundo_nivel->bit_presencia = 1;
+                entrada_segundo_nivel->bit_modificado = 1;
 			} 
         }    
     }
@@ -307,7 +307,7 @@ void actualizar_bit_modificado(int pid, int marco) {
     log_info(logger, "Se actualizo el bit de modificado del marco %d del proceso %d", marco, pid);
 }
 
-void actualizar_bit_puntero(index){
+void actualizar_bit_puntero(int index){
     index++;
 
     if (index >= (lista_paginas_cargadas->elements_count)){
