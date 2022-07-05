@@ -271,11 +271,29 @@ void generar_lista_de_paginas_cargadas(int index_tabla_primer_nivel){
     }
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
     log_info(logger, "Lista con páginas cargadas populada.\n\n");
-    //ordenar_lista_con_paginas_cargadas_segun_orden_de_carga();
 }
 
 void actualizar_bit_modificado(int pid, int marco) {
 
-    // TO DO
+    pthread_mutex_lock(&mutex_lista_primer_nivel);
+    Tabla_Primer_Nivel* t_primer_nivel = list_get(lista_tablas_primer_nivel, pid);
+    pthread_mutex_unlock(&mutex_lista_primer_nivel);
+
+    pthread_mutex_lock(&mutex_lista_segundo_nivel);
+    for(int i=0; i<t_primer_nivel->entradas_tabla_primer_nivel->elements_count; i++){
+        
+        Entrada_Tabla_Primer_Nivel * entrada_primer_nivel = list_get(t_primer_nivel->entradas_tabla_primer_nivel, i);
+        Tabla_Segundo_Nivel * tabla_segundo_nivel = list_get(lista_tablas_segundo_nivel, entrada_primer_nivel->index_tabla_segundo_nivel);
+
+        for(int j=0; j<tabla_segundo_nivel->entradas_tabla_segundo_nivel->elements_count; j++){
+
+            Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
+            // Se podria poner para que tmb el bit de presencia sea 1 pero deberia alcanzar
+            if(entrada_segundo_nivel->marco == marco) {
+                entrada_segundo_nivel->bit_presencia = 1;
+			} 
+        }    
+    }
+    pthread_mutex_unlock(&mutex_lista_segundo_nivel);
     log_info(logger, "Se actualizo el bit de modificado del marco %d del proceso %d", marco, pid);
 }
