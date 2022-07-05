@@ -80,7 +80,7 @@ void* atender_pedido(void* void_args) {
 					int paginas_ocupadas = paginas_con_marco_cargado_presente(proceso_pid);
 					int marco;
 
-					log_info(logger, "Este proceso tiene %d paginas cargadas en memoria", paginas_ocupadas);
+					log_info(logger, "El proceso %d tiene %d paginas cargadas en memoria", proceso_pid, paginas_ocupadas);
 
 					if (paginas_ocupadas == config.MARCOS_POR_PROCESO){
 

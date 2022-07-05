@@ -28,7 +28,7 @@ uint32_t asignar_memoria_y_estructuras(int pid, int tamanio_proceso) {
                            
             // Esto despues se llenaria cuando se carga la pagina en el espacio de usuario
             Entrada_Tabla_Segundo_Nivel* entrada = malloc(sizeof(Entrada_Tabla_Segundo_Nivel));
-            entrada->marco = 0;
+            entrada->marco = -1;
             entrada->bit_presencia = 0;
             entrada->bit_modificado = 0;
             entrada->bit_uso = 0;
@@ -108,14 +108,21 @@ void mostrar_lista_tablas_primer_nivel() {
         while(list_iterator_has_next(iterator2)) {
             elem_iterado_2 = list_iterator_next(iterator2);
             Tabla_Segundo_Nivel* tabla_segundo_nivel = list_get(lista_tablas_segundo_nivel, elem_iterado_2->index_tabla_segundo_nivel);
+            printf("\n");
             log_info(logger, "\tIndex en lista 2do nivel: %d", elem_iterado_2->index_tabla_segundo_nivel);
             
             t_list_iterator* iterator3 = list_iterator_create(tabla_segundo_nivel->entradas_tabla_segundo_nivel);
             Entrada_Tabla_Segundo_Nivel* elem_iterado_3;
             
+            log_info(logger, "\t_______________________");
+            log_info(logger, "\t|__F__|_P_|_M_|_U_|_*_|");
             while(list_iterator_has_next(iterator3)) {
                 elem_iterado_3 = list_iterator_next(iterator3);
-                log_info(logger, "\tM %d | P %d | M %d | U %d |* %d", elem_iterado_3->marco, elem_iterado_3->bit_presencia, elem_iterado_3->bit_modificado, elem_iterado_3->bit_uso, elem_iterado_3->bit_puntero);
+                if(elem_iterado_3->marco == -1) {
+                    log_info(logger, "\t|  -  | - | - | - | - |");
+                } else {
+                    log_info(logger, "\t| %-3d | %d | %d | %d | %d |", elem_iterado_3->marco, elem_iterado_3->bit_presencia, elem_iterado_3->bit_modificado, elem_iterado_3->bit_uso, elem_iterado_3->bit_puntero);                   
+                }
             }
 
             list_iterator_destroy(iterator3);
@@ -123,7 +130,7 @@ void mostrar_lista_tablas_primer_nivel() {
         }
         
         list_iterator_destroy(iterator2);
-        printf("\n"); // Horrible despues sacar
+        //printf("\n"); // Horrible despues sacar
 
     }
 
@@ -152,7 +159,7 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
             entrada_segundo_nivel -> bit_presencia;
             if(entrada_segundo_nivel->bit_presencia == 1) {
 
-                entrada_segundo_nivel->marco = 0;
+                entrada_segundo_nivel->marco = -1;
                 entrada_segundo_nivel->bit_presencia = 0;
                 entrada_segundo_nivel->bit_modificado = 0;
                 entrada_segundo_nivel->bit_uso = 0;
@@ -226,7 +233,6 @@ void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabl
         i++;
     }
 
-    log_info(logger, "i es %d", i);
     elem_iterado->marco = marco;
     elem_iterado->bit_presencia = 1;
     elem_iterado->bit_modificado = 0;
