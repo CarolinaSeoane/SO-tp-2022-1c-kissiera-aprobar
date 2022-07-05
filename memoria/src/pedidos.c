@@ -63,8 +63,6 @@ void* atender_pedido(void* void_args) {
 				log_info(logger, "Recibi ENVIAR_TABLA_SEGUNDO_NIVEL");
 				log_info(logger, "Recibi pid %d, index %d y entrada %d", proceso_pid,  index_tabla_segundo_nivel, entrada_tabla_segundo_nivel);
 
-				//No estoy seguro si necesitamos mutext para acceder a la lista de las tablas de 2do nivel del proceso 
-				//Supuestamente nunca tendrias accesos simultaneos a una lista de tablas de 2do nivel
 				pthread_mutex_lock(&mutex_lista_segundo_nivel);
 				Tabla_Segundo_Nivel* t_segundo_nivel = list_get(lista_tablas_segundo_nivel, index_tabla_segundo_nivel);
 				Entrada_Tabla_Segundo_Nivel* entrada_segundo_nivel = list_get(t_segundo_nivel->entradas_tabla_segundo_nivel, entrada_tabla_segundo_nivel);
@@ -93,19 +91,18 @@ void* atender_pedido(void* void_args) {
 
 						//Ejecuto algoritmo de sustitucion para elegir la pagina victima a liberar
 						if(!strcmp(config.ALGORITMO_REEMPLAZO, "CLOCK")) {
-							//CLOCK
+							
+							log_info(logger, "Aplico algoritmo Clock");
+							marco = aplicar_algoritmo_de_sustitucion_clock();
 							
 						} else {
-							//CLOCK-M
+							log_info(logger, "Aplico algoritmo Clock Modificado");
+							marco = aplicar_algoritmo_de_sustitucion_clock_modificado();
 						}
-						
-						//Libero y obtengo la pagina libre 
 
-						//log_info(logger, "Pagina #%d liberada por algoritmo de sustitucion %s\n\n", pagina_libre, config.ALGORITMO_REEMPLAZO);
-
-						//marco = ...
-						//Marcar el puntero
 						list_clean(lista_paginas_cargadas);
+						//TO DO
+						// Solicitar a SWAP que se cargue la info de la pagina solicitada en el marco devuelto por el algoritmo aplicado
 
 					} else {
 						
