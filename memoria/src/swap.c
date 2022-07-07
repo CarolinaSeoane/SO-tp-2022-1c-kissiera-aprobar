@@ -51,38 +51,33 @@ void* atender_pedidos_swap() {
                 fseek(fp, pedido->numero_pagina * config.TAM_PAGINA, SEEK_SET);
                 log_info(logger, "El puntero esta en la pos: %ld y va a leer %d bytes", ftell(fp), config.TAM_PAGINA);
 
-                fread(memoria_principal + (pedido->frame_libre * config.TAM_PAGINA), 1, config.TAM_PAGINA, fp);
+                void* buffer = malloc(config.TAM_PAGINA);
+                fread(buffer, config.TAM_PAGINA, 1, fp);
 
-                // seguir
-  
-                
-                //log_info(logger, "El archivo %s tiene un tamaño de %d bytes y se va a traer a memoria desde el byte %d hasta el %d", file_name, (int) file_st.st_size, offset, offset + config.TAM_PAGINA);
+                pthread_mutex_lock(&mutex_memoria);
+                //memcpy(memoria_principal + (pedido->frame_libre * config.TAM_PAGINA), buffer, config.TAM_PAGINA); ver. funciona mal
+                pthread_mutex_unlock(&mutex_memoria);
 
-                // Mapeo
-                //char *addr;
-                //addr = mmap(memoria_principal + (pedido->frame_libre * config.TAM_PAGINA), config.TAM_PAGINA, PROT_READ, MAP_SHARED, file, pedido->numero_pagina * config.TAM_PAGINA);
-                //
-                //if(addr == MAP_FAILED) {
-                //    log_error(logger, "Error al mapear archivo %s, cerrando modulo swap", file_name);
-                //    exit(1);
-                //}
-                //
-                //close(file);
+                //log_info(logger, "Despues de leer el puntero esta en la pos: %ld", ftell(fp));
+                log_info(logger, "Se copio la pagina %d a memoria en el frame %d", pedido->numero_pagina, pedido->frame_libre);
+
                 free(file_name);
+                free(buffer);
                 fclose(fp);
-                //free(addr);
+                
                 break;
 
             case ELIMINAR_ARCHIVO_SWAP: ;
-                    char* archivo_a_eliminar = get_file_name(pedido->pid);
+                char* archivo_a_eliminar = get_file_name(pedido->pid);
 
-                    if (remove(archivo_a_eliminar) == 0) {
-                        log_info(logger, "El archivo %s ha sido eliminado", archivo_a_eliminar);
-                    } else {
-                        log_error(logger, "Error al eliminar el archivo %s", archivo_a_eliminar);
-                    }
+                if (remove(archivo_a_eliminar) == 0) {
+                    log_info(logger, "El archivo %s ha sido eliminado", archivo_a_eliminar);
+                } else {
+                    log_error(logger, "Error al eliminar el archivo %s", archivo_a_eliminar);
+                }
 
-                    free(archivo_a_eliminar);
+                free(archivo_a_eliminar);
+
                 break;
 
             default:

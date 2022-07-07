@@ -112,7 +112,6 @@ void* atender_pedido(void* void_args) {
 						//pthread_mutex_unlock(&mutex_pagina_en_intercambio);
 						
 						actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco);
-						verificar_memoria();
 						
 					}
 					

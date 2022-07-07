@@ -207,7 +207,7 @@ int solicitar_pagina_a_swap(int pid, int numero_pagina) {
     pedido_swap *pedido = malloc(sizeof(pedido_swap));
 	pedido->co_op = SWAP_IN_PAGINA;
     pedido->pid = pid;
-    pedido->numero_pagina = numero_pagina - 1; // lo que se recibe por parametro en realidad es la entrada de la tp (por eso el -1)
+    pedido->numero_pagina = numero_pagina;
     pedido->frame_libre = frame;
     sem_init(&pedido->pedido_finalizado, 0, 0);
 
@@ -222,42 +222,24 @@ int solicitar_pagina_a_swap(int pid, int numero_pagina) {
     return frame; 
 
 }
-/*
-int cargar_pagina_en_memoria(int pid) {
-
-    int frame = buscar_frame_libre();
-    
-    pthread_mutex_lock(&mutex_memoria);
-    memcpy(memoria_principal + frame*config.TAM_PAGINA, pagina_en_intercambio, config.TAM_PAGINA); //esto lo va a hacer swap
-    pthread_mutex_unlock(&mutex_memoria);
-    
-    log_info(logger, "Se copio la pagina en el frame %d", frame);
-    return frame; 
-}*/
 
 void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabla_segundo_nivel, int marco) {
 
     pthread_mutex_lock(&mutex_lista_segundo_nivel);
 	Tabla_Segundo_Nivel* t_segundo_nivel = list_get(lista_tablas_segundo_nivel, index_tabla_segundo_nivel);
-    
-    t_list_iterator* iterator = list_iterator_create(t_segundo_nivel->entradas_tabla_segundo_nivel);
-    Entrada_Tabla_Segundo_Nivel* elem_iterado;
-            
-    int i = 0;
-    while(list_iterator_has_next(iterator) && i!=entrada_tabla_segundo_nivel) {
-        elem_iterado = list_iterator_next(iterator);
-        i++;
-    }
 
-    elem_iterado->marco = marco;
-    elem_iterado->bit_presencia = 1;
-    elem_iterado->bit_modificado = 0;
-    elem_iterado->bit_uso = 1;
-    elem_iterado->bit_puntero = 0;
+    Entrada_Tabla_Segundo_Nivel* pagina_a_actualizar = list_get(t_segundo_nivel->entradas_tabla_segundo_nivel, entrada_tabla_segundo_nivel);
+
+    pagina_a_actualizar->marco = marco;
+    pagina_a_actualizar->bit_presencia = 1;
+    pagina_a_actualizar->bit_modificado = 0;
+    pagina_a_actualizar->bit_uso = 1;
+    pagina_a_actualizar->bit_puntero = 0;
 	pthread_mutex_unlock(&mutex_lista_segundo_nivel);
 
-    list_iterator_destroy(iterator);
+    //list_iterator_destroy(iterator);
     log_info(logger, "Se actualizo la tabla de paginas\n\n");
+    verificar_memoria();
 
 }
 
