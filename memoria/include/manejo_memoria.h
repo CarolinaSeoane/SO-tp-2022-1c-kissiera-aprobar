@@ -19,6 +19,7 @@ void actualizar_bit_modificado(int, int);
 int buscar_index_puntero_para_aplicar_algoritmo();
 int aplicar_algoritmo_de_sustitucion_clock();
 int aplicar_algoritmo_de_sustitucion_clock_modificado();
+void eliminar_archivo_swap(int);
 
 
 #endif

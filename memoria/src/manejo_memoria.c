@@ -139,7 +139,7 @@ void mostrar_lista_tablas_primer_nivel() {
 }
 
  
-void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_nivel, int socket){
+void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_nivel, int socket) {
     
     pthread_mutex_lock(&mutex_lista_primer_nivel);
     Tabla_Primer_Nivel* t_primer_nivel = list_get(lista_tablas_primer_nivel, index_tabla_primer_nivel);
@@ -170,6 +170,8 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
         }
         
     }
+
+    eliminar_archivo_swap(index_tabla_primer_nivel);
     
     log_info(logger, "Ya reinicé estructuras, ahora mando confirmación a kernel");
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
@@ -182,7 +184,21 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
     free(codigo);
     free(a_enviar);   
 
-} 
+}
+
+void eliminar_archivo_swap(int pid) {
+    pedido_swap *pedido = malloc(sizeof(pedido_swap));
+	pedido->co_op = ELIMINAR_ARCHIVO_SWAP;
+    pedido->pid = pid;
+    sem_init(&pedido->pedido_finalizado, 0, 0);
+
+	pthread_mutex_lock(&mutexColaSwap);
+	list_add(cola_pedidos_a_swap, pedido);
+	pthread_mutex_unlock(&mutexColaSwap);
+    sem_post(&realizar_op_de_swap);
+
+    sem_wait(&pedido->pedido_finalizado);
+}
 
 int solicitar_pagina_a_swap(int pid, int numero_pagina) {
 
@@ -191,7 +207,7 @@ int solicitar_pagina_a_swap(int pid, int numero_pagina) {
     pedido_swap *pedido = malloc(sizeof(pedido_swap));
 	pedido->co_op = SWAP_IN_PAGINA;
     pedido->pid = pid;
-    pedido->numero_pagina = numero_pagina;
+    pedido->numero_pagina = numero_pagina - 1; // lo que se recibe por parametro en realidad es la entrada de la tp (por eso el -1)
     pedido->frame_libre = frame;
     sem_init(&pedido->pedido_finalizado, 0, 0);
 

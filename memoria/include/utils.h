@@ -50,7 +50,6 @@ t_bitarray* marcos_libres;
 t_list* lista_tablas_primer_nivel;
 t_list* lista_tablas_segundo_nivel;
 t_list* cola_pedidos_a_swap;
-t_list* lista_files;
 t_list* lista_paginas_cargadas;
 
 // Estructura Tabla Primer Nivel
