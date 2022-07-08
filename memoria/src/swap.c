@@ -4,10 +4,12 @@ void* atender_pedidos_swap() {
 
     // Crea directorio si no existe
     if (access(config.PATH_SWAP, F_OK) == 0) {
-        log_info(logger, "El directorio %s ya existe", config.PATH_SWAP); //lo podemos borrar
-    } else {
-        mkdir(config.PATH_SWAP, 0777);
+        log_info(logger, "El directorio %s ya existe. Borrando directorio...", config.PATH_SWAP);
+        if(rmdir(config.PATH_SWAP) == -1) {
+            log_error(logger, "El directorio %s no pudo borrarse porque no está vacío", config.PATH_SWAP);
+        }
     }
+    mkdir(config.PATH_SWAP, 0777);
 
     while(1) {
         sem_wait(&swap_esta_libre);
@@ -55,7 +57,7 @@ void* atender_pedidos_swap() {
                 fread(buffer, config.TAM_PAGINA, 1, fp);
 
                 pthread_mutex_lock(&mutex_memoria);
-                //memcpy(memoria_principal + (pedido->frame_libre * config.TAM_PAGINA), buffer, config.TAM_PAGINA); ver. funciona mal
+                memcpy(memoria_principal + (pedido->frame_libre * config.TAM_PAGINA), buffer, config.TAM_PAGINA);
                 pthread_mutex_unlock(&mutex_memoria);
 
                 //log_info(logger, "Despues de leer el puntero esta en la pos: %ld", ftell(fp));

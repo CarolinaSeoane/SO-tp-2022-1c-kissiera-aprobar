@@ -61,10 +61,14 @@ void destroy_recursos() {
 
     bitarray_destroy(marcos_libres);
     free(memoria_principal);
+    
+    if(rmdir(config.PATH_SWAP) == -1) {
+            log_error(logger, "El directorio %s no pudo borrarse porque no está vacío", config.PATH_SWAP);
+        }
 }
 
 void inicializar_memoria_principal() {
-    memoria_principal = malloc(sizeof(config.TAM_MEMORIA));
+    memoria_principal = malloc(config.TAM_MEMORIA);
     int cantidad_marcos = config.TAM_MEMORIA / config.TAM_PAGINA;
     char* data = asignar_bytes(cantidad_marcos);
     marcos_libres = bitarray_create_with_mode(data, cantidad_marcos/8, MSB_FIRST);
