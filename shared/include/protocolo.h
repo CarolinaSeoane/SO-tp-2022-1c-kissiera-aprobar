@@ -18,6 +18,7 @@ typedef enum {
 	SWAP_IN,
 	SWAP_OUT,
 	SWAP_IN_PAGINA,
+	SWAP_OUT_PAGINA,
 	ELIMINAR_ARCHIVO_SWAP
 }accion;
 

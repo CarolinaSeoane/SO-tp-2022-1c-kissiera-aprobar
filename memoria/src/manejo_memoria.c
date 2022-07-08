@@ -223,6 +223,55 @@ int solicitar_pagina_a_swap(int pid, int numero_pagina) {
 
 }
 
+void solicitar_swap_out_a_swap(int pid, int numero_pagina) {
+
+    pedido_swap* pedido = malloc(sizeof(pedido_swap));
+    pedido->co_op = SWAP_OUT_PAGINA;
+    pedido->pid = pid;
+    pedido->numero_pagina = numero_pagina;
+
+    sem_init(&pedido->pedido_finalizado, 0, 0);
+
+    pthread_mutex_lock(&mutexColaSwap);
+	list_add(cola_pedidos_a_swap, pedido);
+	pthread_mutex_unlock(&mutexColaSwap);
+    sem_post(&realizar_op_de_swap);
+
+    sem_wait(&pedido->pedido_finalizado);
+    
+}
+
+int buscar_numero_de_pagina(int marco, int indice) {
+
+    int index = 0;
+
+    Tabla_Primer_Nivel* t_primer_nivel = list_get(lista_tablas_primer_nivel, indice);
+
+    for(int i = 0; i<t_primer_nivel->entradas_tabla_primer_nivel->elements_count; i++) {
+
+        Entrada_Tabla_Primer_Nivel* entrada_p_nivel = list_get(t_primer_nivel->entradas_tabla_primer_nivel, i);
+        Tabla_Segundo_Nivel* tabla_s_nivel = list_get(lista_tablas_segundo_nivel, entrada_p_nivel->index_tabla_segundo_nivel);
+
+        for(int j = 0; j<tabla_s_nivel->entradas_tabla_segundo_nivel->elements_count; j++) {
+
+            Entrada_Tabla_Segundo_Nivel* entrada_s_nivel = list_get(tabla_s_nivel->entradas_tabla_segundo_nivel, j);
+
+            if(entrada_s_nivel->marco == marco) {
+                index = j;
+                if(entrada_s_nivel->bit_modificado) {
+                    fue_modificada = true;
+                } else {
+                    fue_modificada = false;
+                }
+			} 
+        }
+        
+    }
+
+    log_info(logger, "En el marco %d esta la pagina %d", marco, index);
+    return index;
+}
+
 void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabla_segundo_nivel, int marco) {
 
     pthread_mutex_lock(&mutex_lista_segundo_nivel);

@@ -20,6 +20,8 @@ int buscar_index_puntero_para_aplicar_algoritmo();
 int aplicar_algoritmo_de_sustitucion_clock();
 int aplicar_algoritmo_de_sustitucion_clock_modificado();
 void eliminar_archivo_swap(int);
+void solicitar_swap_out_a_swap(int, int);
+int buscar_numero_de_pagina(int, int);
 
 
 #endif

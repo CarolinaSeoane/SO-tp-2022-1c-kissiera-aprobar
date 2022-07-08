@@ -69,6 +69,11 @@ void* atender_pedidos_swap() {
                 
                 break;
 
+            case SWAP_OUT_PAGINA:
+                log_info(logger, "SWAP recibe SWAP OUT para proceso %d y pagina %d", pedido->pid, pedido->numero_pagina);
+
+                break;
+
             case ELIMINAR_ARCHIVO_SWAP: ;
                 char* archivo_a_eliminar = get_file_name(pedido->pid);
 

@@ -100,16 +100,23 @@ void* atender_pedido(void* void_args) {
 						}
 
 						list_clean(lista_paginas_cargadas);
-						//TO DO
-						// Solicitar a SWAP que se cargue la info de la pagina solicitada en el marco devuelto por el algoritmo aplicado
+
+						int numero_pagina = buscar_numero_de_pagina(marco, proceso_pid);
+						if(fue_modificada) {
+							solicitar_swap_out_a_swap(proceso_pid, numero_pagina);
+							fue_modificada = false;
+						} else {
+							actualizar_tabla_de_paginas(index_tabla_segundo_nivel, numero_pagina, -1); //con marco = -1 se muestra - - -
+						}
+						
+						solicitar_pagina_a_swap(proceso_pid, numero_pagina);
+						log_info(logger, "Actualizando tabla de paginas luego del SWAP IN...");						
+						actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco);						
+						
 
 					} else {
 						
 						marco = solicitar_pagina_a_swap(proceso_pid, entrada_tabla_segundo_nivel);
-
-						//pthread_mutex_lock(&mutex_pagina_en_intercambio);
-						//marco = cargar_pagina_en_memoria(proceso_pid); 		esto lo va a hacer swap directamente (le pasamos el marco libre) asi no hay que copiar la pagina dos veces (al marco y a la variable pagina_en_intercambio)
-						//pthread_mutex_unlock(&mutex_pagina_en_intercambio);
 						
 						actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco);
 						
