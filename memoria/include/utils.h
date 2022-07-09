@@ -45,6 +45,7 @@ Config config;
 int memoria_server;
 void* memoria_principal;
 t_bitarray* marcos_libres;
+bool fue_modificada;
 
 // Listas
 t_list* lista_tablas_primer_nivel;

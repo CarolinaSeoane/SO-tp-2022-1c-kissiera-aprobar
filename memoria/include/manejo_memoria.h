@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "../../shared/include/shared.h"
+#include <commons/bitarray.h>
 #include "utils.h"
 #include <math.h>
 
@@ -15,11 +16,15 @@ int solicitar_pagina_a_swap(int, int);
 int cargar_pagina_en_memoria(int);
 void actualizar_tabla_de_paginas(int, int, int);
 void generar_lista_de_paginas_cargadas(int);
+void actualizar_bit_presencia(int);
 void actualizar_bit_modificado(int, int);
 int buscar_index_puntero_para_aplicar_algoritmo();
 int aplicar_algoritmo_de_sustitucion_clock();
 int aplicar_algoritmo_de_sustitucion_clock_modificado();
 void eliminar_archivo_swap(int);
+void solicitar_swap_out_a_swap(int, int, int);
+int buscar_numero_de_pagina(int, int);
+void escribir_paginas_modificadas(int);
 
 
 #endif

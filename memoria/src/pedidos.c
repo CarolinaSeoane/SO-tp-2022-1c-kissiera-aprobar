@@ -6,6 +6,8 @@ void* atender_pedido(void* void_args) {
 	
 	while(args->cliente_fd != -1) {
 
+		usleep(config.RETARDO_MEMORIA * 1000);
+
 		int accion;
 		recv(args->cliente_fd, &accion, sizeof(accion), 0);
 
@@ -100,16 +102,23 @@ void* atender_pedido(void* void_args) {
 						}
 
 						list_clean(lista_paginas_cargadas);
-						//TO DO
-						// Solicitar a SWAP que se cargue la info de la pagina solicitada en el marco devuelto por el algoritmo aplicado
+
+						int numero_pagina = buscar_numero_de_pagina(marco, proceso_pid);
+						if(fue_modificada) {
+							solicitar_swap_out_a_swap(proceso_pid, numero_pagina, marco);
+							fue_modificada = false;
+						} else {
+							actualizar_tabla_de_paginas(index_tabla_segundo_nivel, numero_pagina, -1); //con marco = -1 se muestra - - -
+						}
+						
+						solicitar_pagina_a_swap(proceso_pid, numero_pagina);
+						log_info(logger, "Actualizando tabla de paginas luego del SWAP IN...");						
+						actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco);						
+						
 
 					} else {
 						
 						marco = solicitar_pagina_a_swap(proceso_pid, entrada_tabla_segundo_nivel);
-
-						//pthread_mutex_lock(&mutex_pagina_en_intercambio);
-						//marco = cargar_pagina_en_memoria(proceso_pid); 		esto lo va a hacer swap directamente (le pasamos el marco libre) asi no hay que copiar la pagina dos veces (al marco y a la variable pagina_en_intercambio)
-						//pthread_mutex_unlock(&mutex_pagina_en_intercambio);
 						
 						actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco);
 						
@@ -200,9 +209,24 @@ void* atender_pedido(void* void_args) {
 
 				break;
 
-			case SWAP_OUT:
+			case SWAP_OUT: ;
 
-				log_info(logger, "Recibi SWAP_OUT");
+				int pid_proceso_swap_out;
+				recv(args->cliente_fd, &pid_proceso_swap_out, sizeof(int), 0);
+				log_info(logger, "Recibi SWAP_OUT PARA PID %d", pid_proceso_swap_out);
+
+				// Buscar paginas modificadas
+				// Si las hay, mandar a swap para escribirlas
+				escribir_paginas_modificadas(pid);
+
+				actualizar_bit_presencia(pid_proceso_swap_out);
+
+				int swap_out_exitoso = 1;
+				void* paquete_swap_out = malloc(sizeof(int));
+				memcpy(paquete_swap_out, &swap_out_exitoso, sizeof(int));
+				send(args->cliente_fd, paquete_swap_out, sizeof(int), 0);
+				free(paquete_swap_out);
+				
 				break;
 
 			default:
