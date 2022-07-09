@@ -25,7 +25,7 @@ void* atender_pedidos_swap() {
                 log_info(logger, "SWAP RECIBE INIT PARA PID %d", pedido->pid);
 
                 char* path = get_file_name(pedido->pid);
-                FILE* f = fopen(path,"w");
+                FILE* f = fopen(path,"w+");
 
                 if (f == NULL) {
 			        log_error(logger, "Error al crear archivo para PID %d en %s", pedido->pid, path);
@@ -73,7 +73,7 @@ void* atender_pedidos_swap() {
                 log_info(logger, "SWAP recibe SWAP OUT para proceso %d", pedido->pid);
 
                 char* file_name_swap_out = get_file_name(pedido->pid);
-                FILE *fp_swap_out = fopen(file_name_swap_out, "rw");
+                FILE *fp_swap_out = fopen(file_name_swap_out, "w+");
 
                 if(fp_swap_out == NULL) {
                     log_error(logger, "Error al abrir archivo %s, cerrando modulo swap", file_name_swap_out);
