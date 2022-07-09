@@ -70,8 +70,7 @@ void* atender_pedidos_swap() {
                 break;
 
             case SWAP_OUT_PAGINA:
-                log_info(logger, "SWAP recibe SWAP OUT para proceso %d y pagina %d", pedido->pid, pedido->numero_pagina);
-                log_info(logger, "La pagina a escribir se encuentra en el marco %d", pedido->frame_libre);
+                log_info(logger, "SWAP recibe SWAP OUT para proceso %d", pedido->pid);
 
                 char* file_name_swap_out = get_file_name(pedido->pid);
                 FILE *fp_swap_out = fopen(file_name_swap_out, "rw");
@@ -81,21 +80,30 @@ void* atender_pedidos_swap() {
                     exit(1);
                 }
       
-                fseek(fp_swap_out, pedido->numero_pagina * config.TAM_PAGINA, SEEK_SET);
-                log_info(logger, "El puntero esta en la pos: %ld y va a escribir %d bytes", ftell(fp_swap_out), config.TAM_PAGINA);
+                t_list_iterator* iterator = list_iterator_create(pedido->paginas_a_escribir);
+                pagina_a_escribir* elem_iterado;
 
-                void* buffer_swap_out = malloc(config.TAM_PAGINA);
+                while(list_iterator_has_next(iterator)) {
+                    elem_iterado = list_iterator_next(iterator);
+                    fseek(fp_swap_out, elem_iterado->pagina * config.TAM_PAGINA, SEEK_SET);
+                    log_info(logger, "El puntero esta en la pos: %ld y va a escribir %d bytes", ftell(fp_swap_out), config.TAM_PAGINA);
 
-                pthread_mutex_lock(&mutex_memoria);
-                memcpy(buffer_swap_out, memoria_principal + (pedido->frame_libre * config.TAM_PAGINA), config.TAM_PAGINA);
-                pthread_mutex_unlock(&mutex_memoria);
+                    void* buffer_swap_out = malloc(config.TAM_PAGINA);
 
-                fwrite(buffer_swap_out, config.TAM_PAGINA, 1, fp_swap_out);
+                    pthread_mutex_lock(&mutex_memoria);
+                    memcpy(buffer_swap_out, memoria_principal + (elem_iterado->marco * config.TAM_PAGINA), config.TAM_PAGINA);
+                    pthread_mutex_unlock(&mutex_memoria);
 
-                log_info(logger, "Se escribio el frame %d en la pagina %d del archivo swap de %d", pedido->frame_libre, pedido->numero_pagina, pedido->pid);
+                    fwrite(buffer_swap_out, config.TAM_PAGINA, 1, fp_swap_out);
 
+                    log_info(logger, "Se escribio el frame %d en la pagina %d del archivo swap", elem_iterado->marco, elem_iterado->pagina);
+                    free(buffer_swap_out);
+                
+                }
+
+                list_iterator_destroy(iterator);
+                list_destroy(pedido->paginas_a_escribir);
                 free(file_name_swap_out);
-                free(buffer_swap_out);
                 fclose(fp_swap_out);
 
                 break;

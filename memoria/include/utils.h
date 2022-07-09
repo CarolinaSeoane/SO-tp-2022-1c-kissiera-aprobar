@@ -38,7 +38,13 @@ typedef struct {
     int numero_pagina;
     int frame_libre;
     sem_t pedido_finalizado;
+    t_list* paginas_a_escribir;
 } pedido_swap;
+
+typedef struct {
+    int pagina;
+    int marco;
+} pagina_a_escribir;
 
 t_log* logger;
 Config config;

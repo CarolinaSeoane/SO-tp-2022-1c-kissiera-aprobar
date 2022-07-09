@@ -228,8 +228,17 @@ void solicitar_swap_out_a_swap(int pid, int numero_pagina, int marco) {
     pedido_swap* pedido = malloc(sizeof(pedido_swap));
     pedido->co_op = SWAP_OUT_PAGINA;
     pedido->pid = pid;
-    pedido->numero_pagina = numero_pagina;
-    pedido->frame_libre = marco;
+    pedido->paginas_a_escribir = list_create();
+
+    pagina_a_escribir* pagina_nueva = malloc(sizeof(pagina_a_escribir));
+    pagina_nueva->pagina = numero_pagina;
+    pagina_nueva->marco = marco;
+
+    list_add(pedido->paginas_a_escribir, pagina_nueva);
+
+    pthread_mutex_lock(&mutex_bitarray);
+    bitarray_clean_bit(marcos_libres, marco);
+    pthread_mutex_unlock(&mutex_bitarray);
 
     sem_init(&pedido->pedido_finalizado, 0, 0);
 
@@ -240,10 +249,6 @@ void solicitar_swap_out_a_swap(int pid, int numero_pagina, int marco) {
 
     sem_wait(&pedido->pedido_finalizado);
 
-    pthread_mutex_lock(&mutex_bitarray);
-    bitarray_clean_bit(marcos_libres, marco);
-    pthread_mutex_unlock(&mutex_bitarray);
-    
 }
 
 int buscar_numero_de_pagina(int marco, int indice) {
@@ -482,6 +487,13 @@ int aplicar_algoritmo_de_sustitucion_clock_modificado(){
 
 void escribir_paginas_modificadas(int pid) {
 
+    pedido_swap* pedido = malloc(sizeof(pedido_swap));
+    pedido->co_op = SWAP_OUT_PAGINA;
+    pedido->pid = pid;
+    pedido->paginas_a_escribir = list_create();
+
+    bool hay_paginas_modificadas = false;
+
     pthread_mutex_lock(&mutex_lista_primer_nivel);
     Tabla_Primer_Nivel* t_primer_nivel = list_get(lista_tablas_primer_nivel, pid);
     pthread_mutex_unlock(&mutex_lista_primer_nivel);
@@ -498,13 +510,40 @@ void escribir_paginas_modificadas(int pid) {
             
             if(entrada_segundo_nivel->bit_presencia == 1 && entrada_segundo_nivel->bit_modificado == 1) {
                 
-                // Le tengo que decir que pagina es y en que marco esta
-                solicitar_swap_out_a_swap(pid, i*config.ENTRADAS_POR_TABLA + j, entrada_segundo_nivel->marco);
+                hay_paginas_modificadas = true;
+                
+                pagina_a_escribir* pagina_nueva = malloc(sizeof(pagina_a_escribir));
+                pagina_nueva->pagina = i*config.ENTRADAS_POR_TABLA + j;
+                pagina_nueva->marco = entrada_segundo_nivel->marco;
+                list_add(pedido->paginas_a_escribir, pagina_nueva);
+
+                pthread_mutex_lock(&mutex_bitarray);
+                bitarray_clean_bit(marcos_libres, entrada_segundo_nivel->marco);
+                pthread_mutex_unlock(&mutex_bitarray);
 
 			} 
         }    
     }
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
+
+    if(hay_paginas_modificadas) {
+
+        sem_init(&pedido->pedido_finalizado, 0, 0);
+
+        pthread_mutex_lock(&mutexColaSwap);
+	    list_add(cola_pedidos_a_swap, pedido);
+	    pthread_mutex_unlock(&mutexColaSwap);
+        sem_post(&realizar_op_de_swap);
+
+        sem_wait(&pedido->pedido_finalizado);
+
+    } else {
+
+        list_destroy(pedido->paginas_a_escribir);
+        free(pedido);
+
+    }
+
     log_info(logger, "Se escribieron en swap las paginas modificadas del proceso %d", pid);
 
 }
