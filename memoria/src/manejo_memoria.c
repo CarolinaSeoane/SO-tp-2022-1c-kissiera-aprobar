@@ -452,37 +452,69 @@ int aplicar_algoritmo_de_sustitucion_clock(){
     return marco;
 }
 
-int aplicar_algoritmo_de_sustitucion_clock_modificado(){
+int aplicar_algoritmo_de_sustitucion_clock_modificado() {
 
     int marco = -1;
-    //TODO
-    /*Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel;
+    bool no_encontre_marco = true;
+
+    Entrada_Tabla_Segundo_Nivel* entrada_segundo_nivel;
+
     int index_puntero = buscar_index_puntero_para_aplicar_algoritmo();
-    bool primera_vez = true;
+    int index_inicial = index_puntero;
 
-    while(marco == -1){
-        entrada_segundo_nivel = list_get(lista_paginas_cargadas, index_puntero);
+    while(marco == -1) {
 
-        //Desasigno el bit inicial de puntero
-        if (primera_vez){
-            entrada_segundo_nivel->bit_puntero = 0;
-            primera_vez = false;
+        while(marco == -1) {
+            entrada_segundo_nivel = list_get(lista_paginas_cargadas, index_puntero);
+
+            if(entrada_segundo_nivel->bit_uso == 0 && entrada_segundo_nivel->bit_modificado == 0) {
+                marco = entrada_segundo_nivel->marco;
+                break;
+
+            }
+
+            index_puntero++; 
+            if (index_puntero >= (lista_paginas_cargadas->elements_count)) {
+                index_puntero = 0;
+            }
+
+            if(index_puntero == index_inicial) {
+                break;
+            } //ya me di la vuelta 
+
         }
 
-        //Si el bit de uso es 0 es el marco a sustituir, sino, le doy una oportunidad y sigo
-        if(entrada_segundo_nivel->bit_uso == 0) {
-            marco = entrada_segundo_nivel->marco;
-            break;
-        } else{
-            entrada_segundo_nivel->bit_uso = 0;
-        }
+        while(marco == -1) {
+            
+            entrada_segundo_nivel = list_get(lista_paginas_cargadas, index_puntero);
 
-        index_puntero++;
-        if (index_puntero >= (lista_paginas_cargadas->elements_count)){
-            index_puntero = 0;
+            if(entrada_segundo_nivel->bit_uso == 0 && entrada_segundo_nivel->bit_modificado == 1) {
+                marco = entrada_segundo_nivel->marco;
+                break;
+
+            } else {
+                entrada_segundo_nivel->bit_uso = 0;
+                verificar_memoria();
+            }
+            
+            index_puntero++;
+            if (index_puntero >= (lista_paginas_cargadas->elements_count)) {
+                index_puntero = 0;
+            }
+
+            if(index_puntero == index_inicial) {
+                break;
+            } //me di la vuelta de nuevo. Tengo que empezar de nuevo.
+
         }
-    }*/
+          
+    }
+
+    log_info(logger, "Algoritmo CLOCK-M finalizado: el marco a descargar es %d", marco);
+    actualizar_bit_puntero(index_puntero);
+
     return marco;
+
 }
 
 void escribir_paginas_modificadas(int pid) {
