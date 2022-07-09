@@ -90,6 +90,15 @@ void verificar_memoria() {
 
 }
 
+void mostrar_bitmap() {
+    int cant_frames = config.TAM_MEMORIA / config.TAM_PAGINA;
+
+    log_info(logger_bitmap, "BITMAP");
+    for(int i = 0; i < cant_frames; i++) {
+        log_info(logger_bitmap, "|#F %-3d| %d|", i, bitarray_test_bit(marcos_libres, i));
+    }
+    
+}
 
 void mostrar_lista_tablas_primer_nivel() {
 
@@ -159,6 +168,9 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
             entrada_segundo_nivel -> bit_presencia;
             if(entrada_segundo_nivel->bit_presencia == 1) {
 
+                // Actualizacion del bitmap
+                bitarray_clean_bit(marcos_libres, entrada_segundo_nivel->marco);
+
                 entrada_segundo_nivel->marco = -1;
                 entrada_segundo_nivel->bit_presencia = 0;
                 entrada_segundo_nivel->bit_modificado = 0;
@@ -173,7 +185,9 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
 
     eliminar_archivo_swap(index_tabla_primer_nivel);
     
-    log_info(logger, "Ya reinicé estructuras, ahora mando confirmación a kernel");
+    //log_info(logger, "Ya reinicé estructuras, ahora mando confirmación a kernel");
+    mostrar_bitmap();
+
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
     int bytes_a_enviar = sizeof(int);
     void* a_enviar = malloc(bytes_a_enviar);
@@ -216,7 +230,6 @@ int solicitar_pagina_a_swap(int pid, int numero_pagina) {
 	pthread_mutex_unlock(&mutexColaSwap);
     sem_post(&realizar_op_de_swap);
 
-    log_info(logger, "Envie pedido de pagina a swap");
     sem_wait(&pedido->pedido_finalizado);
 
     return frame; 
@@ -362,7 +375,7 @@ void actualizar_bit_presencia(int pid) {
             Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
             // Se podria poner para que tmb el bit de presencia sea 1 pero deberia alcanzar
             if(entrada_segundo_nivel->bit_presencia == 1) {
-                entrada_segundo_nivel->bit_presencia == 0;
+                entrada_segundo_nivel->bit_presencia = 0;
 			} 
         }    
     }
@@ -536,14 +549,12 @@ void escribir_paginas_modificadas(int pid) {
         sem_post(&realizar_op_de_swap);
 
         sem_wait(&pedido->pedido_finalizado);
+        log_info(logger, "Se escribieron en swap las paginas modificadas del proceso %d", pid);
 
     } else {
-
         list_destroy(pedido->paginas_a_escribir);
         free(pedido);
-
+        log_info(logger, "El proceso %d no tiene paginas modificadas para escribir en swap", pid);
     }
-
-    log_info(logger, "Se escribieron en swap las paginas modificadas del proceso %d", pid);
 
 }

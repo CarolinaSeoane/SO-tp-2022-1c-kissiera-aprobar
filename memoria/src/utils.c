@@ -26,6 +26,7 @@ void cargarConfig(char* path, Config* config) {
 
 void inicializar_logger() {
 	logger = log_create("memoria.log", "Memoria", 1, LOG_LEVEL_DEBUG);
+    logger_bitmap = log_create("bitmap.log", "Bitmap", 1, LOG_LEVEL_DEBUG);
 }
 
 void inicializar_config() {

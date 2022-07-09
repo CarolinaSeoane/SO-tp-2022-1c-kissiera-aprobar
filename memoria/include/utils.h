@@ -47,6 +47,7 @@ typedef struct {
 } pagina_a_escribir;
 
 t_log* logger;
+t_log* logger_bitmap;
 Config config;
 int memoria_server;
 void* memoria_principal;

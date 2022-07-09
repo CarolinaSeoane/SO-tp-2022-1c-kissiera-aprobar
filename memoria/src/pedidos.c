@@ -59,8 +59,7 @@ void* atender_pedido(void* void_args) {
 				recv(args->cliente_fd, &proceso_pid, sizeof(int), 0);
 				recv(args->cliente_fd, &index_tabla_segundo_nivel, sizeof(int), 0);
 				recv(args->cliente_fd, &entrada_tabla_segundo_nivel, sizeof(int), 0);
-				log_info(logger, "Recibi ENVIAR_TABLA_SEGUNDO_NIVEL");
-				log_info(logger, "Recibi pid %d, index %d y entrada %d", proceso_pid,  index_tabla_segundo_nivel, entrada_tabla_segundo_nivel);
+				log_info(logger, "Recibi ENVIAR_TABLA_SEGUNDO_NIVEL para pid %d, index %d y entrada %d", proceso_pid,  index_tabla_segundo_nivel, entrada_tabla_segundo_nivel);
 
 				pthread_mutex_lock(&mutex_lista_segundo_nivel);
 				Tabla_Segundo_Nivel* t_segundo_nivel = list_get(lista_tablas_segundo_nivel, index_tabla_segundo_nivel);
@@ -70,17 +69,15 @@ void* atender_pedido(void* void_args) {
 					log_info(logger, "Pagina encontrada. Devolviendo frame %d\n\n", entrada_segundo_nivel->marco);
 					send_marco(args->cliente_fd, entrada_segundo_nivel->marco);
 				} else {
-					log_info(logger, "Page Fault. Buscando página en disco\n\n");
 
 					//Aca en realidad buscas la cantidad de paginas cargadas en memoria (cantidad de marcos asignados a paginas con bit de presencia en 1)
 					//Como es paginacion bajo demanda, los primeros N marcos que se carguen (los permitidos por el config) van a pasar por el chequeo.
 					//Despues todo lo demas que se necesite va a ser bajar una pagina a swap y cargar otra
 					
-
 					int paginas_ocupadas = paginas_con_marco_cargado_presente(proceso_pid);
 					int marco;
 
-					log_info(logger, "El proceso %d tiene %d paginas cargadas en memoria", proceso_pid, paginas_ocupadas);
+					log_info(logger, "Page Fault. El proceso %d tiene %d paginas cargadas en memoria", proceso_pid, paginas_ocupadas);
 
 					if (paginas_ocupadas == config.MARCOS_POR_PROCESO){
 
@@ -130,7 +127,7 @@ void* atender_pedido(void* void_args) {
 
 			case READ_M:;
 
-				log_info(logger, "Recibi READ_M\n\n");
+				// log_info(logger, "Recibi READ_M\n\n");
 				int direccion_fisica;
 				recv(args->cliente_fd, &direccion_fisica, sizeof(int), 0);
 
@@ -144,13 +141,13 @@ void* atender_pedido(void* void_args) {
 				send(args->cliente_fd, paquete, sizeof(uint32_t), 0);
 
 				free(paquete);
-				log_info(logger, "Se leyo en la posicion %d de memoria el valor %d", direccion_fisica, valor_leido);				
+				log_info(logger, "Recibi READ_M. Se leyo en la posicion %d de memoria el valor %d", direccion_fisica, valor_leido);				
 
 				break;
 
-			case WRITE_M:
+			case WRITE_M: ;
 				
-				log_info(logger, "Recibi WRITE_M");
+				//log_info(logger, "Recibi WRITE_M");
 
 				int pid_write;
 				recv(args->cliente_fd, &pid_write, sizeof(int), 0);
@@ -165,14 +162,14 @@ void* atender_pedido(void* void_args) {
 				memcpy(memoria_principal+dir_fisica, &valor_a_escribir, sizeof(uint32_t)); 
 				pthread_mutex_unlock(&mutex_memoria);
 				
-				log_info(logger, "Se escribio en la posicion %d de memoria el valor %d", dir_fisica, valor_a_escribir);
+				log_info(logger, "Recibi WRITE_M. Se escribio en la posicion %d de memoria el valor %d", dir_fisica, valor_a_escribir);
 
 				uint32_t chequear_valor;
 
 				memcpy(&chequear_valor, memoria_principal+dir_fisica, sizeof(uint32_t));
 
 				uint32_t operacion_exitosa;
-				log_info(logger, "Chequeando valor escrito en memoria");				
+				// log_info(logger, "Chequeando valor escrito en memoria");				
 				if(chequear_valor == valor_a_escribir) {					
 					operacion_exitosa = 1;
 				} else {					
@@ -219,6 +216,8 @@ void* atender_pedido(void* void_args) {
 
 				actualizar_bit_presencia(pid_proceso_swap_out);
 
+    			verificar_memoria();
+				
 				int swap_out_exitoso = 1;
 				void* paquete_swap_out = malloc(sizeof(int));
 				memcpy(paquete_swap_out, &swap_out_exitoso, sizeof(int));
