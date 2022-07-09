@@ -5,13 +5,11 @@ void* atender_pedido(void* void_args) {
 	args_thread_memoria* args = (args_thread_memoria*) void_args;
 	
 	while(args->cliente_fd != -1) {
-
-		usleep(config.RETARDO_MEMORIA * 1000);
-
 		int accion;
 		recv(args->cliente_fd, &accion, sizeof(accion), 0);
 
 		switch(accion) {
+			usleep(config.RETARDO_MEMORIA * 1000);
 			case INIT_PROCESO: ;
 				int pid;
 				int tamanio_proceso;
