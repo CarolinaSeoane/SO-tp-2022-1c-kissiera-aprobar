@@ -6,6 +6,8 @@ void* atender_pedido(void* void_args) {
 	
 	while(args->cliente_fd != -1) {
 
+		usleep(config.RETARDO_MEMORIA * 1000);
+
 		int accion;
 		recv(args->cliente_fd, &accion, sizeof(accion), 0);
 
@@ -103,7 +105,7 @@ void* atender_pedido(void* void_args) {
 
 						int numero_pagina = buscar_numero_de_pagina(marco, proceso_pid);
 						if(fue_modificada) {
-							solicitar_swap_out_a_swap(proceso_pid, numero_pagina);
+							solicitar_swap_out_a_swap(proceso_pid, numero_pagina, marco);
 							fue_modificada = false;
 						} else {
 							actualizar_tabla_de_paginas(index_tabla_segundo_nivel, numero_pagina, -1); //con marco = -1 se muestra - - -
@@ -207,9 +209,24 @@ void* atender_pedido(void* void_args) {
 
 				break;
 
-			case SWAP_OUT:
+			case SWAP_OUT: ;
 
-				log_info(logger, "Recibi SWAP_OUT");
+				int pid_proceso_swap_out;
+				recv(args->cliente_fd, &pid_proceso_swap_out, sizeof(int), 0);
+				log_info(logger, "Recibi SWAP_OUT PARA PID %d", pid_proceso_swap_out);
+
+				// Buscar paginas modificadas
+				// Si las hay, mandar a swap para escribirlas
+				escribir_paginas_modificadas(pid);
+
+				actualizar_bit_presencia(pid_proceso_swap_out);
+
+				int swap_out_exitoso = 1;
+				void* paquete_swap_out = malloc(sizeof(int));
+				memcpy(paquete_swap_out, &swap_out_exitoso, sizeof(int));
+				send(args->cliente_fd, paquete_swap_out, sizeof(int), 0);
+				free(paquete_swap_out);
+				
 				break;
 
 			default:

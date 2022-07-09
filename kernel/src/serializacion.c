@@ -79,28 +79,25 @@ int solicitar_tabla_de_paginas_a_memoria(PCB* proceso) {
     return tabla_primer_nivel;
 }
 
-int solicitar_swap_out_a_memoria(PCB* proceso) { // hacer 
-    /*int bytes_a_enviar = sizeof(int) * 3 ; 
+void solicitar_swap_out_a_memoria(PCB* proceso) {
+    int bytes_a_enviar = sizeof(int) * 2; // OPERACION, PID
 	void* a_enviar = malloc(bytes_a_enviar);
     int* codigo = malloc(sizeof(int));
-    *codigo = INIT_PROCESO;
+    *codigo = SWAP_OUT;
     int offset = 0;
 
     memcpy(a_enviar, &(*codigo), sizeof(int));
 	offset += sizeof(int);
 	memcpy(a_enviar + offset, &(proceso->pid), sizeof(int));
-	offset += sizeof(int);
-    memcpy(a_enviar + offset, &(proceso->tabla_paginas), sizeof(int));
-
 
     send(conexion_memoria, a_enviar, bytes_a_enviar, 0);
     free(codigo);
     free(a_enviar);
     
-    uint32_t tabla_primer_nivel;
-    recv(conexion_memoria, &tabla_primer_nivel, sizeof(uint32_t), 0);
-    log_info(logger, "Recibi para el proceso %d la tabla_primer_nivel con valor %d", proceso->pid, tabla_primer_nivel);*/
-    return 7;//tabla_primer_nivel;
+    int confirmacion;
+    recv(conexion_memoria, &confirmacion, sizeof(int), 0);
+    log_info(logger, "El proceso %d fue swapeado", proceso->pid);
+    
 }
 
 void solicitar_swap_in_a_memoria(PCB* proceso) {

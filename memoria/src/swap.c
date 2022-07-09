@@ -71,6 +71,32 @@ void* atender_pedidos_swap() {
 
             case SWAP_OUT_PAGINA:
                 log_info(logger, "SWAP recibe SWAP OUT para proceso %d y pagina %d", pedido->pid, pedido->numero_pagina);
+                log_info(logger, "La pagina a escribir se encuentra en el marco %d", pedido->frame_libre);
+
+                char* file_name_swap_out = get_file_name(pedido->pid);
+                FILE *fp_swap_out = fopen(file_name_swap_out, "rw");
+
+                if(fp_swap_out == NULL) {
+                    log_error(logger, "Error al abrir archivo %s, cerrando modulo swap", file_name_swap_out);
+                    exit(1);
+                }
+      
+                fseek(fp_swap_out, pedido->numero_pagina * config.TAM_PAGINA, SEEK_SET);
+                log_info(logger, "El puntero esta en la pos: %ld y va a escribir %d bytes", ftell(fp_swap_out), config.TAM_PAGINA);
+
+                void* buffer_swap_out = malloc(config.TAM_PAGINA);
+
+                pthread_mutex_lock(&mutex_memoria);
+                memcpy(buffer_swap_out, memoria_principal + (pedido->frame_libre * config.TAM_PAGINA), config.TAM_PAGINA);
+                pthread_mutex_unlock(&mutex_memoria);
+
+                fwrite(buffer_swap_out, config.TAM_PAGINA, 1, fp_swap_out);
+
+                log_info(logger, "Se escribio el frame %d en la pagina %d del archivo swap de %d", pedido->frame_libre, pedido->numero_pagina, pedido->pid);
+
+                free(file_name_swap_out);
+                free(buffer_swap_out);
+                fclose(fp_swap_out);
 
                 break;
 

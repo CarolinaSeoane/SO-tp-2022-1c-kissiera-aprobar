@@ -223,12 +223,13 @@ int solicitar_pagina_a_swap(int pid, int numero_pagina) {
 
 }
 
-void solicitar_swap_out_a_swap(int pid, int numero_pagina) {
+void solicitar_swap_out_a_swap(int pid, int numero_pagina, int marco) {
 
     pedido_swap* pedido = malloc(sizeof(pedido_swap));
     pedido->co_op = SWAP_OUT_PAGINA;
     pedido->pid = pid;
     pedido->numero_pagina = numero_pagina;
+    pedido->frame_libre = marco;
 
     sem_init(&pedido->pedido_finalizado, 0, 0);
 
@@ -238,6 +239,10 @@ void solicitar_swap_out_a_swap(int pid, int numero_pagina) {
     sem_post(&realizar_op_de_swap);
 
     sem_wait(&pedido->pedido_finalizado);
+
+    pthread_mutex_lock(&mutex_bitarray);
+    bitarray_clean_bit(marcos_libres, marco);
+    pthread_mutex_unlock(&mutex_bitarray);
     
 }
 
@@ -334,6 +339,32 @@ void generar_lista_de_paginas_cargadas(int index_tabla_primer_nivel){
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
     log_info(logger, "Lista con páginas cargadas populada.\n\n");
 }
+
+void actualizar_bit_presencia(int pid) {
+
+    pthread_mutex_lock(&mutex_lista_primer_nivel);
+    Tabla_Primer_Nivel* t_primer_nivel = list_get(lista_tablas_primer_nivel, pid);
+    pthread_mutex_unlock(&mutex_lista_primer_nivel);
+
+    pthread_mutex_lock(&mutex_lista_segundo_nivel);
+    for(int i=0; i<t_primer_nivel->entradas_tabla_primer_nivel->elements_count; i++){
+        
+        Entrada_Tabla_Primer_Nivel * entrada_primer_nivel = list_get(t_primer_nivel->entradas_tabla_primer_nivel, i);
+        Tabla_Segundo_Nivel * tabla_segundo_nivel = list_get(lista_tablas_segundo_nivel, entrada_primer_nivel->index_tabla_segundo_nivel);
+
+        for(int j=0; j<tabla_segundo_nivel->entradas_tabla_segundo_nivel->elements_count; j++){
+
+            Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
+            // Se podria poner para que tmb el bit de presencia sea 1 pero deberia alcanzar
+            if(entrada_segundo_nivel->bit_presencia == 1) {
+                entrada_segundo_nivel->bit_presencia == 0;
+			} 
+        }    
+    }
+    pthread_mutex_unlock(&mutex_lista_segundo_nivel);
+    
+}
+
 
 void actualizar_bit_modificado(int pid, int marco) {
 
@@ -447,4 +478,33 @@ int aplicar_algoritmo_de_sustitucion_clock_modificado(){
         }
     }*/
     return marco;
+}
+
+void escribir_paginas_modificadas(int pid) {
+
+    pthread_mutex_lock(&mutex_lista_primer_nivel);
+    Tabla_Primer_Nivel* t_primer_nivel = list_get(lista_tablas_primer_nivel, pid);
+    pthread_mutex_unlock(&mutex_lista_primer_nivel);
+
+    pthread_mutex_lock(&mutex_lista_segundo_nivel);
+    for(int i=0; i<t_primer_nivel->entradas_tabla_primer_nivel->elements_count; i++){
+        
+        Entrada_Tabla_Primer_Nivel * entrada_primer_nivel = list_get(t_primer_nivel->entradas_tabla_primer_nivel, i);
+        Tabla_Segundo_Nivel * tabla_segundo_nivel = list_get(lista_tablas_segundo_nivel, entrada_primer_nivel->index_tabla_segundo_nivel);
+
+        for(int j=0; j<tabla_segundo_nivel->entradas_tabla_segundo_nivel->elements_count; j++){
+
+            Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
+            
+            if(entrada_segundo_nivel->bit_presencia == 1 && entrada_segundo_nivel->bit_modificado == 1) {
+                
+                // Le tengo que decir que pagina es y en que marco esta
+                solicitar_swap_out_a_swap(pid, i*config.ENTRADAS_POR_TABLA + j, entrada_segundo_nivel->marco);
+
+			} 
+        }    
+    }
+    pthread_mutex_unlock(&mutex_lista_segundo_nivel);
+    log_info(logger, "Se escribieron en swap las paginas modificadas del proceso %d", pid);
+
 }
