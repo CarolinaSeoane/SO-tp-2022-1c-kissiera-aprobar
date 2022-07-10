@@ -9,7 +9,7 @@ void* atender_pedido(void* void_args) {
 		recv(args->cliente_fd, &accion, sizeof(accion), 0);
 
 		switch(accion) {
-			//usleep(config.RETARDO_MEMORIA * 1000); DECIDIR DONDE VA DE ACUERDO A ISSUES 2730 y 2752
+			
 			case INIT_PROCESO: ;
 				int pid;
 				int tamanio_proceso;
@@ -33,6 +33,8 @@ void* atender_pedido(void* void_args) {
 
 			case ENVIAR_TABLA_PRIMER_NIVEL: ;
 
+				usleep(config.RETARDO_MEMORIA * 1000);
+
 				int pid_proceso;
 				int index_tabla_primer_nivel;
 				recv(args->cliente_fd, &pid_proceso, sizeof(int), 0);
@@ -52,6 +54,8 @@ void* atender_pedido(void* void_args) {
 				break;
 			
 			case ENVIAR_TABLA_SEGUNDO_NIVEL: ;
+
+				usleep(config.RETARDO_MEMORIA * 1000);
 
 				int proceso_pid;
 				int index_tabla_segundo_nivel;
@@ -131,6 +135,7 @@ void* atender_pedido(void* void_args) {
 
 			case READ_M:;
 
+				usleep(config.RETARDO_MEMORIA * 1000);
 				// log_info(logger, "Recibi READ_M\n\n");
 				int direccion_fisica;
 				recv(args->cliente_fd, &direccion_fisica, sizeof(int), 0);
@@ -151,6 +156,7 @@ void* atender_pedido(void* void_args) {
 
 			case WRITE_M: ;
 				
+				usleep(config.RETARDO_MEMORIA * 1000);
 				//log_info(logger, "Recibi WRITE_M");
 
 				int pid_write;
@@ -170,7 +176,9 @@ void* atender_pedido(void* void_args) {
 
 				uint32_t chequear_valor;
 
+				pthread_mutex_lock(&mutex_memoria);
 				memcpy(&chequear_valor, memoria_principal+dir_fisica, sizeof(uint32_t));
+				pthread_mutex_unlock(&mutex_memoria);
 
 				uint32_t operacion_exitosa;
 				// log_info(logger, "Chequeando valor escrito en memoria");				

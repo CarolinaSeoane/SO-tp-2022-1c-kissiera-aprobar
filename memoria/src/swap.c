@@ -16,8 +16,7 @@ void* atender_pedidos_swap() {
         sem_wait(&realizar_op_de_swap);
 
         log_info(logger, "CONECTANDO CON SWAP...");
-        //usleep(config.RETARDO_SWAP * 1000); // Retardo swap. DECIDIR DONDE VA DE ACUERDO A ISSUES 2730 y 2752
-        
+                
         pedido_swap *pedido = list_remove(cola_pedidos_a_swap, 0); //Obtengo pedido
 
         switch(pedido->co_op) {
@@ -40,6 +39,7 @@ void* atender_pedidos_swap() {
                 break;
 
             case SWAP_IN_PAGINA:
+                usleep(config.RETARDO_SWAP * 1000);
                 log_info(logger, "SWAP recibe SWAP IN para proceso %d, pag %d y la va a cargar en el frame %d", pedido->pid, pedido->numero_pagina, pedido->frame_libre);   
 
                 char* file_name = get_file_name(pedido->pid);
@@ -70,6 +70,7 @@ void* atender_pedidos_swap() {
                 break;
 
             case SWAP_OUT_PAGINA:
+                usleep(config.RETARDO_SWAP * 1000);
                 log_info(logger, "SWAP recibe SWAP OUT para proceso %d", pedido->pid);
 
                 char* file_name_swap_out = get_file_name(pedido->pid);
