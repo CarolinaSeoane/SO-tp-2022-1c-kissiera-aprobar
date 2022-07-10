@@ -47,7 +47,7 @@ instruccion:
 	gnome-terminal -- bash -c './consola.out instrucciones.txt 250; sleep 20'
 	gnome-terminal -- bash -c './consola.out inexit.txt 640; sleep 20' 
 
-base:
+base_config:
 	# Config Kernel
 	sed -i 's/^ALGORITMO_PLANIFICACION=.*/ALGORITMO_PLANIFICACION=FIFO/' ../kernel/kernel.config
 	sed -i 's/^ESTIMACION_INICIAL=.*/ESTIMACION_INICIAL=10000/' ../kernel/kernel.config
@@ -68,13 +68,14 @@ base:
 	sed -i 's/^ALGORITMO_REEMPLAZO=.*/ALGORITMO_REEMPLAZO=CLOCK-M/' ../memoria/memoria.config
 	sed -i 's/^MARCOS_POR_PROCESO=.*/MARCOS_POR_PROCESO=4/' ../memoria/memoria.config
 	sed -i 's/^RETARDO_SWAP=.*/RETARDO_SWAP=2000/' ../memoria/memoria.config
-	
+
+base_instrucciones:
 	# Instrucciones
 	gnome-terminal -- bash -c './consola.out pruebas/BASE_1.txt 200; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/BASE_2.txt 300; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/BASE_2.txt 300; sleep 20'
 
-planificacion_fifo:
+planificacion_fifo_config:
 	# Config Kernel
 	sed -i 's/^ALGORITMO_PLANIFICACION=.*/ALGORITMO_PLANIFICACION=FIFO/' ../kernel/kernel.config
 	sed -i 's/^ESTIMACION_INICIAL=.*/ESTIMACION_INICIAL=20000/' ../kernel/kernel.config
@@ -96,12 +97,13 @@ planificacion_fifo:
 	sed -i 's/^MARCOS_POR_PROCESO=.*/MARCOS_POR_PROCESO=4/' ../memoria/memoria.config
 	sed -i 's/^RETARDO_SWAP=.*/RETARDO_SWAP=2000/' ../memoria/memoria.config
 
+planificacion_fifo_instrucciones:
 	# Instrucciones
 	gnome-terminal -- bash -c './consola.out pruebas/PLANI_1.txt 320; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/PLANI_1.txt 320; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/PLANI_2.txt 456; sleep 20'
 
-planificacion_srt:
+planificacion_srt_config:
 	# Config Kernel
 	sed -i 's/^ALGORITMO_PLANIFICACION=.*/ALGORITMO_PLANIFICACION=SRT/' ../kernel/kernel.config
 	sed -i 's/^ESTIMACION_INICIAL=.*/ESTIMACION_INICIAL=20000/' ../kernel/kernel.config
@@ -123,12 +125,13 @@ planificacion_srt:
 	sed -i 's/^MARCOS_POR_PROCESO=.*/MARCOS_POR_PROCESO=4/' ../memoria/memoria.config
 	sed -i 's/^RETARDO_SWAP=.*/RETARDO_SWAP=2000/' ../memoria/memoria.config
 
+planificacion_srt_instrucciones:
 	# Instrucciones
 	gnome-terminal -- bash -c './consola.out pruebas/PLANI_1.txt 320; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/PLANI_1.txt 320; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/PLANI_2.txt 456; sleep 20'
 
-suspension_fifo:
+suspension_fifo_config:
 	# Config Kernel
 	sed -i 's/^ALGORITMO_PLANIFICACION=.*/ALGORITMO_PLANIFICACION=FIFO/' ../kernel/kernel.config
 	sed -i 's/^ESTIMACION_INICIAL=.*/ESTIMACION_INICIAL=20000/' ../kernel/kernel.config
@@ -150,12 +153,13 @@ suspension_fifo:
 	sed -i 's/^MARCOS_POR_PROCESO=.*/MARCOS_POR_PROCESO=4/' ../memoria/memoria.config
 	sed -i 's/^RETARDO_SWAP=.*/RETARDO_SWAP=2000/' ../memoria/memoria.config
 
+suspension_fifo_instrucciones:
 	# Instrucciones
 	gnome-terminal -- bash -c './consola.out pruebas/SUSPE_1.txt 500; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/SUSPE_2.txt 342; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/SUSPE_3.txt 344; sleep 20'
 
-suspension_srt:
+suspension_srt_config:
 	# Config Kernel
 	sed -i 's/^ALGORITMO_PLANIFICACION=.*/ALGORITMO_PLANIFICACION=SRT/' ../kernel/kernel.config
 	sed -i 's/^ESTIMACION_INICIAL=.*/ESTIMACION_INICIAL=20000/' ../kernel/kernel.config
@@ -177,12 +181,13 @@ suspension_srt:
 	sed -i 's/^MARCOS_POR_PROCESO=.*/MARCOS_POR_PROCESO=4/' ../memoria/memoria.config
 	sed -i 's/^RETARDO_SWAP=.*/RETARDO_SWAP=2000/' ../memoria/memoria.config
 
+suspension_srt_instrucciones:
 	# Instrucciones
 	gnome-terminal -- bash -c './consola.out pruebas/SUSPE_1.txt 500; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/SUSPE_2.txt 342; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/SUSPE_3.txt 344; sleep 20'
 
-memoria_clock:
+memoria_clock_config:
 	# Config Kernel
 	sed -i 's/^ALGORITMO_PLANIFICACION=.*/ALGORITMO_PLANIFICACION=FIFO/' ../kernel/kernel.config
 	sed -i 's/^ESTIMACION_INICIAL=.*/ESTIMACION_INICIAL=20000/' ../kernel/kernel.config
@@ -204,10 +209,11 @@ memoria_clock:
 	sed -i 's/^MARCOS_POR_PROCESO=.*/MARCOS_POR_PROCESO=3/' ../memoria/memoria.config
 	sed -i 's/^RETARDO_SWAP=.*/RETARDO_SWAP=5000/' ../memoria/memoria.config
 
+memoria_clock_instrucciones:
 	# Instrucciones
 	gnome-terminal -- bash -c './consola.out pruebas/MEMORIA_1.txt 4096; sleep 20'
 
-memoria_clock_m:
+memoria_clock_m_config:
 	# Config Kernel
 	sed -i 's/^ALGORITMO_PLANIFICACION=.*/ALGORITMO_PLANIFICACION=FIFO/' ../kernel/kernel.config
 	sed -i 's/^ESTIMACION_INICIAL=.*/ESTIMACION_INICIAL=20000/' ../kernel/kernel.config
@@ -229,10 +235,11 @@ memoria_clock_m:
 	sed -i 's/^MARCOS_POR_PROCESO=.*/MARCOS_POR_PROCESO=3/' ../memoria/memoria.config
 	sed -i 's/^RETARDO_SWAP=.*/RETARDO_SWAP=5000/' ../memoria/memoria.config
 
+memoria_clock_m_instrucciones:
 	# Instrucciones
 	gnome-terminal -- bash -c './consola.out pruebas/MEMORIA_1.txt 4096; sleep 20'
 
-tlb_fifo:
+tlb_fifo_config:
 	# Config Kernel
 	sed -i 's/^ALGORITMO_PLANIFICACION=.*/ALGORITMO_PLANIFICACION=FIFO/' ../kernel/kernel.config
 	sed -i 's/^ESTIMACION_INICIAL=.*/ESTIMACION_INICIAL=20000/' ../kernel/kernel.config
@@ -254,11 +261,12 @@ tlb_fifo:
 	sed -i 's/^MARCOS_POR_PROCESO=.*/MARCOS_POR_PROCESO=16/' ../memoria/memoria.config
 	sed -i 's/^RETARDO_SWAP=.*/RETARDO_SWAP=3000/' ../memoria/memoria.config
 
+tlb_fifo_instrucciones:
 	# Instrucciones
 	gnome-terminal -- bash -c './consola.out pruebas/TLB_1.txt 2048; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/TLB_2.txt 2048; sleep 20'
 
-tlb_lru:
+tlb_lru_config:
 	# Config Kernel
 	sed -i 's/^ALGORITMO_PLANIFICACION=.*/ALGORITMO_PLANIFICACION=FIFO/' ../kernel/kernel.config
 	sed -i 's/^ESTIMACION_INICIAL=.*/ESTIMACION_INICIAL=20000/' ../kernel/kernel.config
@@ -280,11 +288,12 @@ tlb_lru:
 	sed -i 's/^MARCOS_POR_PROCESO=.*/MARCOS_POR_PROCESO=16/' ../memoria/memoria.config
 	sed -i 's/^RETARDO_SWAP=.*/RETARDO_SWAP=3000/' ../memoria/memoria.config
 
+tlb_lru_instrucciones:
 	# Instrucciones
 	gnome-terminal -- bash -c './consola.out pruebas/TLB_1.txt 2048; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/TLB_2.txt 2048; sleep 20'
 
-integral:
+integral_config:
 	# Config Kernel
 	sed -i 's/^ALGORITMO_PLANIFICACION=.*/ALGORITMO_PLANIFICACION=SRT/' ../kernel/kernel.config
 	sed -i 's/^ESTIMACION_INICIAL=.*/ESTIMACION_INICIAL=50000/' ../kernel/kernel.config
@@ -306,10 +315,10 @@ integral:
 	sed -i 's/^MARCOS_POR_PROCESO=.*/MARCOS_POR_PROCESO=4/' ../memoria/memoria.config
 	sed -i 's/^RETARDO_SWAP=.*/RETARDO_SWAP=1000/' ../memoria/memoria.config
 
+integral_instrucciones:
 	# Instrucciones
 	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_1.txt 2048; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_2.txt 2048; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_2.txt 2048; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_2.txt 2048; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_2.txt 2048; sleep 20'
-	

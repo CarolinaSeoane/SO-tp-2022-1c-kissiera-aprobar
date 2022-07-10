@@ -110,13 +110,13 @@ void* atender_pedidos_swap() {
 
             case ELIMINAR_ARCHIVO_SWAP: ;
                 char* archivo_a_eliminar = get_file_name(pedido->pid);
-/*
+
                 if (remove(archivo_a_eliminar) == 0) {
                     log_info(logger, "El archivo %s ha sido eliminado", archivo_a_eliminar);
                 } else {
                     log_error(logger, "Error al eliminar el archivo %s", archivo_a_eliminar);
                 }
-*/
+
                 free(archivo_a_eliminar);
 
                 break;
