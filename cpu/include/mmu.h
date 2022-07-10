@@ -9,6 +9,6 @@
 #include "conexiones_memoria.h"
 
 int traducir_direccion(int, int tlb[][3], int, int);
-int calcular_dir_fisica(int, int);
+void calcular_dir_fisica(int, int, int* , int*);
 
 #endif /* MMU_H_ */

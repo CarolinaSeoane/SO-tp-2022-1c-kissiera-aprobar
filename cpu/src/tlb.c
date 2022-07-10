@@ -10,26 +10,26 @@ void inicializar_tlb(int tlb[][3], int tamanio) {
     }
 }
 
-void agregar_direccion(int dir_logica, int dir_fisica, int tlb[][3], int tamanio) {
+void agregar_direccion(int pagina, int marco, int tlb[][3], int tamanio) {
 
     if(esta_llena(tlb, tamanio)) {
         log_info(logger, "TLB llena. Se procede a eliminar entradas anteriores");
 
         if(!strcmp(config.REEMPLAZO_TLB, "FIFO")) {
-            reemplazo_fifo(dir_logica, dir_fisica, tlb, tamanio);
+            reemplazo_fifo(pagina, marco, tlb, tamanio);
         } else {
-            reemplazo_lru(dir_logica, dir_fisica, tlb, tamanio);
+            reemplazo_lru(pagina, marco, tlb, tamanio);
         }
 
-        log_info(logger, "Entrada %d %d insertada correctamente", dir_logica, dir_fisica);
+        log_info(logger, "Entrada %d %d insertada correctamente", pagina, marco);
 
     } else {
-        log_info(logger, "Insertando nueva entrada en TLB: %d %d", dir_logica, dir_fisica);
+        log_info(logger, "Insertando nueva entrada en TLB: %d %d", pagina, marco);
 
         for (int i = 0; i < tamanio; i++) {
             if(tlb[i][0] == -1) {
-                tlb[i][0] = dir_logica;
-                tlb[i][1] = dir_fisica;
+                tlb[i][0] = pagina;
+                tlb[i][1] = marco;
                 tlb[i][2] = time(NULL);
                 i = 1000;
                 break;
@@ -60,46 +60,46 @@ void printear(int tlb[][3], int tamanio) {
     }
 }
 
-int obtener_dir_tlb(int direccion_logica, int tlb[][3], int tamanio) {
-    int indice = esta_en_tlb(direccion_logica, tlb, tamanio);
+int buscar_entrada_en_tlb(int pagina, int tlb[][3], int tamanio) {
+    int indice = esta_en_tlb(pagina, tlb, tamanio);
     if(indice != -1) {
         log_info(logger, "Entrada encontrada");
-        return buscar_direccion_fisica(direccion_logica, indice, tlb);
+        return obtener_marco_asociado(pagina, indice, tlb);
     } else {
         log_info(logger, "Entrada no encontrada");
         return -1;
     }
 }
 
-int esta_en_tlb(int direccion_logica, int tlb[][3], int tamanio) {
-    log_info(logger, "Buscando entrada %d en TLB...", direccion_logica);
+int esta_en_tlb(int pagina, int tlb[][3], int tamanio) {
+    log_info(logger, "Buscando pagina %d en TLB...", pagina);
     for (int i = 0; i < tamanio; i++) {
-        if(tlb[i][0] == direccion_logica) {
+        if(tlb[i][0] == pagina) {
             return i;
         }
     } return -1;
 }
 
-int buscar_direccion_fisica(int direccion_logica, int indice, int tlb[][3]) {
-    log_info(logger, "La direccion logica %d corresponde a la direccion fisica %d", direccion_logica, tlb[indice][1]);
+int obtener_marco_asociado(int pagina, int indice, int tlb[][3]) {
+    log_info(logger, "La pagina %d esta en el marco %d", pagina, tlb[indice][1]);
     tlb[indice][2] = time(NULL); //le actualizo el tiempo porque la esta usando ahora
     return tlb[indice][1];
 }
 
-void reemplazo_fifo(int dir_logica, int dir_fisica, int tlb[][3], int tamanio) {
+void reemplazo_fifo(int pagina, int marco, int tlb[][3], int tamanio) {
     for (int i = 0; i < tamanio - 1; i++) {
         tlb[i][0] = tlb[i+1][0];
         tlb[i][1] = tlb[i+1][1];
     }
 
-    tlb[tamanio-1][0] = dir_logica;
-    tlb[tamanio-1][1] = dir_fisica;
+    tlb[tamanio-1][0] = pagina;
+    tlb[tamanio-1][1] = marco;
     tlb[tamanio-1][2] = time(NULL); //no hace falta en fifo pero para que no quede mal el printeo. despues cambiar printeo
 
     printear(tlb, tamanio);
 }
 
-void reemplazo_lru(int dir_logica, int dir_fisica, int tlb[][3], int tamanio) {
+void reemplazo_lru(int pagina, int marco, int tlb[][3], int tamanio) {
     int menor = tlb[0][2];
 
     int indice = 0;
@@ -109,8 +109,8 @@ void reemplazo_lru(int dir_logica, int dir_fisica, int tlb[][3], int tamanio) {
             indice = i;
         }
     }
-    tlb[indice][0] = dir_logica;
-    tlb[indice][1] = dir_fisica;
+    tlb[indice][0] = pagina;
+    tlb[indice][1] = marco;
     tlb[indice][2] = time(NULL);
 
     printear(tlb, tamanio);

@@ -13,14 +13,14 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
 	agregar_direccion(4,5, tlb, tamanio);
 	printear(tlb, tamanio);
 	
-	obtener_dir_tlb(4, tlb, tamanio);
-	obtener_dir_tlb(5, tlb, tamanio);
-	obtener_dir_tlb(3, tlb, tamanio);
+	buscar_entrada_en_tlb(4, tlb, tamanio);
+	buscar_entrada_en_tlb(5, tlb, tamanio);
+	buscar_entrada_en_tlb(3, tlb, tamanio);
 	usleep(5000000);	
 	agregar_direccion(3,8, tlb, tamanio);
 	printear(tlb, tamanio);
 	usleep(5000000);		
-	obtener_dir_tlb(3, tlb, tamanio);
+	buscar_entrada_en_tlb(3, tlb, tamanio);
 
 	usleep(5000000);	
 	agregar_direccion(9,6, tlb, tamanio);
@@ -30,7 +30,7 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
 	printear(tlb, tamanio);
 
 	usleep(5000000);
-	obtener_dir_tlb(4, tlb, tamanio);
+	buscar_entrada_en_tlb(4, tlb, tamanio);
 	printear(tlb, tamanio);
 
 	usleep(5000000);

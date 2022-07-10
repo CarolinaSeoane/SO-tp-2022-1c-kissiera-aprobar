@@ -16,7 +16,7 @@ void* atender_pedidos_swap() {
         sem_wait(&realizar_op_de_swap);
 
         log_info(logger, "CONECTANDO CON SWAP...");
-        usleep(config.RETARDO_SWAP * 1000); // Retardo swap
+        //usleep(config.RETARDO_SWAP * 1000); // Retardo swap. DECIDIR DONDE VA DE ACUERDO A ISSUES 2730 y 2752
         
         pedido_swap *pedido = list_remove(cola_pedidos_a_swap, 0); //Obtengo pedido
 

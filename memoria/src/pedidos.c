@@ -9,7 +9,7 @@ void* atender_pedido(void* void_args) {
 		recv(args->cliente_fd, &accion, sizeof(accion), 0);
 
 		switch(accion) {
-			usleep(config.RETARDO_MEMORIA * 1000);
+			//usleep(config.RETARDO_MEMORIA * 1000); DECIDIR DONDE VA DE ACUERDO A ISSUES 2730 y 2752
 			case INIT_PROCESO: ;
 				int pid;
 				int tamanio_proceso;
