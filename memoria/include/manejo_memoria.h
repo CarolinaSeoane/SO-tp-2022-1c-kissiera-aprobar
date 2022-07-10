@@ -23,7 +23,7 @@ int aplicar_algoritmo_de_sustitucion_clock();
 int aplicar_algoritmo_de_sustitucion_clock_modificado();
 void eliminar_archivo_swap(int);
 void solicitar_swap_out_a_swap(int, int, int);
-int buscar_numero_de_pagina(int, int);
+void buscar_numero_de_pagina(int, int, pagina_victima*);
 void escribir_paginas_modificadas(int);
 void mostrar_bitmap();
 

@@ -13,7 +13,7 @@
 #include <pthread.h>
 #include "swap.h"
 #include <math.h>
-#include "manejo_memoria.h"
+//#include "manejo_memoria.h"
 
 typedef struct {
     char* PUERTO_ESCUCHA;
@@ -46,13 +46,17 @@ typedef struct {
     int marco;
 } pagina_a_escribir;
 
+typedef struct {
+    int numero_pagina;
+    bool fue_modificada;
+} pagina_victima;
+
 t_log* logger;
 t_log* logger_bitmap;
 Config config;
 int memoria_server;
 void* memoria_principal;
 t_bitarray* marcos_libres;
-bool fue_modificada;
 
 // Listas
 t_list* lista_tablas_primer_nivel;

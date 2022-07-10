@@ -98,17 +98,21 @@ void* atender_pedido(void* void_args) {
 
 						list_clean(lista_paginas_cargadas);
 
-						int numero_pagina = buscar_numero_de_pagina(marco, proceso_pid);
-						if(fue_modificada) {
-							solicitar_swap_out_a_swap(proceso_pid, numero_pagina, marco);
-							fue_modificada = false;
+						pagina_victima* victima = malloc(sizeof(pagina_victima));
+
+						buscar_numero_de_pagina(marco, proceso_pid, victima);
+
+						if(victima->fue_modificada) {
+							solicitar_swap_out_a_swap(proceso_pid, victima->numero_pagina, marco);
 						} else {
-							actualizar_tabla_de_paginas(index_tabla_segundo_nivel, numero_pagina, -1); //con marco = -1 se muestra - - -
+							actualizar_tabla_de_paginas(index_tabla_segundo_nivel, victima->numero_pagina, -1); //con marco = -1 se muestra - - -
 						}
 						
-						solicitar_pagina_a_swap(proceso_pid, numero_pagina);
+						solicitar_pagina_a_swap(proceso_pid, victima->numero_pagina);
 						log_info(logger, "Actualizando tabla de paginas luego del SWAP IN...");						
-						actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco);						
+						actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco);	
+
+						free(victima);
 						
 
 					} else {
