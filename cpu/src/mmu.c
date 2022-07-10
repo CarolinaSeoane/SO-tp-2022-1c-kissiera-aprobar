@@ -3,10 +3,10 @@
 int traducir_direccion(int direccion_logica, int tlb[][3], int tamanio, int pid) {
 
     int numero_pagina = floor(direccion_logica / tamanio_pagina);
-    int dir_fisica_tlb = buscar_entrada_en_tlb(numero_pagina, tlb, tamanio);
+    int marco_tlb = buscar_entrada_en_tlb(numero_pagina, tlb, tamanio);
 
-    if(dir_fisica_tlb != -1) { //tlb devuelve -1 si no la tiene
-        return dir_fisica_tlb;
+    if(marco_tlb != -1) { //tlb devuelve -1 si no la tiene
+        return marco_tlb * tamanio_pagina + (direccion_logica - numero_pagina * tamanio_pagina);
     } else {
         int direccion_fisica;
         int marco;
@@ -33,6 +33,6 @@ void calcular_dir_fisica(int direccion_logica, int pid, int *direccion_fisica, i
     recv(conexion_memoria, marco, sizeof(int), 0);
     log_info(logger, "Recibi marco: %d", *marco);
 
-    *direccion_fisica = *marco + (direccion_logica - numero_pagina * tamanio_pagina);
+    *direccion_fisica = *marco * tamanio_pagina + (direccion_logica - numero_pagina * tamanio_pagina);
     log_info(logger, "La direccion fisica final es %d", *direccion_fisica);
 }
