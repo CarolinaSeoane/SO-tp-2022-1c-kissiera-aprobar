@@ -14,5 +14,6 @@ void printear(int tlb[][3], int);
 bool esta_llena(int tlb[][3], int);
 void reemplazo_fifo(int, int, int tlb[][3], int);
 void reemplazo_lru(int, int, int tlb[][3], int);
+void eliminar_entrada(int, int, int tlb[][3]);
 
 #endif /* TLB_H_ */

@@ -115,3 +115,17 @@ void reemplazo_lru(int pagina, int marco, int tlb[][3], int tamanio) {
 
     printear(tlb, tamanio);
 }
+
+void eliminar_entrada(int marco, int tamanio, int tlb[][3]){
+    
+    for (int i = 0; i < tamanio; i++) {
+        if(tlb[i][1] == marco) {
+            log_info(logger, "Entrada vieja en TLB encontrada, procedo a removerla");
+            for (int j = 0; j < 3; j++) {
+                tlb[i][j] = -1;
+            }
+        }
+    }
+    //ordenar tlb para que no afecte a fifo en caso de que quede un 
+        //hueco vacio en el medio de dos entradas y venga una nueva entrada y lo agregue
+}

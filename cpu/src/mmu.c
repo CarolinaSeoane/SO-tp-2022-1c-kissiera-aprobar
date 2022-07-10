@@ -12,6 +12,8 @@ int traducir_direccion(int direccion_logica, int tlb[][3], int tamanio, int pid)
         int marco;
         
         calcular_dir_fisica(direccion_logica, pid, &direccion_fisica, &marco);
+        //TODO: Lo comento porque me falta reordenar la tbl cuando remuevo.
+        //eliminar_entrada(marco, tamanio, tlb);
         agregar_direccion(numero_pagina, marco, tlb, tamanio);
 
         return direccion_fisica;
@@ -32,6 +34,9 @@ void calcular_dir_fisica(int direccion_logica, int pid, int *direccion_fisica, i
 
     recv(conexion_memoria, marco, sizeof(int), 0);
     log_info(logger, "Recibi marco: %d", *marco);
+
+    //Se podria enviar desde memoria ademas un int que avise si fue page fault o no
+    //Haciendo eso nos podriamos ahorrar tener que verificar de limpiar la tlb siempre
 
     *direccion_fisica = *marco * tamanio_pagina + (direccion_logica - numero_pagina * tamanio_pagina);
     log_info(logger, "La direccion fisica final es %d", *direccion_fisica);
