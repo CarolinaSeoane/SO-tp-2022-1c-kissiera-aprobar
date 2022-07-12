@@ -116,16 +116,34 @@ void reemplazo_lru(int pagina, int marco, int tlb[][3], int tamanio) {
     printear(tlb, tamanio);
 }
 
+void ordenar_luego_de_limpiar_entrada(int index_entrada_libre, int tamanio, int tlb[][3]){
+
+    for(int i = index_entrada_libre; i < (tamanio-1); i++){
+        tlb[i][0] = tlb[i+1][0];
+        tlb[i][1] = tlb[i+1][1];
+    }
+
+    tlb[tamanio-1][0] = -1;
+    tlb[tamanio-1][1] = -1;
+    tlb[tamanio-1][2] = time(NULL); //para ser consistentes con el printeo
+
+    printear(tlb, tamanio);
+}
+
 void eliminar_entrada(int marco, int tamanio, int tlb[][3]){
     
+    int entrada_a_eliminar;
     for (int i = 0; i < tamanio; i++) {
         if(tlb[i][1] == marco) {
-            log_info(logger, "Entrada vieja en TLB encontrada, procedo a removerla");
+            entrada_a_eliminar = i;
+            log_info(logger, "Entrada %d desactualizada en TLB, procedo a removerla", entrada_a_eliminar);
             for (int j = 0; j < 3; j++) {
                 tlb[i][j] = -1;
             }
         }
     }
-    //ordenar tlb para que no afecte a fifo en caso de que quede un 
-        //hueco vacio en el medio de dos entradas y venga una nueva entrada y lo agregue
+    //Si es LRU no importaria
+    if(!strcmp(config.REEMPLAZO_TLB, "FIFO") && (entrada_a_eliminar != tamanio-1)) {
+        ordenar_luego_de_limpiar_entrada(entrada_a_eliminar, tamanio, tlb);
+    }
 }

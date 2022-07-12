@@ -12,8 +12,7 @@ int traducir_direccion(int direccion_logica, int tlb[][3], int tamanio, int pid)
         int marco;
         
         calcular_dir_fisica(direccion_logica, pid, &direccion_fisica, &marco);
-        //TODO: Lo comento porque me falta reordenar la tbl cuando remuevo.
-        //eliminar_entrada(marco, tamanio, tlb);
+        eliminar_entrada(marco, tamanio, tlb);
         agregar_direccion(numero_pagina, marco, tlb, tamanio);
 
         return direccion_fisica;
