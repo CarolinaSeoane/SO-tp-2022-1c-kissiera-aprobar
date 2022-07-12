@@ -52,6 +52,7 @@ typedef struct {
 	time_t timestamp_blocked;
 	time_t timestamp_exec;
 	double ult_rafaga_real_CPU;
+	sem_t termino_operacion_swap_out;
 } PCB; // Estructura de un proceso.
 
 

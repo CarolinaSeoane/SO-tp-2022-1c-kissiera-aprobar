@@ -114,7 +114,6 @@ void pasar_de_ready_susp_a_ready() {
 			PCB* pcb = list_remove(cola_suspended_ready, 0);
 
 			solicitar_swap_in_a_memoria(pcb);
-			esperar_confirmacion_de_swap_in();
 
 			pthread_mutex_lock(&mutexReady);
 			list_add(cola_ready, pcb);
@@ -424,7 +423,8 @@ void* ejecutar_IO() {
 			
 			sem_post(&IO_esta_disponible);
 
-			pasar_de_blocked_susp_a_ready_susp();
+			esperar_que_termine_swap_out(pcb);
+			//pasar_de_blocked_susp_a_ready_susp();
 		} else {
 			pthread_mutex_lock(&mutex_vg_io);
 			IO_ocupado = true;
@@ -463,7 +463,8 @@ void* ejecutar_IO() {
 			pthread_mutex_unlock(&mutexSuspendedBlocked);
 
 			if(se_suspendio) {
-				pasar_de_blocked_susp_a_ready_susp();
+				esperar_que_termine_swap_out(pcb);
+				// pasar_de_blocked_susp_a_ready_susp();
 			} else {
 				pthread_mutex_lock(&mutexBlock);
 				list_remove(cola_blck, 0);
@@ -484,4 +485,9 @@ void* ejecutar_IO() {
 			}
 		}
 	}
+}
+
+void esperar_que_termine_swap_out(PCB* pcb) {
+	sem_wait(&pcb->termino_operacion_swap_out);
+	pasar_de_blocked_susp_a_ready_susp();
 }

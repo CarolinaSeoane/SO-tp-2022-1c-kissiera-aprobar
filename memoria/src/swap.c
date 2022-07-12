@@ -70,7 +70,7 @@ void* atender_pedidos_swap() {
                 break;
 
             case SWAP_OUT_PAGINA:
-                //usleep(config.RETARDO_SWAP * 1000);
+                usleep(config.RETARDO_SWAP * 1000);
                 log_info(logger, "SWAP recibe SWAP OUT para proceso %d", pedido->pid);
 
                 char* file_name_swap_out = get_file_name(pedido->pid);

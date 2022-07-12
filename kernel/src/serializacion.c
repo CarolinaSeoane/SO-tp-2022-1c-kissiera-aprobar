@@ -97,7 +97,7 @@ void solicitar_swap_out_a_memoria(PCB* proceso) {
     int confirmacion;
     recv(conexion_memoria, &confirmacion, sizeof(int), 0);
     log_info(logger, "El proceso %d fue swapeado", proceso->pid);
-    
+    sem_post(&(proceso->termino_operacion_swap_out));
 }
 
 void solicitar_swap_in_a_memoria(PCB* proceso) {
@@ -114,10 +114,6 @@ void solicitar_swap_in_a_memoria(PCB* proceso) {
     send(conexion_memoria, a_enviar, bytes_a_enviar, 0);
     free(codigo);
     free(a_enviar);
-}
-
-void esperar_confirmacion_de_swap_in() {
-    // ??
 }
 
 void recv_proceso_bloqueado(int* pid, int* pc, int* tiempo_bloqueo) {

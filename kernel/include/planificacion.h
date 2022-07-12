@@ -29,6 +29,7 @@ void* timer(void*);
 void pasar_de_blocked_susp_a_ready_susp();
 void *list_get_max_priority(t_list*);
 void pasar_de_exec_a_ready();
+void esperar_que_termine_swap_out(PCB*);
 
 typedef struct {
     time_t tiempo;
