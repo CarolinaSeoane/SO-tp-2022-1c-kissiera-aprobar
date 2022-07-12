@@ -108,24 +108,19 @@ void* atender_pedido(void* void_args) {
 
 						if(victima->fue_modificada) {
 							solicitar_swap_out_a_swap(proceso_pid, victima->numero_pagina, marco);
-						} else {
-							actualizar_tabla_de_paginas(index_tabla_segundo_nivel, victima->numero_pagina, -1); //con marco = -1 se muestra - - -
 						}
 						
-						solicitar_pagina_a_swap(proceso_pid, victima->numero_pagina);
-						log_info(logger, "Actualizando tabla de paginas luego del SWAP IN...");						
-						actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco);	
+						actualizar_tabla_de_paginas(victima->index_tabla_segundo_nivel, victima->numero_pagina, -1, 0); //con marco = -1 se muestra - - -
 
 						free(victima);
 						
+					} else {	
 
-					} else {
-						
-						marco = solicitar_pagina_a_swap(proceso_pid, entrada_tabla_segundo_nivel);
-						
-						actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco);
-						
+						marco = buscar_frame_libre();
+							
 					}
+					solicitar_pagina_a_swap(proceso_pid, entrada_tabla_segundo_nivel, marco);						
+					actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco, 1);
 					
 					send_marco(args->cliente_fd, marco);
 					log_info(logger, "Se envio el marco %d a CPU", marco);

@@ -6,7 +6,9 @@ int traducir_direccion(int direccion_logica, int tlb[][3], int tamanio, int pid)
     int marco_tlb = buscar_entrada_en_tlb(numero_pagina, tlb, tamanio);
 
     if(marco_tlb != -1) { //tlb devuelve -1 si no la tiene
-        return marco_tlb * tamanio_pagina + (direccion_logica - numero_pagina * tamanio_pagina);
+        int direccion_fisica = marco_tlb * tamanio_pagina + (direccion_logica - numero_pagina * tamanio_pagina);
+        log_info(logger, "La direccion fisica final es %d", direccion_fisica);
+        return direccion_fisica;
     } else {
         int direccion_fisica;
         int marco;

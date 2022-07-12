@@ -49,6 +49,7 @@ typedef struct {
 typedef struct {
     int numero_pagina;
     bool fue_modificada;
+    int index_tabla_segundo_nivel;
 } pagina_victima;
 
 t_log* logger;

@@ -214,9 +214,7 @@ void eliminar_archivo_swap(int pid) {
     sem_wait(&pedido->pedido_finalizado);
 }
 
-int solicitar_pagina_a_swap(int pid, int numero_pagina) {
-
-    int frame = buscar_frame_libre();
+void solicitar_pagina_a_swap(int pid, int numero_pagina, int frame) {
 
     pedido_swap *pedido = malloc(sizeof(pedido_swap));
 	pedido->co_op = SWAP_IN_PAGINA;
@@ -231,8 +229,6 @@ int solicitar_pagina_a_swap(int pid, int numero_pagina) {
     sem_post(&realizar_op_de_swap);
 
     sem_wait(&pedido->pedido_finalizado);
-
-    return frame; 
 
 }
 
@@ -279,6 +275,7 @@ void buscar_numero_de_pagina(int marco, int indice, pagina_victima* victima) {
 
             if(entrada_s_nivel->marco == marco) {
                 victima->numero_pagina = j;
+                victima->index_tabla_segundo_nivel = i;
                 if(entrada_s_nivel->bit_modificado) {
                     victima->fue_modificada = true;
                 } else {
@@ -292,7 +289,7 @@ void buscar_numero_de_pagina(int marco, int indice, pagina_victima* victima) {
     log_info(logger, "En el marco %d esta la pagina %d", marco, victima->numero_pagina);
 }
 
-void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabla_segundo_nivel, int marco) {
+void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabla_segundo_nivel, int marco, int bit_de_presencia) {
 
     pthread_mutex_lock(&mutex_lista_segundo_nivel);
 	Tabla_Segundo_Nivel* t_segundo_nivel = list_get(lista_tablas_segundo_nivel, index_tabla_segundo_nivel);
@@ -300,7 +297,7 @@ void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabl
     Entrada_Tabla_Segundo_Nivel* pagina_a_actualizar = list_get(t_segundo_nivel->entradas_tabla_segundo_nivel, entrada_tabla_segundo_nivel);
 
     pagina_a_actualizar->marco = marco;
-    pagina_a_actualizar->bit_presencia = 1;
+    pagina_a_actualizar->bit_presencia = bit_de_presencia;
     pagina_a_actualizar->bit_modificado = 0;
     pagina_a_actualizar->bit_uso = 1;
     pagina_a_actualizar->bit_puntero = 0;
@@ -346,7 +343,7 @@ void generar_lista_de_paginas_cargadas(int index_tabla_primer_nivel){
 
             Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
             if(entrada_segundo_nivel->bit_presencia == 1) {
-                list_add(lista_paginas_cargadas,entrada_segundo_nivel);
+                list_add(lista_paginas_cargadas, entrada_segundo_nivel);
 			} 
         }
         
@@ -563,6 +560,7 @@ void escribir_paginas_modificadas(int pid) {
                 bitarray_clean_bit(marcos_libres, entrada_segundo_nivel->marco);
                 pthread_mutex_unlock(&mutex_bitarray);
 
+                log_info(logger, "Se encontro pagina modificada: %d", pagina_nueva->pagina);
 			} 
         }    
     }
