@@ -398,6 +398,31 @@ void actualizar_bit_modificado(int pid, int marco) {
     log_info(logger, "Se actualizo el bit de modificado del marco %d del proceso %d", marco, pid);
 }
 
+void actualizar_bit_uso(int pid, int marco) {
+
+    pthread_mutex_lock(&mutex_lista_primer_nivel);
+    Tabla_Primer_Nivel* t_primer_nivel = list_get(lista_tablas_primer_nivel, pid);
+    pthread_mutex_unlock(&mutex_lista_primer_nivel);
+
+    pthread_mutex_lock(&mutex_lista_segundo_nivel);
+    for(int i=0; i<t_primer_nivel->entradas_tabla_primer_nivel->elements_count; i++){
+        
+        Entrada_Tabla_Primer_Nivel * entrada_primer_nivel = list_get(t_primer_nivel->entradas_tabla_primer_nivel, i);
+        Tabla_Segundo_Nivel * tabla_segundo_nivel = list_get(lista_tablas_segundo_nivel, entrada_primer_nivel->index_tabla_segundo_nivel);
+
+        for(int j=0; j<tabla_segundo_nivel->entradas_tabla_segundo_nivel->elements_count; j++){
+
+            Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
+            // Se podria poner para que tmb el bit de presencia sea 1 pero deberia alcanzar
+            if(entrada_segundo_nivel->marco == marco) {
+                entrada_segundo_nivel->bit_uso = 1;
+			} 
+        }    
+    }
+    pthread_mutex_unlock(&mutex_lista_segundo_nivel);
+    log_info(logger, "Se actualizo el bit de uso del marco %d del proceso %d", marco, pid);
+}
+
 void actualizar_bit_puntero(int index){
     index++;
 
@@ -459,6 +484,7 @@ int aplicar_algoritmo_de_sustitucion_clock_modificado() {
 
     int marco = -1;
     bool no_encontre_marco = true;
+    bool primera_vez = true;
 
     Entrada_Tabla_Segundo_Nivel* entrada_segundo_nivel;
 
@@ -469,6 +495,11 @@ int aplicar_algoritmo_de_sustitucion_clock_modificado() {
 
         while(marco == -1) {
             entrada_segundo_nivel = list_get(lista_paginas_cargadas, index_puntero);
+
+            if (primera_vez) {
+                entrada_segundo_nivel->bit_puntero = 0;
+                primera_vez = false;
+            }
 
             if(entrada_segundo_nivel->bit_uso == 0 && entrada_segundo_nivel->bit_modificado == 0) {
                 marco = entrada_segundo_nivel->marco;
@@ -497,7 +528,6 @@ int aplicar_algoritmo_de_sustitucion_clock_modificado() {
 
             } else {
                 entrada_segundo_nivel->bit_uso = 0;
-                verificar_memoria();
             }
             
             index_puntero++;
@@ -513,8 +543,10 @@ int aplicar_algoritmo_de_sustitucion_clock_modificado() {
           
     }
 
-    log_info(logger, "Algoritmo CLOCK-M finalizado: el marco a descargar es %d", marco);
+    log_info(logger, "Algoritmo CLOCK-M finalizado: el marco a descargar es %d.", marco);
+    
     actualizar_bit_puntero(index_puntero);
+    verificar_memoria();
 
     return marco;
 
