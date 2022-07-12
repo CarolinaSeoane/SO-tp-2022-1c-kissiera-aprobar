@@ -110,7 +110,7 @@ void* atender_pedido(void* void_args) {
 							solicitar_swap_out_a_swap(proceso_pid, victima->numero_pagina, marco);
 						}
 						
-						actualizar_tabla_de_paginas(victima->index_tabla_segundo_nivel, victima->numero_pagina, -1, 0); //con marco = -1 se muestra - - -
+						actualizar_tabla_de_paginas(victima->index_tabla_segundo_nivel, (victima->numero_pagina % config.ENTRADAS_POR_TABLA), -1, 0); //con marco = -1 se muestra - - -
 
 						free(victima);
 						
@@ -119,9 +119,12 @@ void* atender_pedido(void* void_args) {
 						marco = buscar_frame_libre();
 							
 					}
-					solicitar_pagina_a_swap(proceso_pid, entrada_tabla_segundo_nivel, marco);						
+
+					int numero_pagina = (index_tabla_segundo_nivel * config.ENTRADAS_POR_TABLA) + entrada_tabla_segundo_nivel;
+
+					solicitar_pagina_a_swap(proceso_pid, numero_pagina, marco);						
 					actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco, 1);
-					
+
 					send_marco(args->cliente_fd, marco);
 					log_info(logger, "Se envio el marco %d a CPU", marco);
 				}

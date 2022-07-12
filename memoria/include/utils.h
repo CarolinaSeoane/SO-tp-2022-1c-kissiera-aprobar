@@ -13,7 +13,7 @@
 #include <pthread.h>
 #include "swap.h"
 #include <math.h>
-//#include "manejo_memoria.h"
+#include <time.h>
 
 typedef struct {
     char* PUERTO_ESCUCHA;
@@ -86,6 +86,7 @@ typedef struct {
     int bit_modificado;
     int bit_uso;
     int bit_puntero;
+    time_t orden_de_carga;
 } Entrada_Tabla_Segundo_Nivel;
 
 //Hilo swap

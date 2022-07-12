@@ -176,6 +176,7 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
                 entrada_segundo_nivel->bit_modificado = 0;
                 entrada_segundo_nivel->bit_uso = 0;
                 entrada_segundo_nivel->bit_puntero = 0;
+                entrada_segundo_nivel->orden_de_carga = 0;
 
                 log_info(logger, "Liberación de páginas del proceso  %d : Página %d de la tabla %d de segundo nivel liberada\n\n", index_tabla_primer_nivel, j, i);
 			} 
@@ -215,7 +216,6 @@ void eliminar_archivo_swap(int pid) {
 }
 
 void solicitar_pagina_a_swap(int pid, int numero_pagina, int frame) {
-
     pedido_swap *pedido = malloc(sizeof(pedido_swap));
 	pedido->co_op = SWAP_IN_PAGINA;
     pedido->pid = pid;
@@ -229,11 +229,9 @@ void solicitar_pagina_a_swap(int pid, int numero_pagina, int frame) {
     sem_post(&realizar_op_de_swap);
 
     sem_wait(&pedido->pedido_finalizado);
-
 }
 
 void solicitar_swap_out_a_swap(int pid, int numero_pagina, int marco) {
-
     pedido_swap* pedido = malloc(sizeof(pedido_swap));
     pedido->co_op = SWAP_OUT_PAGINA;
     pedido->pid = pid;
@@ -257,7 +255,6 @@ void solicitar_swap_out_a_swap(int pid, int numero_pagina, int marco) {
     sem_post(&realizar_op_de_swap);
 
     sem_wait(&pedido->pedido_finalizado);
-
 }
 
 void buscar_numero_de_pagina(int marco, int indice, pagina_victima* victima) {
@@ -274,7 +271,7 @@ void buscar_numero_de_pagina(int marco, int indice, pagina_victima* victima) {
             Entrada_Tabla_Segundo_Nivel* entrada_s_nivel = list_get(tabla_s_nivel->entradas_tabla_segundo_nivel, j);
 
             if(entrada_s_nivel->marco == marco) {
-                victima->numero_pagina = j;
+                victima->numero_pagina = (i * config.ENTRADAS_POR_TABLA) + j;
                 victima->index_tabla_segundo_nivel = i;
                 if(entrada_s_nivel->bit_modificado) {
                     victima->fue_modificada = true;
@@ -290,7 +287,6 @@ void buscar_numero_de_pagina(int marco, int indice, pagina_victima* victima) {
 }
 
 void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabla_segundo_nivel, int marco, int bit_de_presencia) {
-
     pthread_mutex_lock(&mutex_lista_segundo_nivel);
 	Tabla_Segundo_Nivel* t_segundo_nivel = list_get(lista_tablas_segundo_nivel, index_tabla_segundo_nivel);
 
@@ -301,31 +297,29 @@ void actualizar_tabla_de_paginas(int index_tabla_segundo_nivel, int entrada_tabl
     pagina_a_actualizar->bit_modificado = 0;
     pagina_a_actualizar->bit_uso = 1;
     pagina_a_actualizar->bit_puntero = 0;
+    pagina_a_actualizar->orden_de_carga = time(NULL);
 	pthread_mutex_unlock(&mutex_lista_segundo_nivel);
 
-    //list_iterator_destroy(iterator);
     log_info(logger, "Se actualizo la tabla de paginas\n\n");
     verificar_memoria();
-
 }
 
-/*bool comparator_orden_de_carga(void* elem1, void* elem2){
+bool comparator_orden_de_carga(void* elem1, void* elem2){
     Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel_1 = elem1;
     Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel_2 = elem2;
     return entrada_segundo_nivel_1->orden_de_carga < entrada_segundo_nivel_2->orden_de_carga;
     
-}*/
+}
 
-/*void ordenar_lista_con_paginas_cargadas_segun_orden_de_carga(){
-    list_sort(lista_paginas_cargadas_en_orden, comparator_orden_de_carga);
+void ordenar_lista_con_paginas_cargadas_segun_orden_de_carga() {
+    list_sort(lista_paginas_cargadas, comparator_orden_de_carga);
     Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel_iter;
     log_info(logger,"---\n\nInicio comprobación lista de carga de paginas ordenada----\n");
-    for(int i=0; i<lista_paginas_cargadas_en_orden->elements_count;i++){
-        entrada_segundo_nivel_iter = list_get(lista_paginas_cargadas_en_orden, i);
-        log_info(logger,"El orden de carga de la entrada es: %d", entrada_segundo_nivel_iter->orden_de_carga);
+    for(int i=0; i<lista_paginas_cargadas->elements_count;i++){
+        entrada_segundo_nivel_iter = list_get(lista_paginas_cargadas, i);
     }
     log_info(logger,"---\n\nFin comprobación lista de carga de paginas ordenada----\n\n");
-}*/
+}
 
 void generar_lista_de_paginas_cargadas(int index_tabla_primer_nivel){
 
@@ -349,6 +343,8 @@ void generar_lista_de_paginas_cargadas(int index_tabla_primer_nivel){
         
     }
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
+
+    ordenar_lista_con_paginas_cargadas_segun_orden_de_carga();
     log_info(logger, "Lista con páginas cargadas populada.\n\n");
 }
 
@@ -376,7 +372,6 @@ void actualizar_bit_presencia(int pid) {
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
     
 }
-
 
 void actualizar_bit_modificado(int pid, int marco) {
 
@@ -432,6 +427,7 @@ int aplicar_algoritmo_de_sustitucion_clock(){
     int marco = -1;
     Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel;
     int index_puntero = buscar_index_puntero_para_aplicar_algoritmo();
+    log_info(logger, "Puntero en index %d", index_puntero);
     bool primera_vez = true;
 
     while(marco == -1){
