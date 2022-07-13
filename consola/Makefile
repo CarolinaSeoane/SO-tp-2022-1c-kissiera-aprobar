@@ -319,6 +319,6 @@ integral_instrucciones:
 	# Instrucciones
 	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_1.txt 2048; sleep 20'
 	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_2.txt 2048; sleep 20'
-	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_2.txt 2048; sleep 20'
-	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_2.txt 2048; sleep 20'
-	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_2.txt 2048; sleep 20'
+	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_3.txt 2048; sleep 20'
+	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_4.txt 2048; sleep 20'
+	gnome-terminal -- bash -c './consola.out pruebas/INTEGRAL_5.txt 2048; sleep 20'
