@@ -167,7 +167,6 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
         for(int j=0; j<tabla_segundo_nivel->entradas_tabla_segundo_nivel->elements_count; j++){
 
             Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel = list_get(tabla_segundo_nivel->entradas_tabla_segundo_nivel, j);
-            entrada_segundo_nivel -> bit_presencia;
             if(entrada_segundo_nivel->bit_presencia == 1) {
 
                 // Actualizacion del bitmap
@@ -189,11 +188,11 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
     }
 
     eliminar_archivo_swap(index_tabla_primer_nivel);
+    pthread_mutex_unlock(&mutex_lista_segundo_nivel);
     
     //log_info(logger, "Ya reinicé estructuras, ahora mando confirmación a kernel");
     mostrar_bitmap();
 
-    pthread_mutex_unlock(&mutex_lista_segundo_nivel);
     int bytes_a_enviar = sizeof(int);
     void* a_enviar = malloc(bytes_a_enviar);
     int* codigo = malloc(sizeof(int));
@@ -588,12 +587,15 @@ void escribir_paginas_modificadas(int pid) {
                 pagina_nueva->marco = entrada_segundo_nivel->marco;
                 list_add(pedido->paginas_a_escribir, pagina_nueva);
 
+                log_info(logger, "Se encontro pagina modificada: %d", pagina_nueva->pagina);
+			} 
+
+            if(entrada_segundo_nivel->bit_presencia == 1) {
                 pthread_mutex_lock(&mutex_bitarray);
                 bitarray_clean_bit(marcos_libres, entrada_segundo_nivel->marco);
                 pthread_mutex_unlock(&mutex_bitarray);
-
-                log_info(logger, "Se encontro pagina modificada: %d", pagina_nueva->pagina);
-			} 
+            }
+            
         }    
     }
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
