@@ -26,6 +26,7 @@ void solicitar_swap_out_a_swap(int, int, int);
 void buscar_numero_de_pagina(int, int, pagina_victima*);
 void escribir_paginas_modificadas(int);
 void mostrar_bitmap();
+void actualizar_bit_uso(int, int);
 
 
 #endif

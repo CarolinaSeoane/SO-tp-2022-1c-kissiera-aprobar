@@ -7,14 +7,16 @@ void send_pedido_lectura(Proceso_CPU* proceso, int direccion_logica, int tlb[][3
 	int* codigo = malloc(sizeof(int));
 	*codigo = READ_M;
 
-	void* paquete = malloc(sizeof(int)*2);
+	void* paquete = malloc(sizeof(int)*3);
 
 	int offset = 0;
 	memcpy(paquete, &(*codigo), sizeof(int));
 	offset += sizeof(int);
 	memcpy(paquete + offset, &(direccion_fisica), sizeof(int));
+	offset += sizeof(int);
+	memcpy(paquete + offset, &(pid), sizeof(int));	
 
-	send(conexion_memoria, paquete, sizeof(int)*2, 0);
+	send(conexion_memoria, paquete, sizeof(int)*3, 0);
 	free(codigo);
 	free(paquete);
 

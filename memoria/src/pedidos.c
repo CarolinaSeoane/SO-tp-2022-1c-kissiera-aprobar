@@ -138,6 +138,9 @@ void* atender_pedido(void* void_args) {
 				int direccion_fisica;
 				recv(args->cliente_fd, &direccion_fisica, sizeof(int), 0);
 
+				int pid_read;
+				recv(args->cliente_fd, &pid_read, sizeof(int), 0);
+
 				uint32_t valor_leido; 
 				pthread_mutex_lock(&mutex_memoria);
 				memcpy(&valor_leido, memoria_principal+direccion_fisica, sizeof(uint32_t)); 
@@ -150,6 +153,8 @@ void* atender_pedido(void* void_args) {
 				free(paquete);
 				log_info(logger, "Recibi READ_M. Se leyo en la posicion %d de memoria el valor %d", direccion_fisica, valor_leido);				
 
+				actualizar_bit_uso(pid_read, floor((double) direccion_fisica/config.TAM_PAGINA));
+				
 				break;
 
 			case WRITE_M: ;
@@ -187,6 +192,7 @@ void* atender_pedido(void* void_args) {
 				} //leo en la posicion que acabo de escribir y el valor de ahi deberia ser el mismo que escribi
 
 				actualizar_bit_modificado(pid_write, floor((double) dir_fisica/config.TAM_PAGINA));
+				actualizar_bit_uso(pid_write, floor((double) dir_fisica/config.TAM_PAGINA));
 
 				void* a_enviar = malloc(sizeof(int));
 				memcpy(a_enviar, &operacion_exitosa, sizeof(uint32_t));
