@@ -159,6 +159,7 @@ int buscar_frame_libre() {
             break;
         } else {
             i++;
+            pthread_mutex_unlock(&mutex_bitarray);
         }
     }
 

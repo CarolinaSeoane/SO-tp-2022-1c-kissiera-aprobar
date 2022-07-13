@@ -94,9 +94,11 @@ void mostrar_bitmap() {
     int cant_frames = config.TAM_MEMORIA / config.TAM_PAGINA;
 
     log_info(logger_bitmap, "BITMAP");
+    pthread_mutex_lock(&mutex_bitarray);
     for(int i = 0; i < cant_frames; i++) {
         log_info(logger_bitmap, "|#F %-3d| %d|", i, bitarray_test_bit(marcos_libres, i));
     }
+    pthread_mutex_unlock(&mutex_bitarray);
     
 }
 
@@ -169,7 +171,9 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
             if(entrada_segundo_nivel->bit_presencia == 1) {
 
                 // Actualizacion del bitmap
+                pthread_mutex_lock(&mutex_bitarray);
                 bitarray_clean_bit(marcos_libres, entrada_segundo_nivel->marco);
+                pthread_mutex_unlock(&mutex_bitarray);
 
                 entrada_segundo_nivel->marco = -1;
                 entrada_segundo_nivel->bit_presencia = 0;
