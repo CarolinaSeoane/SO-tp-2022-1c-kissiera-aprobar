@@ -86,16 +86,19 @@ void* atender_pedidos_dispatch() {
 				int pid_a_desalojar;
 				int pc_desalojado;
 				recv_proceso_cpu(&pid_a_desalojar, &pc_desalojado);
-			
+
+				pthread_mutex_lock(&mutexExe);
 				proceso_exec->program_counter = pc_desalojado;
 
 				log_info(logger, "Voy a desalojar al proceso %d", pid_a_desalojar);
 				
-				pthread_mutex_lock(&mutexExe);	
-				time_t tiempo_actual = time(NULL);
-				proceso_exec->ult_rafaga_real_CPU += difftime(tiempo_actual, proceso_exec->timestamp_exec) * 1000; // Sumo a la rafaga real de cpu
+				struct timespec tiempo_actual;
+				clock_gettime(CLOCK_REALTIME, &tiempo_actual);
+				
+				proceso_exec->ult_rafaga_real_CPU += (tiempo_actual.tv_sec - proceso_exec->timestamp_exec.tv_sec) * 1000 + (tiempo_actual.tv_nsec - proceso_exec->timestamp_exec.tv_nsec) / 1000000; // Sumo a la rafaga real de cpu
 
-				log_info(logger, "El proceso %d ejecuto %lf", proceso_exec->pid, proceso_exec->ult_rafaga_real_CPU);
+				log_info(logger, "El proceso %d ejecuto %" PRIu64, proceso_exec->pid, proceso_exec->ult_rafaga_real_CPU);
+				
 				pthread_mutex_lock(&mutexReady);
 				list_add(cola_ready, proceso_exec);
 				pthread_mutex_unlock(&mutexReady);

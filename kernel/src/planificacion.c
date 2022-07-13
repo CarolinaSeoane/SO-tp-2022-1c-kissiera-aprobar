@@ -177,13 +177,14 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 
 		proceso_exec->program_counter = pc;
 		proceso_exec->tiempo_bloqueo = tiempo_bloqueo;
-		time_t tiempo_actual = time(NULL);
 		
-		proceso_exec->timestamp_blocked = tiempo_actual; //guardo cuando ingreso a la cola blocked. time devuelve segundos, lo paso a milisegundos
+		//time_t tiempo_actual = time(NULL);
+		
+		clock_gettime(CLOCK_REALTIME,(&proceso_exec->timestamp_blocked)); // = tiempo_actual; //guardo cuando ingreso a la cola blocked. time devuelve segundos, lo paso a milisegundos
 
 		// Sumo a la rafaga real de cpu y calculo la nueva estimacion
 		if(!strcmp(config.ALGORITMO_PLANIFICACION, "SRT")) {
-			proceso_exec->ult_rafaga_real_CPU += difftime(proceso_exec->timestamp_blocked, proceso_exec->timestamp_exec) * 1000;
+			proceso_exec->ult_rafaga_real_CPU += (proceso_exec->timestamp_blocked.tv_sec - proceso_exec->timestamp_exec.tv_sec) * 1000 + (proceso_exec->timestamp_blocked.tv_nsec - proceso_exec->timestamp_exec.tv_nsec) / 1000000; // Sumo a la rafaga real de cpu		
 
 			double alpha = config.ALFA;
 			proceso_exec->estimacion_rafaga = (alpha * proceso_exec->ult_rafaga_real_CPU) + ((1 - alpha) * proceso_exec->estimacion_rafaga);
@@ -229,7 +230,7 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 			pthread_t hilo_timer;
 
 			args_timer *args = malloc(sizeof(args_timer));
-			args->tiempo = tiempo_actual;
+			args->tiempo = proceso_exec->timestamp_blocked.tv_sec * 1000 + (proceso_exec->timestamp_blocked.tv_nsec / 1000000);
 
 			pthread_create(&hilo_timer, NULL, timer, (void*) args);
 			pthread_detach(hilo_timer);
@@ -264,10 +265,8 @@ void* pasar_de_ready_a_exec_SRT() {
 
 			pthread_mutex_unlock(&mutexReady);
 
-			time_t tiempo_actual = time(NULL);
-			
 			pthread_mutex_lock(&mutexExe);
-			pcb->timestamp_exec = tiempo_actual;
+			clock_gettime(CLOCK_REALTIME,(&pcb->timestamp_exec));
 			proceso_exec = pcb;
 			pthread_mutex_unlock(&mutexExe);
 
@@ -322,13 +321,13 @@ void pasar_de_exec_a_ready() {
 }
 
 void* timer(void* void_args) {
-    float delta_tiempo = 0;
-	time_t tiempo_medido;
+    uint64_t delta_tiempo = 0;
+	struct timespec tiempo_medido;
 	args_timer* args = (args_timer*) void_args;
 
-    while(delta_tiempo < config.TIEMPO_MAXIMO_BLOQUEADO / 1000) {
-        tiempo_medido = time(NULL);
-        delta_tiempo = difftime(tiempo_medido, args->tiempo);
+    while(delta_tiempo < config.TIEMPO_MAXIMO_BLOQUEADO) {
+        clock_gettime(CLOCK_REALTIME,(&tiempo_medido));
+        delta_tiempo = (tiempo_medido.tv_sec * 1000 + (tiempo_medido.tv_nsec / 1000000)) - args->tiempo;
     }
 	//sale del while cuando se cumple el tiempo maximo de bloqueo
 	sem_post(&sem_hilo_blocked_a_blocked_susp);
