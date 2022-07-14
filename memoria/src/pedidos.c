@@ -154,7 +154,7 @@ void* atender_pedido(void* void_args) {
 				log_info(logger, "Recibi READ_M. Se leyo en la posicion %d de memoria el valor %d", direccion_fisica, valor_leido);				
 
 				actualizar_bit_uso(pid_read, floor((double) direccion_fisica/config.TAM_PAGINA));
-				
+
 				break;
 
 			case WRITE_M: ;
@@ -228,7 +228,7 @@ void* atender_pedido(void* void_args) {
 
 				// Buscar paginas modificadas
 				// Si las hay, mandar a swap para escribirlas
-				escribir_paginas_modificadas(pid);
+				escribir_paginas_modificadas(pid_proceso_swap_out);
 
 				actualizar_bit_presencia(pid_proceso_swap_out);
 
