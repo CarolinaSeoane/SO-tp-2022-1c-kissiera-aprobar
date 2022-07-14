@@ -64,8 +64,8 @@ void destroy_recursos() {
     free(memoria_principal);
     
     if(rmdir(config.PATH_SWAP) == -1) {
-            log_error(logger, "El directorio %s no pudo borrarse porque no está vacío", config.PATH_SWAP);
-        }
+        log_error(logger, "El directorio %s no pudo borrarse porque no está vacío", config.PATH_SWAP);
+    }
 }
 
 void inicializar_memoria_principal() {
@@ -139,7 +139,6 @@ int paginas_con_marco_cargado_presente(int index_tabla_primer_nivel){
         }
         
     }
-    //log_info(logger, "Páginas cargadas en memoria del proceso: %d\n\n", paginas_ocupadas);
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
     
     return paginas_ocupadas;

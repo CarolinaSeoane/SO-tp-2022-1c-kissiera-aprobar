@@ -10,7 +10,6 @@
 
 uint32_t asignar_memoria_y_estructuras(int, int);
 void verificar_memoria();
-void mostrar_lista_tablas_primer_nivel();
 void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int,int);
 void solicitar_pagina_a_swap(int, int, int);
 int cargar_pagina_en_memoria(int);
@@ -24,7 +23,7 @@ int aplicar_algoritmo_de_sustitucion_clock_modificado();
 void eliminar_archivo_swap(int);
 void solicitar_swap_out_a_swap(int, int, int);
 void buscar_numero_de_pagina(int, int, pagina_victima*);
-void escribir_paginas_modificadas(int);
+bool escribir_paginas_modificadas(int);
 void mostrar_bitmap();
 void actualizar_bit_uso(int, int);
 

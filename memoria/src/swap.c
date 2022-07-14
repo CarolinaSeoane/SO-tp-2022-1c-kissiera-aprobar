@@ -21,7 +21,7 @@ void* atender_pedidos_swap() {
 
         switch(pedido->co_op) {
             case INIT_PROCESO:
-                log_info(logger, "SWAP RECIBE INIT PARA PID %d", pedido->pid);
+                log_info(logger, "Swap recibe INIT_PROCESO PARA PID %d\n", pedido->pid);
 
                 char* path = get_file_name(pedido->pid);
                 FILE* f = fopen(path,"w+");
@@ -40,7 +40,7 @@ void* atender_pedidos_swap() {
 
             case SWAP_IN_PAGINA:
                 usleep(config.RETARDO_SWAP * 1000);
-                log_info(logger, "SWAP recibe SWAP IN para proceso %d, pag %d y la va a cargar en el frame %d", pedido->pid, pedido->numero_pagina, pedido->frame_libre);   
+                log_info(logger, "SWAP recibe SWAP IN PAGINA para proceso %d, pag %d y la va a cargar en el frame %d", pedido->pid, pedido->numero_pagina, pedido->frame_libre);   
 
                 char* file_name = get_file_name(pedido->pid);
                 FILE *fp = fopen(file_name, "r");
@@ -111,7 +111,7 @@ void* atender_pedidos_swap() {
 
             case ELIMINAR_ARCHIVO_SWAP: ;
                 char* archivo_a_eliminar = get_file_name(pedido->pid);
-
+                log_info(logger, "SWAP recibe ELIMINAR ARCHIVO para proceso %d", pedido->pid);
                 if (remove(archivo_a_eliminar) == 0) {
                     log_info(logger, "El archivo %s ha sido eliminado", archivo_a_eliminar);
                 } else {
@@ -119,6 +119,7 @@ void* atender_pedidos_swap() {
                 }
 
                 free(archivo_a_eliminar);
+                log_info(logger, "Archivo del proceso %d eliminado con exito\n", pedido->pid);
 
                 break;
 

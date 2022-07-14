@@ -80,31 +80,7 @@ void verificar_memoria() {
     pthread_mutex_lock(&mutex_lista_primer_nivel);
     pthread_mutex_lock(&mutex_lista_segundo_nivel);
 
-    //log_info(logger, "Hay %d tablas de primer nivel", list_size(lista_tablas_primer_nivel));
-    //log_info(logger, "Hay %d tablas de segundo nivel\n\n", list_size(lista_tablas_segundo_nivel));
-
-    mostrar_lista_tablas_primer_nivel();
-
-    pthread_mutex_unlock(&mutex_lista_primer_nivel);
-    pthread_mutex_unlock(&mutex_lista_segundo_nivel);
-
-}
-
-void mostrar_bitmap() {
-    int cant_frames = config.TAM_MEMORIA / config.TAM_PAGINA;
-
-    log_info(logger_bitmap, "BITMAP");
-    pthread_mutex_lock(&mutex_bitarray);
-    for(int i = 0; i < cant_frames; i++) {
-        log_info(logger_bitmap, "|#F %-3d| %d|", i, bitarray_test_bit(marcos_libres, i));
-    }
-    pthread_mutex_unlock(&mutex_bitarray);
-    
-}
-
-void mostrar_lista_tablas_primer_nivel() {
-
-    log_info(logger, "-- ESTADO TABLAS DE PAGINAS --");
+    log_info(logger, "-- TABLAS DE PAGINAS --");
 
     t_list_iterator* iterator = list_iterator_create(lista_tablas_primer_nivel);
     Tabla_Primer_Nivel* elem_iterado;
@@ -141,12 +117,27 @@ void mostrar_lista_tablas_primer_nivel() {
         }
         
         list_iterator_destroy(iterator2);
-        //printf("\n"); // Horrible despues sacar
+        log_info(logger, "\n");
 
     }
 
     list_iterator_destroy(iterator);
 
+    pthread_mutex_unlock(&mutex_lista_primer_nivel);
+    pthread_mutex_unlock(&mutex_lista_segundo_nivel);
+
+}
+
+void mostrar_bitmap() {
+    int cant_frames = config.TAM_MEMORIA / config.TAM_PAGINA;
+
+    log_info(logger_bitmap, "-- BITMAP --");
+    pthread_mutex_lock(&mutex_bitarray);
+    for(int i = 0; i < cant_frames; i++) {
+        log_info(logger_bitmap, "|#F %-3d| %d|", i, bitarray_test_bit(marcos_libres, i));
+    }
+    pthread_mutex_unlock(&mutex_bitarray);
+    
 }
 
  
@@ -181,7 +172,7 @@ void finalizar_estructuras_del_proceso_y_avisar_a_kernel(int index_tabla_primer_
                 entrada_segundo_nivel->bit_puntero = 0;
                 entrada_segundo_nivel->orden_de_carga = 0;
 
-                log_info(logger, "Liberación de páginas del proceso  %d : Página %d de la tabla %d de segundo nivel liberada\n\n", index_tabla_primer_nivel, j, i);
+                log_info(logger, "Liberación de páginas del proceso  %d : Página %d de la tabla %d de segundo nivel liberada", index_tabla_primer_nivel, j, i);
 			} 
         }
         
@@ -317,11 +308,9 @@ bool comparator_orden_de_carga(void* elem1, void* elem2){
 void ordenar_lista_con_paginas_cargadas_segun_orden_de_carga() {
     list_sort(lista_paginas_cargadas, comparator_orden_de_carga);
     Entrada_Tabla_Segundo_Nivel * entrada_segundo_nivel_iter;
-    log_info(logger,"---\n\nInicio comprobación lista de carga de paginas ordenada----\n");
     for(int i=0; i<lista_paginas_cargadas->elements_count;i++){
         entrada_segundo_nivel_iter = list_get(lista_paginas_cargadas, i);
     }
-    log_info(logger,"---\n\nFin comprobación lista de carga de paginas ordenada----\n\n");
 }
 
 void generar_lista_de_paginas_cargadas(int index_tabla_primer_nivel){
@@ -423,7 +412,7 @@ void actualizar_bit_uso(int pid, int marco) {
         }    
     }
     pthread_mutex_unlock(&mutex_lista_segundo_nivel);
-    log_info(logger, "Se actualizo el bit de uso del marco %d del proceso %d", marco, pid);
+    log_info(logger, "Se actualizo el bit de uso del marco %d del proceso %d\n", marco, pid);
 }
 
 void actualizar_bit_puntero(int index){
@@ -555,7 +544,7 @@ int aplicar_algoritmo_de_sustitucion_clock_modificado() {
 
 }
 
-void escribir_paginas_modificadas(int pid) {
+bool escribir_paginas_modificadas(int pid) {
 
     pedido_swap* pedido = malloc(sizeof(pedido_swap));
     pedido->co_op = SWAP_OUT_PAGINA;
@@ -610,12 +599,14 @@ void escribir_paginas_modificadas(int pid) {
         sem_post(&realizar_op_de_swap);
 
         sem_wait(&pedido->pedido_finalizado);
-        log_info(logger, "Se escribieron en swap las paginas modificadas del proceso %d", pid);
+        log_info(logger, "Se escribieron en swap las paginas modificadas del proceso %d\n", pid);
 
     } else {
         list_destroy(pedido->paginas_a_escribir);
         free(pedido);
-        log_info(logger, "El proceso %d no tiene paginas modificadas para escribir en swap", pid);
+        log_info(logger, "El proceso %d no tiene paginas modificadas para escribir en swap\n", pid);
     }
+
+    return hay_paginas_modificadas;
 
 }

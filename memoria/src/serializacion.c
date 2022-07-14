@@ -12,7 +12,6 @@ void send_cpu_handshake(void* void_args) {
 	int offset = 0;
 	void* a_enviar = malloc(sizeof(int)*3);
 
-	// Se envia este codigo pero CPU no lo usa realmente por ahora
 	int* codigo = malloc(sizeof(int));
 	*codigo = HANDSHAKE_MEMORIA;
 	memcpy(a_enviar, &(*codigo), sizeof(int));
@@ -35,7 +34,6 @@ void send_tabla_primer_nivel(int conexion, int tabla_primer_nivel) {
 	free(paquete);
 }
 
-// Es la misma funcion. Se puede mejorar
 void send_tabla_segundo_nivel(int conexion, int tabla_segundo_nivel) {
 	void* paquete = malloc(sizeof(int));
 	memcpy(paquete, &tabla_segundo_nivel, sizeof(int));

@@ -126,7 +126,7 @@ void* atender_pedido(void* void_args) {
 					actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco, 1);
 
 					send_marco(args->cliente_fd, marco);
-					log_info(logger, "Se envio el marco %d a CPU", marco);
+					log_info(logger, "Se envio el marco %d a CPU\n", marco);
 				}
 
 				break;
@@ -134,7 +134,7 @@ void* atender_pedido(void* void_args) {
 			case READ_M:;
 
 				usleep(config.RETARDO_MEMORIA * 1000);
-				// log_info(logger, "Recibi READ_M\n\n");
+				
 				int direccion_fisica;
 				recv(args->cliente_fd, &direccion_fisica, sizeof(int), 0);
 
@@ -160,7 +160,6 @@ void* atender_pedido(void* void_args) {
 			case WRITE_M: ;
 				
 				usleep(config.RETARDO_MEMORIA * 1000);
-				//log_info(logger, "Recibi WRITE_M");
 
 				int pid_write;
 				recv(args->cliente_fd, &pid_write, sizeof(int), 0);
@@ -178,18 +177,16 @@ void* atender_pedido(void* void_args) {
 				log_info(logger, "Recibi WRITE_M. Se escribio en la posicion %d de memoria el valor %d", dir_fisica, valor_a_escribir);
 
 				uint32_t chequear_valor;
-
 				pthread_mutex_lock(&mutex_memoria);
 				memcpy(&chequear_valor, memoria_principal+dir_fisica, sizeof(uint32_t));
 				pthread_mutex_unlock(&mutex_memoria);
 
-				uint32_t operacion_exitosa;
-				// log_info(logger, "Chequeando valor escrito en memoria");				
+				uint32_t operacion_exitosa;	
 				if(chequear_valor == valor_a_escribir) {					
 					operacion_exitosa = 1;
 				} else {					
 					operacion_exitosa = 0;					
-				} //leo en la posicion que acabo de escribir y el valor de ahi deberia ser el mismo que escribi
+				} 
 
 				actualizar_bit_modificado(pid_write, floor((double) dir_fisica/config.TAM_PAGINA));
 				actualizar_bit_uso(pid_write, floor((double) dir_fisica/config.TAM_PAGINA));
@@ -211,12 +208,7 @@ void* atender_pedido(void* void_args) {
 
 				int pid_proceso_swap_in;
 				recv(args->cliente_fd, &pid_proceso_swap_in, sizeof(int), 0);
-				log_info(logger, "Recibi SWAP_IN PARA PID %d", pid_proceso_swap_in);
-
-				// solamente asignarle MARCOS_POR_PROCESO. Swap no se involucra
-
-				// avisar al proceso que finalizo la operacion de swap. Ver como hacer para que los planificadores no se pisen al
-				// hacer recv de mensajes de memoria
+				log_info(logger, "Recibi SWAP_IN PARA PID %d\n", pid_proceso_swap_in);
 
 				break;
 
@@ -226,15 +218,17 @@ void* atender_pedido(void* void_args) {
 				recv(args->cliente_fd, &pid_proceso_swap_out, sizeof(int), 0);
 				log_info(logger, "Recibi SWAP_OUT PARA PID %d", pid_proceso_swap_out);
 
-				// Buscar paginas modificadas
-				// Si las hay, mandar a swap para escribirlas
-				escribir_paginas_modificadas(pid_proceso_swap_out);
-
+				bool confirmacion = escribir_paginas_modificadas(pid_proceso_swap_out);
 				actualizar_bit_presencia(pid_proceso_swap_out);
 
     			verificar_memoria();
 				
-				int swap_out_exitoso = 1;
+				int swap_out_exitoso;
+				if(confirmacion) {
+					swap_out_exitoso = 1;
+				}else {
+					swap_out_exitoso = 0;
+				}
 				void* paquete_swap_out = malloc(sizeof(int));
 				memcpy(paquete_swap_out, &swap_out_exitoso, sizeof(int));
 				send(args->cliente_fd, paquete_swap_out, sizeof(int), 0);
