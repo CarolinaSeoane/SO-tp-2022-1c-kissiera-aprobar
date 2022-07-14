@@ -120,7 +120,7 @@ void* atender_pedido(void* void_args) {
 							
 					}
 
-					int numero_pagina = (index_tabla_segundo_nivel * config.ENTRADAS_POR_TABLA) + entrada_tabla_segundo_nivel;
+					int numero_pagina = ((index_tabla_segundo_nivel % config.ENTRADAS_POR_TABLA) * config.ENTRADAS_POR_TABLA) + entrada_tabla_segundo_nivel;
 
 					solicitar_pagina_a_swap(proceso_pid, numero_pagina, marco);						
 					actualizar_tabla_de_paginas(index_tabla_segundo_nivel, entrada_tabla_segundo_nivel, marco, 1);
