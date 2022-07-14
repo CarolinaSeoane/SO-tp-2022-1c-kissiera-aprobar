@@ -51,7 +51,7 @@ typedef struct {
 	sem_t puedo_finalizar;
 	struct timespec timestamp_blocked;
 	struct timespec timestamp_exec;
-	uint64_t ult_rafaga_real_CPU;
+	long long ult_rafaga_real_CPU;
 	sem_t termino_operacion_swap_out;
 } PCB; // Estructura de un proceso.
 

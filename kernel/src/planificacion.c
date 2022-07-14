@@ -185,9 +185,12 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 		// Sumo a la rafaga real de cpu y calculo la nueva estimacion
 		if(!strcmp(config.ALGORITMO_PLANIFICACION, "SRT")) {
 			proceso_exec->ult_rafaga_real_CPU += (proceso_exec->timestamp_blocked.tv_sec - proceso_exec->timestamp_exec.tv_sec) * 1000 + (proceso_exec->timestamp_blocked.tv_nsec - proceso_exec->timestamp_exec.tv_nsec) / 1000000; // Sumo a la rafaga real de cpu		
+			log_info(logger, "El proceso %d ejecuto %lld", proceso_exec->pid, proceso_exec->ult_rafaga_real_CPU);
 
 			double alpha = config.ALFA;
 			proceso_exec->estimacion_rafaga = (alpha * proceso_exec->ult_rafaga_real_CPU) + ((1 - alpha) * proceso_exec->estimacion_rafaga);
+			log_info(logger, "La nueva estimacion del proceso %d es %f", proceso_exec->pid, proceso_exec->estimacion_rafaga);
+			
 		}
 
 		pthread_mutex_lock(&mutexBlock);

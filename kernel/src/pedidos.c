@@ -97,7 +97,7 @@ void* atender_pedidos_dispatch() {
 				
 				proceso_exec->ult_rafaga_real_CPU += (tiempo_actual.tv_sec - proceso_exec->timestamp_exec.tv_sec) * 1000 + (tiempo_actual.tv_nsec - proceso_exec->timestamp_exec.tv_nsec) / 1000000; // Sumo a la rafaga real de cpu
 
-				log_info(logger, "El proceso %d ejecuto %" PRIu64, proceso_exec->pid, proceso_exec->ult_rafaga_real_CPU);
+				log_info(logger, "El proceso %d ejecuto %lld", proceso_exec->pid, proceso_exec->ult_rafaga_real_CPU);
 				
 				pthread_mutex_lock(&mutexReady);
 				list_add(cola_ready, proceso_exec);
