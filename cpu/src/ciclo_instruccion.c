@@ -6,53 +6,12 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
 	int tlb[tamanio][3];
 
 	inicializar_tlb(tlb, tamanio);
-/*
-	printear(tlb, tamanio);
-	//esto es todo de prueba
-	usleep(5);
-	agregar_direccion(4,5, tlb, tamanio);
-	printear(tlb, tamanio);
-	
-	buscar_entrada_en_tlb(4, tlb, tamanio);
-	buscar_entrada_en_tlb(5, tlb, tamanio);
-	buscar_entrada_en_tlb(3, tlb, tamanio);
-	usleep(5000000);	
-	agregar_direccion(3,8, tlb, tamanio);
-	printear(tlb, tamanio);
-	usleep(5000000);		
-	buscar_entrada_en_tlb(3, tlb, tamanio);
-
-	usleep(5000000);	
-	agregar_direccion(9,6, tlb, tamanio);
-	printear(tlb, tamanio);
-	usleep(5000000);
-	agregar_direccion(2,7, tlb, tamanio);
-	printear(tlb, tamanio);
-
-	usleep(5000000);
-	buscar_entrada_en_tlb(4, tlb, tamanio);
-	printear(tlb, tamanio);
-
-	usleep(5000000);
-	agregar_direccion(5,0, tlb, tamanio);
-	usleep(5000000);		
-	agregar_direccion(1,1, tlb, tamanio);
-	usleep(5000000);		
-	agregar_direccion(3,3, tlb, tamanio);
-	usleep(5000000);		
-	agregar_direccion(7,7, tlb, tamanio);
-	usleep(5000000);		
-	agregar_direccion(6,6, tlb, tamanio);
-	usleep(5000000);		
-	agregar_direccion(2,3, tlb, tamanio);
-	*/ //agrego los sleep para las pruebas porque sino ejecuta todo en el mismo instante. probar mejor cuando memoria devuelva resultados
 
     instruccion inst;
     uint32_t valor_copy;
 	log_info(logger, "Ejecutando ciclos de instruccion del proceso %d", (*proceso).pid);
     while(!check_interrupt() && !check_syscall()) {
         fetch(proceso, &inst);
-        //log_info(logger, "Fetch encontro la instruccion %d con PARAM1 = %d, PARAM2 = %d", inst.id_operacion, inst.operando1, inst.operando2);
         bool es_copy = decode(inst.id_operacion);
         
 	    if (es_copy) {
@@ -71,7 +30,7 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
 	pthread_mutex_lock(&mutex_flag_interrupcion);
 	flag_interrupcion = 0;
 	pthread_mutex_unlock(&mutex_flag_interrupcion);
-	log_info(logger, "Cambie el flag a %d",flag_interrupcion);
+	//log_info(logger, "Cambie el flag a %d", flag_interrupcion);
 	flag_syscall = 0;
 }
 
