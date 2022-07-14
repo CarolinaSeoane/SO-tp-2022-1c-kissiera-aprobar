@@ -37,7 +37,7 @@ void* atender_pedidos_consolas(void* void_args) {
 			sem_destroy(&pcb.puedo_finalizar);
 			free(stream);
 			close(args->cliente_fd);
-			//log_info(logger, "Termine");
+			
 			break;
 		default:
 			log_warning_sh(logger, "Operacion desconocida. Recibi de una Consola: %d", accion);
@@ -64,10 +64,6 @@ void* atender_pedidos_dispatch() {
 				log_info(logger, "EVENTO: Proceso %d removido de EXEC y FINALIZA", pid_a_finalizar);
 				print_colas();
 				
-				//avisar_a_memoria_proceso_finalizado(pid_a_finalizar);	//Avisar a memoria que elimine las estructuras(mandar operacion + pid)
-				//Mover el proceso de running a exit con mutex
-				//Mandar signal de mutex_popular_cola_ready ya que el grado de multiprogramacion decrementa
-
 				break;
 
 			case BLOCK_PROCESO: ;
@@ -79,7 +75,7 @@ void* atender_pedidos_dispatch() {
 				log_info(logger, "Proceso %d bloqueado, pc %d, tiempo de bloqueo %d", pid, pc, tiempo_bloqueo);
 
 				pasar_de_exec_a_bloqueado(pid, pc, tiempo_bloqueo);
-				//mover el proceso de exec a blocked y mandar otro a ejecutar segun algoritmo de planificacion
+				
 				break;
 
 			case DESALOJO_PROCESO: ;

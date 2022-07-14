@@ -104,32 +104,31 @@ void pasar_de_blocked_susp_a_ready_susp() {
 }
 
 void pasar_de_ready_susp_a_ready() {
-	//while(1) {
-		//sem_wait(&sem_hilo_ready_susp_ready); // hay que hacerle signal cuando pasa de block/susp a ready/susp
-		sem_wait(&sem_grado_multiprogramacion);
-
-		pthread_mutex_lock(&mutexSuspendedReady);
-		if(list_size(cola_suspended_ready)) {
+	
+	sem_wait(&sem_grado_multiprogramacion);
+	
+	pthread_mutex_lock(&mutexSuspendedReady);
+	if(list_size(cola_suspended_ready)) {
 			
-			PCB* pcb = list_remove(cola_suspended_ready, 0);
+		PCB* pcb = list_remove(cola_suspended_ready, 0);
 
-			solicitar_swap_in_a_memoria(pcb);
+		solicitar_swap_in_a_memoria(pcb);
 
-			pthread_mutex_lock(&mutexReady);
-			list_add(cola_ready, pcb);
-			pthread_mutex_unlock(&mutexReady);
+		pthread_mutex_lock(&mutexReady);
+		list_add(cola_ready, pcb);
+		pthread_mutex_unlock(&mutexReady);
 
-			log_info(logger, "EVENTO: Proceso %d removido de SUSP/READY y agregado a READY", pcb->pid);
-			print_colas();
-			sem_post(&sem_hay_procesos_en_ready);
+		log_info(logger, "EVENTO: Proceso %d removido de SUSP/READY y agregado a READY", pcb->pid);
+		print_colas();
+		sem_post(&sem_hay_procesos_en_ready);
 
-			if(!strcmp(config.ALGORITMO_PLANIFICACION, "SRT")) {
-				pasar_de_exec_a_ready();
-			}
+		if(!strcmp(config.ALGORITMO_PLANIFICACION, "SRT")) {
+			pasar_de_exec_a_ready();
 		}
-		pthread_mutex_unlock(&mutexSuspendedReady);
-		log_info(logger, "No hay procesos para suspender");
-	//}
+	}
+	pthread_mutex_unlock(&mutexSuspendedReady);
+	log_info(logger, "No hay procesos para suspender");
+	
 }
 
 /* ********** PLANIFICADOR CORTO PLAZO ********** */
@@ -242,7 +241,7 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 
 	} else {
 		pthread_mutex_unlock(&mutexExe);
-		log_error(logger, "Error grave de planificacion");
+		log_error(logger, "Error grave de planificacion\n");
 	}
 }
 
@@ -379,7 +378,7 @@ int calcular_tiempo_que_estara_bloqueado() {
 	while(list_iterator_has_next(iterator)) {
 		elem_iterado = list_iterator_next(iterator);
 		tiempo_total += elem_iterado->tiempo_bloqueo;
-		log_info(logger, "LEI TIEMPO BLOQUEO %d DEL PID %d", elem_iterado->tiempo_bloqueo, elem_iterado->pid);
+		log_info(logger, "Lei tiempo de bloqueo %d del PID %d", elem_iterado->tiempo_bloqueo, elem_iterado->pid);
 	}
 	
 	log_info(logger, "Tiempo que estará bloqueado: %d", tiempo_total);
@@ -407,7 +406,6 @@ void* ejecutar_IO() {
 			IO_ocupado = true;
 			pthread_mutex_unlock(&mutex_vg_io);
 
-			log_info(logger, "EJECUTANDO IO EN EL IF");
 			PCB* pcb = list_get(cola_suspended_blck, 0);
 			pthread_mutex_unlock(&mutexSuspendedBlocked);
 
@@ -432,7 +430,6 @@ void* ejecutar_IO() {
 			IO_ocupado = true;
 			pthread_mutex_unlock(&mutex_vg_io);
 
-			//log_info(logger, "EJECUTANDO IO EN EL ELSE");
 			pthread_mutex_unlock(&mutexSuspendedBlocked);
 
 			pthread_mutex_lock(&mutexBlock);

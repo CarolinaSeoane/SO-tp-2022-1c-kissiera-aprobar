@@ -84,7 +84,6 @@ void inicializar_conexiones() {
     pthread_detach(hilo_atender_pedidos_dispatch);
 
     conexion_interrupt = crear_conexion(config.IP_CPU, config.PUERTO_CPU_INTERRUPT, logger);
-
     conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
 }
 
@@ -159,8 +158,7 @@ void print_colas() {
     print_elementos_de_una_cola(cola_suspended_blck);
     log_info(logger, "PROCESOS QUE SE VAN A SUSPENDER:");
     print_elementos_de_una_cola(procesos_que_se_van_a_suspender);
-    log_info(logger, " ");
-    log_info(logger, " ");
+    log_info(logger, "\n");
 }
 
 void print_elementos_de_una_cola(t_list *cola) {

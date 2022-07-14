@@ -10,7 +10,7 @@ int main(void) {
 	inicializar_conexiones();
 	inicializar_planificacion();
 	
-	log_info(logger, "Inicializacion de Kernel terminada");
+	log_info(logger, "Inicializacion de Kernel terminada\n");
 	
 	while(server_escuchar(kernel_server));
 
