@@ -34,7 +34,10 @@ void agregar_direccion(int pagina, int marco, int tlb[][3], int tamanio) {
                 i = 1000;
                 break;
             }
-        } 
+        }
+
+        printear(tlb, tamanio);
+
     }
 }
 
@@ -132,7 +135,7 @@ void ordenar_luego_de_limpiar_entrada(int index_entrada_libre, int tamanio, int 
 
 void eliminar_entrada(int marco, int tamanio, int tlb[][3]){
     
-    int entrada_a_eliminar;
+    int entrada_a_eliminar = -1;
     for (int i = 0; i < tamanio; i++) {
         if(tlb[i][1] == marco) {
             entrada_a_eliminar = i;
@@ -143,7 +146,7 @@ void eliminar_entrada(int marco, int tamanio, int tlb[][3]){
         }
     }
     //Si es LRU no importaria
-    if(!strcmp(config.REEMPLAZO_TLB, "FIFO") && (entrada_a_eliminar != tamanio-1)) {
+    if(!strcmp(config.REEMPLAZO_TLB, "FIFO") && (entrada_a_eliminar != tamanio-1) && (entrada_a_eliminar != -1)) {
         ordenar_luego_de_limpiar_entrada(entrada_a_eliminar, tamanio, tlb);
     }
 }
