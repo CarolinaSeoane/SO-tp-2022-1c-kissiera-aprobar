@@ -60,7 +60,7 @@ void execute(Proceso_CPU* proceso, instruccion inst, uint32_t valor_copy, int tl
 			break;
 
 		case IO:
-			log_info(logger, "Proceso %d ejecuta IO", (*proceso).pid);
+			log_info(logger, "Proceso %d ejecuta IO\n", (*proceso).pid);
 			flag_syscall = 1;
 			send_proceso_bloqueado(proceso, inst.operando1);
 			break;
@@ -83,6 +83,7 @@ void execute(Proceso_CPU* proceso, instruccion inst, uint32_t valor_copy, int tl
 				log_error(logger, "Error al tratar de escribir en memoria. Cerrando programa");
 				exit(0);
 			}
+			log_info(logger, "\n");
 
 			break;
 
@@ -95,11 +96,11 @@ void execute(Proceso_CPU* proceso, instruccion inst, uint32_t valor_copy, int tl
 				log_error(logger, "Error al tratar de escribir en memoria. Cerrando programa");
 				exit(0);
 			}
-
+			log_info(logger, "\n");
 			break;
 
 		case EXIT:
-			log_info(logger, "Proceso %d ejecuta EXIT", (*proceso).pid);
+			log_info(logger, "Proceso %d ejecuta EXIT\n", (*proceso).pid);
 			flag_syscall = 1;
 			send_proceso_finalizado(proceso);
 			break;

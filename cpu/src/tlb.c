@@ -51,8 +51,8 @@ bool esta_llena(int tlb[][3], int tamanio) {
 }
 
 void printear(int tlb[][3], int tamanio) {
-    log_info(logger, "Comenzando printeo");
-
+    
+    log_info(logger, "TLB:");
     log_info(logger, "\tP | M | T ");
     for (int i = 0; i < tamanio; i++) {
         if (tlb[i][0] == -1) {
