@@ -25,6 +25,7 @@ void ejecutar_ciclo_instruccion(Proceso_CPU* proceso) {
     }
 	if(!flag_syscall) {
 		log_info(logger, "El proceso %d es desalojado", (*proceso).pid);
+		free(proceso->stream);
 		send_proceso_desalojado(proceso);
 	}
 	pthread_mutex_lock(&mutex_flag_interrupcion);
@@ -102,6 +103,7 @@ void execute(Proceso_CPU* proceso, instruccion inst, uint32_t valor_copy, int tl
 		case EXIT:
 			log_info(logger, "Proceso %d ejecuta EXIT\n", (*proceso).pid);
 			flag_syscall = 1;
+			free(proceso->stream);			
 			send_proceso_finalizado(proceso);
 			break;
 

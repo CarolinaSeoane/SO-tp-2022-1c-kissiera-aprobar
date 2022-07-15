@@ -33,7 +33,7 @@ void* atender_pedidos_consolas(void* void_args) {
 
 			// Espera que el planificador de largo plazo le diga que puede finalizar
 			sem_wait(&pcb.puedo_finalizar);
-
+			
 			sem_destroy(&pcb.puedo_finalizar);
 			free(stream);
 			close(args->cliente_fd);
