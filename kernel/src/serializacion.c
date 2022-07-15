@@ -52,7 +52,7 @@ void send_proceso_finalizado_a_consola(int pid, int consola) {
     offset += sizeof(int);
 	memcpy(a_enviar + offset, &id, sizeof(int));
 	
-	log_info(logger, "Enviando finalizacion a consola");
+	log_info(logger, "Enviando finalizacion a consola. Pid: %d y codigo: %d", id, codigo);
 	send(consola, a_enviar, bytes_a_enviar, 0);
     free(a_enviar);	
 }
