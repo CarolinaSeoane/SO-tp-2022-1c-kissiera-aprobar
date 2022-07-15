@@ -5,6 +5,7 @@ void cargarConfig(char* path, Config* config) {
 	t_config* t_config = config_create(path);
 
     if (t_config != NULL) {
+        (*config).IP_MEMORIA                = strdup(config_get_string_value(t_config, "IP_MEMORIA"));
         (*config).PUERTO_ESCUCHA            = strdup(config_get_string_value(t_config, "PUERTO_ESCUCHA"));
         (*config).TAM_MEMORIA               = config_get_int_value(t_config, "TAM_MEMORIA");
         (*config).TAM_PAGINA                = config_get_int_value(t_config, "TAM_PAGINA");
@@ -34,7 +35,7 @@ void inicializar_config() {
 }
 
 void inicializar_servidor() {
-    memoria_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, 2);
+    memoria_server = iniciar_servidor(config.IP_MEMORIA, config.PUERTO_ESCUCHA, 2);
 	if(!memoria_server) {
 		log_error(logger, "Error al iniciar el servidor Memoria");
 	}
