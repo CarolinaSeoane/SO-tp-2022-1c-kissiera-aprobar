@@ -6,7 +6,7 @@ void cargarConfig(char* path, Config* config) {
     if (t_config != NULL) {
         (*config).IP_MEMORIA                   = strdup(config_get_string_value(t_config, "IP_MEMORIA"));
         (*config).IP_CPU                       = strdup(config_get_string_value(t_config, "IP_CPU"));
-        (*config).IP_KERNEL                       = strdup(config_get_string_value(t_config, "IP_KERNEL"));
+        (*config).IP_KERNEL                    = strdup(config_get_string_value(t_config, "IP_KERNEL"));
         (*config).PUERTO_MEMORIA               = strdup(config_get_string_value(t_config, "PUERTO_MEMORIA"));
         (*config).PUERTO_CPU_DISPATCH          = strdup(config_get_string_value(t_config, "PUERTO_CPU_DISPATCH"));
         (*config).PUERTO_CPU_INTERRUPT         = strdup(config_get_string_value(t_config, "PUERTO_CPU_INTERRUPT"));
