@@ -8,6 +8,7 @@ void cargarConfig(char* path, Config* config) {
         (*config).REEMPLAZO_TLB                    = strdup(config_get_string_value(t_config, "REEMPLAZO_TLB"));
         (*config).RETARDO_NOOP                     = config_get_int_value(t_config, "RETARDO_NOOP");
         (*config).IP_MEMORIA                       = strdup(config_get_string_value(t_config, "IP_MEMORIA"));
+		(*config).IP_CPU                           = strdup(config_get_string_value(t_config, "IP_CPU"));
         (*config).PUERTO_MEMORIA                   = strdup(config_get_string_value(t_config, "PUERTO_MEMORIA"));
         (*config).PUERTO_ESCUCHA_DISPATCH          = strdup(config_get_string_value(t_config, "PUERTO_ESCUCHA_DISPATCH"));
         (*config).PUERTO_ESCUCHA_INTERRUPT         = strdup(config_get_string_value(t_config, "PUERTO_ESCUCHA_INTERRUPT"));
@@ -74,8 +75,8 @@ void inicializar_conexiones() {
 }
 
 void inicializar_servidores() {
-    dispatch = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_DISPATCH, 1);
-	interrupt = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA_INTERRUPT, 1);
+    dispatch = iniciar_servidor(config.IP_CPU, config.PUERTO_ESCUCHA_DISPATCH, 1);
+	interrupt = iniciar_servidor(config.IP_CPU, config.PUERTO_ESCUCHA_INTERRUPT, 1);
     if(!dispatch || !interrupt) {
 		log_error(logger, "Error al iniciar la conexión dispatch o interrupt");		
 	}

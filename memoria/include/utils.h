@@ -16,6 +16,7 @@
 #include <time.h>
 
 typedef struct {
+    char* IP_MEMORIA;
     char* PUERTO_ESCUCHA;
     int TAM_MEMORIA;
     int TAM_PAGINA;

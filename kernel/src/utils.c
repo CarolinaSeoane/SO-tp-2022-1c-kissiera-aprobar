@@ -5,8 +5,9 @@ void cargarConfig(char* path, Config* config) {
 
     if (t_config != NULL) {
         (*config).IP_MEMORIA                   = strdup(config_get_string_value(t_config, "IP_MEMORIA"));
-        (*config).PUERTO_MEMORIA               = strdup(config_get_string_value(t_config, "PUERTO_MEMORIA"));
         (*config).IP_CPU                       = strdup(config_get_string_value(t_config, "IP_CPU"));
+        (*config).IP_KERNEL                       = strdup(config_get_string_value(t_config, "IP_KERNEL"));
+        (*config).PUERTO_MEMORIA               = strdup(config_get_string_value(t_config, "PUERTO_MEMORIA"));
         (*config).PUERTO_CPU_DISPATCH          = strdup(config_get_string_value(t_config, "PUERTO_CPU_DISPATCH"));
         (*config).PUERTO_CPU_INTERRUPT         = strdup(config_get_string_value(t_config, "PUERTO_CPU_INTERRUPT"));
         (*config).PUERTO_ESCUCHA               = strdup(config_get_string_value(t_config, "PUERTO_ESCUCHA"));
@@ -72,7 +73,7 @@ void inicializar_config() {
 }
 
 void inicializar_servidor() {
-    kernel_server = iniciar_servidor("127.0.0.1", config.PUERTO_ESCUCHA, SOMAXCONN);
+    kernel_server = iniciar_servidor(config.IP_KERNEL, config.PUERTO_ESCUCHA, SOMAXCONN);
 	if(!kernel_server) {
 		log_error(logger, "Error al iniciar el servidor Kernel");
 	}
