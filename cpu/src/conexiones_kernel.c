@@ -3,9 +3,7 @@
 void recv_proceso(Proceso_CPU* proceso) {
 
 	recv(cliente_dispatch, &(proceso->pid), sizeof(int), 0);
-
 	recv(cliente_dispatch, &(proceso->program_counter), sizeof(int), 0);
-
 	recv(cliente_dispatch, &(proceso->tabla_paginas), sizeof(int), 0);
 
 	int tam_stream;
@@ -13,7 +11,7 @@ void recv_proceso(Proceso_CPU* proceso) {
 
 	proceso->stream = malloc(tam_stream);
 	recv(cliente_dispatch, proceso->stream, tam_stream, 0);
-	//mostrar_instrucciones(proceso->stream, tam_stream/sizeof(instruccion));
+	
 }
 
 // Alcanza con mandar 4 int: CODIGO_OP + PID + PC + TIEMPO_BLOQUEO 
@@ -81,9 +79,7 @@ void send_proceso_bloqueado(Proceso_CPU* proceso, int tiempo_bloqueo) {
 void send_proceso_finalizado(Proceso_CPU* proceso) {
     void* paquete_finalizado = malloc(sizeof(int)*3);
     serializar_proceso_finalizado(proceso, paquete_finalizado);
-    log_info(logger, "por hacer el send");
     send(cliente_dispatch, paquete_finalizado, sizeof(int)*3, 0);
-    log_info(logger, "hice el send");
     free(paquete_finalizado);
 }
 
@@ -93,5 +89,3 @@ void send_proceso_desalojado(Proceso_CPU* proceso) {
     send(cliente_dispatch, paquete_desalojado, sizeof(int)*3, 0);
     free(paquete_desalojado);
 }
-
-// Hay mucho código repetido, se podría mejorar

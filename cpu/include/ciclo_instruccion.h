@@ -14,8 +14,8 @@
 void ejecutar_ciclo_instruccion(Proceso_CPU*);
 void fetch(Proceso_CPU*, instruccion*);
 bool decode(int);
-int fetch_operands(Proceso_CPU*, instruccion);
-void execute(Proceso_CPU*, instruccion, int);
+uint32_t fetch_operands(Proceso_CPU*, instruccion, int tlb[][3], int);
+void execute(Proceso_CPU*, instruccion, uint32_t, int tlb[][3], int);
 int check_interrupt();
 int check_syscall();
 

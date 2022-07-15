@@ -1,5 +1,7 @@
 #include "../include/pcb.h"
 
+int ULT_PID=-1;
+
 int generar_pid() {
     pthread_mutex_lock(&mutex_PID);
     ULT_PID++;
@@ -19,7 +21,6 @@ void crear_pcb(PCB* pcb, int tam, void* stream, int len_instrucciones, int clien
     (*pcb).estimacion_rafaga = config.ESTIMACION_INICIAL; // si es fifo el planificador no lo va a usar
     (*pcb).cliente_fd = cliente;
     (*pcb).ult_rafaga_real_CPU = 0;
-    (*pcb).timestamp_blocked = 0;
-    (*pcb).timestamp_exec = 0;
     sem_init(&(pcb->puedo_finalizar), 0, 0);
+    sem_init(&(pcb->termino_operacion_swap_out), 0, 0);
 }

@@ -8,6 +8,7 @@ int main(void) {
 	inicializar_semaforos();
 	inicializar_memoria_principal();
 	inicializar_tablas_de_paginas();
+	inicializar_swap();
 
     log_info(logger, "Inicializacion de Memoria terminada\n\n");
 

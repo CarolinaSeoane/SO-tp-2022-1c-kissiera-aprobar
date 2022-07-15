@@ -33,11 +33,11 @@ void* atender_pedidos_consolas(void* void_args) {
 
 			// Espera que el planificador de largo plazo le diga que puede finalizar
 			sem_wait(&pcb.puedo_finalizar);
-
+			
 			sem_destroy(&pcb.puedo_finalizar);
 			free(stream);
 			close(args->cliente_fd);
-			//log_info(logger, "Termine");
+			
 			break;
 		default:
 			log_warning_sh(logger, "Operacion desconocida. Recibi de una Consola: %d", accion);
@@ -54,18 +54,16 @@ void* atender_pedidos_dispatch() {
 
 		switch(accion) {
 			case EXIT_PROCESO: ;
+
 				int pid_a_finalizar;
 				int program_counter;
 
 				recv_proceso_cpu(&pid_a_finalizar, &program_counter);
+
 				pasar_de_exec_a_exit(pid_a_finalizar, program_counter);
 				log_info(logger, "EVENTO: Proceso %d removido de EXEC y FINALIZA", pid_a_finalizar);
 				print_colas();
 				
-				//avisar_a_memoria_proceso_finalizado(pid_a_finalizar);	//Avisar a memoria que elimine las estructuras(mandar operacion + pid)
-				//Mover el proceso de running a exit con mutex
-				//Mandar signal de mutex_popular_cola_ready ya que el grado de multiprogramacion decrementa
-
 				break;
 
 			case BLOCK_PROCESO: ;
@@ -77,23 +75,26 @@ void* atender_pedidos_dispatch() {
 				log_info(logger, "Proceso %d bloqueado, pc %d, tiempo de bloqueo %d", pid, pc, tiempo_bloqueo);
 
 				pasar_de_exec_a_bloqueado(pid, pc, tiempo_bloqueo);
-				//mover el proceso de exec a blocked y mandar otro a ejecutar segun algoritmo de planificacion
+				
 				break;
 
 			case DESALOJO_PROCESO: ;
 				int pid_a_desalojar;
 				int pc_desalojado;
 				recv_proceso_cpu(&pid_a_desalojar, &pc_desalojado);
-			
+
+				pthread_mutex_lock(&mutexExe);
 				proceso_exec->program_counter = pc_desalojado;
 
 				log_info(logger, "Voy a desalojar al proceso %d", pid_a_desalojar);
 				
-				pthread_mutex_lock(&mutexExe);	
-				time_t tiempo_actual = time(NULL);
-				proceso_exec->ult_rafaga_real_CPU += difftime(tiempo_actual, proceso_exec->timestamp_exec) * 1000; // Sumo a la rafaga real de cpu
+				struct timespec tiempo_actual;
+				clock_gettime(CLOCK_REALTIME, &tiempo_actual);
+				
+				proceso_exec->ult_rafaga_real_CPU += (tiempo_actual.tv_sec - proceso_exec->timestamp_exec.tv_sec) * 1000 + (tiempo_actual.tv_nsec - proceso_exec->timestamp_exec.tv_nsec) / 1000000; // Sumo a la rafaga real de cpu
 
-				log_info(logger, "El proceso %d ejecuto %lf", proceso_exec->pid, proceso_exec->ult_rafaga_real_CPU);
+				log_info(logger, "El proceso %d ejecuto %lld", proceso_exec->pid, proceso_exec->ult_rafaga_real_CPU);
+				
 				pthread_mutex_lock(&mutexReady);
 				list_add(cola_ready, proceso_exec);
 				pthread_mutex_unlock(&mutexReady);

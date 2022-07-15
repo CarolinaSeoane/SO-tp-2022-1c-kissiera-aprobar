@@ -84,11 +84,34 @@ void inicializar_conexiones() {
     pthread_detach(hilo_atender_pedidos_dispatch);
 
     conexion_interrupt = crear_conexion(config.IP_CPU, config.PUERTO_CPU_INTERRUPT, logger);
-
     conexion_memoria = crear_conexion(config.IP_MEMORIA, config.PUERTO_MEMORIA, logger);
 }
 
 void destroy_recursos() {
+    pthread_mutex_destroy(&mutex_PID);
+	pthread_mutex_destroy(&mutexSuspendedBlocked);
+	pthread_mutex_destroy(&mutexSuspendedReady);
+	pthread_mutex_destroy(&mutexNew);
+	pthread_mutex_destroy(&mutexReady);
+	pthread_mutex_destroy(&mutexBlock);
+	pthread_mutex_destroy(&mutexExe);
+	pthread_mutex_destroy(&mutexExit);
+	pthread_mutex_destroy(&mutex_vg_ex);
+    pthread_mutex_destroy(&mutexProcesosQueSeVanASuspender);
+    
+    sem_destroy(&sem_hilo_new_ready);
+    sem_destroy(&sem_hilo_exec_exit);
+    sem_destroy(&sem_hilo_ready_susp_ready);
+    sem_destroy(&sem_planificar_FIFO);
+    sem_destroy(&sem_planificar_SRT);
+    sem_destroy(&sem_hay_procesos_en_ready);
+    sem_destroy(&finalizar);
+    sem_destroy(&sem_ejecutar_IO);
+    sem_destroy(&IO_esta_disponible);
+    sem_destroy(&sem_grado_multiprogramacion);
+    sem_destroy(&sem_hilo_blocked_a_blocked_susp);
+    sem_destroy(&sem_desalojar);
+
     log_destroy(logger);
     close(conexion_dispatch);
     close(conexion_interrupt);
@@ -135,8 +158,7 @@ void print_colas() {
     print_elementos_de_una_cola(cola_suspended_blck);
     log_info(logger, "PROCESOS QUE SE VAN A SUSPENDER:");
     print_elementos_de_una_cola(procesos_que_se_van_a_suspender);
-    log_info(logger, " ");
-    log_info(logger, " ");
+    log_info(logger, "\n");
 }
 
 void print_elementos_de_una_cola(t_list *cola) {

@@ -1,11 +1,9 @@
 #include "../include/dispatch.h"
 
-// Si esta haciendo recv del cliente_dispatch_fd no deberia estar en el while.
-// Dispatch siempre recibe EXEC_PROCESO. No deberia recibir otra cosa
 void* atender_dispatch() {
 	while(cliente_dispatch != -1) {
 		int co_op;
-		log_info(logger, "Estoy en dispatch");
+		log_info(logger, "CPU esperando proceso en dispatch...");
 		recv(cliente_dispatch, &co_op, sizeof(co_op), 0);
 
 		switch(co_op) {

@@ -23,7 +23,7 @@ void pasar_de_new_a_ready() {
 
 		//log_info(logger, "Pidiendo tabla de paginas a memoria");
 		elem_iterado->tabla_paginas = solicitar_tabla_de_paginas_a_memoria(elem_iterado);
-		//log_info(logger, "Recibi tabla de paginas: %d", elem_iterado->tabla_paginas);
+		log_info(logger, "Recibi tabla de paginas de index: %d", elem_iterado->tabla_paginas);
 
 		pthread_mutex_lock(&mutexReady);
 		list_add(cola_ready, elem_iterado);
@@ -50,8 +50,10 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 	pthread_mutex_lock(&mutex_vg_ex);
 	bool cpu_ocupada = hay_un_proceso_ejecutando;
 	pthread_mutex_unlock(&mutex_vg_ex);
-		
+
+
 	if(cpu_ocupada) {
+		
 		pthread_mutex_lock(&mutexExe);
 		proceso_exec->program_counter = pc;
 		consola = proceso_exec->cliente_fd;
@@ -59,6 +61,8 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 		pthread_mutex_unlock(&mutexExe);
 
 		if(pid_exec == pid) {
+			log_info(logger, "Envio pedido a memoria para que libere estructuras");
+			pedir_finalizar_estructuras_y_esperar_confirmacion(pid);
 			send_proceso_finalizado_a_consola(pid, consola);
 
 			pthread_mutex_lock(&mutex_vg_ex);
@@ -76,6 +80,7 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 			log_error(logger, "Error grave de planificacion");
 		}
 	}
+
 }
 
 /* ********** PLANIFICADOR MEDIANO PLAZO ********** */
@@ -99,30 +104,31 @@ void pasar_de_blocked_susp_a_ready_susp() {
 }
 
 void pasar_de_ready_susp_a_ready() {
-	//while(1) {
-		//sem_wait(&sem_hilo_ready_susp_ready); // hay que hacerle signal cuando pasa de block/susp a ready/susp
-		sem_wait(&sem_grado_multiprogramacion);
-
-		pthread_mutex_lock(&mutexSuspendedReady);
-		if(list_size(cola_suspended_ready)) {
+	
+	sem_wait(&sem_grado_multiprogramacion);
+	
+	pthread_mutex_lock(&mutexSuspendedReady);
+	if(list_size(cola_suspended_ready)) {
 			
-			PCB* elem_iterado = list_remove(cola_suspended_ready, 0);
+		PCB* pcb = list_remove(cola_suspended_ready, 0);
 
-			pthread_mutex_lock(&mutexReady);
-			list_add(cola_ready, elem_iterado);
-			pthread_mutex_unlock(&mutexReady);
+		solicitar_swap_in_a_memoria(pcb);
 
-			log_info(logger, "EVENTO: Proceso %d removido de SUSP/READY y agregado a READY", elem_iterado->pid);
-			print_colas();
-			sem_post(&sem_hay_procesos_en_ready);
+		pthread_mutex_lock(&mutexReady);
+		list_add(cola_ready, pcb);
+		pthread_mutex_unlock(&mutexReady);
 
-			if(!strcmp(config.ALGORITMO_PLANIFICACION, "SRT")) {
-				pasar_de_exec_a_ready();
-			}
+		log_info(logger, "EVENTO: Proceso %d removido de SUSP/READY y agregado a READY", pcb->pid);
+		print_colas();
+		sem_post(&sem_hay_procesos_en_ready);
+
+		if(!strcmp(config.ALGORITMO_PLANIFICACION, "SRT")) {
+			pasar_de_exec_a_ready();
 		}
-		pthread_mutex_unlock(&mutexSuspendedReady);
-		log_info(logger, "No hay procesos para suspender");
-	//}
+	}
+	pthread_mutex_unlock(&mutexSuspendedReady);
+	log_info(logger, "No hay procesos para suspender");
+	
 }
 
 /* ********** PLANIFICADOR CORTO PLAZO ********** */
@@ -170,16 +176,20 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 
 		proceso_exec->program_counter = pc;
 		proceso_exec->tiempo_bloqueo = tiempo_bloqueo;
-		time_t tiempo_actual = time(NULL);
 		
-		proceso_exec->timestamp_blocked = tiempo_actual; //guardo cuando ingreso a la cola blocked. time devuelve segundos, lo paso a milisegundos
+		//time_t tiempo_actual = time(NULL);
+		
+		clock_gettime(CLOCK_REALTIME,(&proceso_exec->timestamp_blocked)); // = tiempo_actual; //guardo cuando ingreso a la cola blocked. time devuelve segundos, lo paso a milisegundos
 
 		// Sumo a la rafaga real de cpu y calculo la nueva estimacion
 		if(!strcmp(config.ALGORITMO_PLANIFICACION, "SRT")) {
-			proceso_exec->ult_rafaga_real_CPU += difftime(proceso_exec->timestamp_blocked, proceso_exec->timestamp_exec) * 1000;
+			proceso_exec->ult_rafaga_real_CPU += (proceso_exec->timestamp_blocked.tv_sec - proceso_exec->timestamp_exec.tv_sec) * 1000 + (proceso_exec->timestamp_blocked.tv_nsec - proceso_exec->timestamp_exec.tv_nsec) / 1000000; // Sumo a la rafaga real de cpu		
+			log_info(logger, "El proceso %d ejecuto %lld", proceso_exec->pid, proceso_exec->ult_rafaga_real_CPU);
 
 			double alpha = config.ALFA;
 			proceso_exec->estimacion_rafaga = (alpha * proceso_exec->ult_rafaga_real_CPU) + ((1 - alpha) * proceso_exec->estimacion_rafaga);
+			log_info(logger, "La nueva estimacion del proceso %d es %f", proceso_exec->pid, proceso_exec->estimacion_rafaga);
+			
 		}
 
 		pthread_mutex_lock(&mutexBlock);
@@ -222,7 +232,7 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 			pthread_t hilo_timer;
 
 			args_timer *args = malloc(sizeof(args_timer));
-			args->tiempo = tiempo_actual;
+			args->tiempo = proceso_exec->timestamp_blocked.tv_sec * 1000 + (proceso_exec->timestamp_blocked.tv_nsec / 1000000);
 
 			pthread_create(&hilo_timer, NULL, timer, (void*) args);
 			pthread_detach(hilo_timer);
@@ -231,7 +241,7 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 
 	} else {
 		pthread_mutex_unlock(&mutexExe);
-		log_error(logger, "Error grave de planificacion");
+		log_error(logger, "Error grave de planificacion\n");
 	}
 }
 
@@ -257,10 +267,8 @@ void* pasar_de_ready_a_exec_SRT() {
 
 			pthread_mutex_unlock(&mutexReady);
 
-			time_t tiempo_actual = time(NULL);
-			
 			pthread_mutex_lock(&mutexExe);
-			pcb->timestamp_exec = tiempo_actual;
+			clock_gettime(CLOCK_REALTIME,(&pcb->timestamp_exec));
 			proceso_exec = pcb;
 			pthread_mutex_unlock(&mutexExe);
 
@@ -315,13 +323,13 @@ void pasar_de_exec_a_ready() {
 }
 
 void* timer(void* void_args) {
-    float delta_tiempo = 0;
-	time_t tiempo_medido;
+    uint64_t delta_tiempo = 0;
+	struct timespec tiempo_medido;
 	args_timer* args = (args_timer*) void_args;
 
-    while(delta_tiempo < config.TIEMPO_MAXIMO_BLOQUEADO / 1000) {
-        tiempo_medido = time(NULL);
-        delta_tiempo = difftime(tiempo_medido, args->tiempo);
+    while(delta_tiempo < config.TIEMPO_MAXIMO_BLOQUEADO) {
+        clock_gettime(CLOCK_REALTIME,(&tiempo_medido));
+        delta_tiempo = (tiempo_medido.tv_sec * 1000 + (tiempo_medido.tv_nsec / 1000000)) - args->tiempo;
     }
 	//sale del while cuando se cumple el tiempo maximo de bloqueo
 	sem_post(&sem_hilo_blocked_a_blocked_susp);
@@ -370,7 +378,7 @@ int calcular_tiempo_que_estara_bloqueado() {
 	while(list_iterator_has_next(iterator)) {
 		elem_iterado = list_iterator_next(iterator);
 		tiempo_total += elem_iterado->tiempo_bloqueo;
-		log_info(logger, "LEI TIEMPO BLOQUEO %d DEL PID %d", elem_iterado->tiempo_bloqueo, elem_iterado->pid);
+		log_info(logger, "Lei tiempo de bloqueo %d del PID %d", elem_iterado->tiempo_bloqueo, elem_iterado->pid);
 	}
 	
 	log_info(logger, "Tiempo que estará bloqueado: %d", tiempo_total);
@@ -398,7 +406,6 @@ void* ejecutar_IO() {
 			IO_ocupado = true;
 			pthread_mutex_unlock(&mutex_vg_io);
 
-			log_info(logger, "EJECUTANDO IO EN EL IF");
 			PCB* pcb = list_get(cola_suspended_blck, 0);
 			pthread_mutex_unlock(&mutexSuspendedBlocked);
 
@@ -416,13 +423,13 @@ void* ejecutar_IO() {
 			
 			sem_post(&IO_esta_disponible);
 
-			pasar_de_blocked_susp_a_ready_susp();
+			esperar_que_termine_swap_out(pcb);
+			//pasar_de_blocked_susp_a_ready_susp();
 		} else {
 			pthread_mutex_lock(&mutex_vg_io);
 			IO_ocupado = true;
 			pthread_mutex_unlock(&mutex_vg_io);
 
-			//log_info(logger, "EJECUTANDO IO EN EL ELSE");
 			pthread_mutex_unlock(&mutexSuspendedBlocked);
 
 			pthread_mutex_lock(&mutexBlock);
@@ -455,7 +462,8 @@ void* ejecutar_IO() {
 			pthread_mutex_unlock(&mutexSuspendedBlocked);
 
 			if(se_suspendio) {
-				pasar_de_blocked_susp_a_ready_susp();
+				esperar_que_termine_swap_out(pcb);
+				// pasar_de_blocked_susp_a_ready_susp();
 			} else {
 				pthread_mutex_lock(&mutexBlock);
 				list_remove(cola_blck, 0);
@@ -476,4 +484,9 @@ void* ejecutar_IO() {
 			}
 		}
 	}
+}
+
+void esperar_que_termine_swap_out(PCB* pcb) {
+	sem_wait(&pcb->termino_operacion_swap_out);
+	pasar_de_blocked_susp_a_ready_susp();
 }

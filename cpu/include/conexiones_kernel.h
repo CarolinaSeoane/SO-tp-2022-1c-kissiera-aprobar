@@ -11,6 +11,7 @@
 #include "dispatch.h"
 #include "interrupt.h"
 #include <pthread.h>
+#include "mmu.h"
 
 void recv_proceso(Proceso_CPU*);
 void serializar_proceso_bloqueado(Proceso_CPU*, int, void*);

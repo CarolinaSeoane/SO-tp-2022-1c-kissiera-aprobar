@@ -7,8 +7,6 @@
 #include "utils.h"
 #include <pthread.h>
 
-int ULT_PID;
-
 pthread_mutex_t mutex_PID;
 
 int generar_pid();

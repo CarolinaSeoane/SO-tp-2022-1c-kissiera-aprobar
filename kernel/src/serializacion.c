@@ -79,28 +79,41 @@ int solicitar_tabla_de_paginas_a_memoria(PCB* proceso) {
     return tabla_primer_nivel;
 }
 
-int solicitar_swap_out_a_memoria(PCB* proceso) { // hacer 
-    /*int bytes_a_enviar = sizeof(int) * 3 ; 
+void solicitar_swap_out_a_memoria(PCB* proceso) {
+    int bytes_a_enviar = sizeof(int) * 2; // OPERACION, PID
 	void* a_enviar = malloc(bytes_a_enviar);
     int* codigo = malloc(sizeof(int));
-    *codigo = INIT_PROCESO;
+    *codigo = SWAP_OUT;
     int offset = 0;
 
     memcpy(a_enviar, &(*codigo), sizeof(int));
 	offset += sizeof(int);
 	memcpy(a_enviar + offset, &(proceso->pid), sizeof(int));
-	offset += sizeof(int);
-    memcpy(a_enviar + offset, &(proceso->tabla_paginas), sizeof(int));
-
 
     send(conexion_memoria, a_enviar, bytes_a_enviar, 0);
     free(codigo);
     free(a_enviar);
     
-    uint32_t tabla_primer_nivel;
-    recv(conexion_memoria, &tabla_primer_nivel, sizeof(uint32_t), 0);
-    log_info(logger, "Recibi para el proceso %d la tabla_primer_nivel con valor %d", proceso->pid, tabla_primer_nivel);*/
-    return 7;//tabla_primer_nivel;
+    int confirmacion;
+    recv(conexion_memoria, &confirmacion, sizeof(int), 0);
+    log_info(logger, "El proceso %d fue swapeado", proceso->pid);
+    sem_post(&(proceso->termino_operacion_swap_out));
+}
+
+void solicitar_swap_in_a_memoria(PCB* proceso) {
+    int bytes_a_enviar = sizeof(int) * 2; // OPERACION, PID
+	void* a_enviar = malloc(bytes_a_enviar);
+    int* codigo = malloc(sizeof(int));
+    *codigo = SWAP_IN;
+    int offset = 0;
+
+    memcpy(a_enviar, &(*codigo), sizeof(int));
+	offset += sizeof(int);
+	memcpy(a_enviar + offset, &(proceso->pid), sizeof(int));
+	
+    send(conexion_memoria, a_enviar, bytes_a_enviar, 0);
+    free(codigo);
+    free(a_enviar);
 }
 
 void recv_proceso_bloqueado(int* pid, int* pc, int* tiempo_bloqueo) {
@@ -112,4 +125,24 @@ void recv_proceso_bloqueado(int* pid, int* pc, int* tiempo_bloqueo) {
 void recv_proceso_cpu(int* pid_a_finalizar, int* program_counter) {
     recv(conexion_dispatch, pid_a_finalizar, sizeof(int), 0);
     recv(conexion_dispatch, program_counter, sizeof(int), 0);
+}
+
+void pedir_finalizar_estructuras_y_esperar_confirmacion(int pid){
+    int bytes_a_enviar = sizeof(int) * 2; //OPERACION, PID
+	void* a_enviar = malloc(bytes_a_enviar);
+    int* codigo = malloc(sizeof(int));
+    *codigo = EXIT_PROCESO_M;
+    int offset = 0;
+
+    memcpy(a_enviar, &(*codigo), sizeof(int));
+	offset += sizeof(int);
+	memcpy(a_enviar + offset, &(pid), sizeof(int));
+
+    send(conexion_memoria, a_enviar, bytes_a_enviar, 0);
+
+    int proceso_finalizado;
+	recv(conexion_memoria, &proceso_finalizado, sizeof(int), MSG_WAITALL);
+    log_info(logger,"Memoria me avisa que liberó las estructuras del proceso %d", pid);
+    free(codigo);
+    free(a_enviar);
 }

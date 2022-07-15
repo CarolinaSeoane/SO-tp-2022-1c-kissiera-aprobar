@@ -15,6 +15,7 @@
 #include "planificacion.h"
 #include <semaphore.h>
 #include <time.h>
+#include <sys/timeb.h>
 
 typedef struct {
 	char* IP_MEMORIA;

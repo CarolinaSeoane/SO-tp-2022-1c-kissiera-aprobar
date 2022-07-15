@@ -13,6 +13,8 @@
 #include "planificacion.h"
 #include <semaphore.h>
 #include "serializacion.h"
+#include <inttypes.h>
+#include <sys/timeb.h>
 
 void* atender_pedidos_consolas(void*);
 void* atender_pedidos_dispatch();
