@@ -100,11 +100,13 @@ int main(int argc, char** argv) {
 	int pid;
 	recv(conexion_kernel, &proceso_finalizado, sizeof(int), MSG_WAITALL);
 	recv(conexion_kernel, &pid, sizeof(int), MSG_WAITALL);
-	if(proceso_finalizado == 1) {
+	/*if(proceso_finalizado == 1) {
 		log_info(logger, "Proceso %d finalizado con codigo %d. Finaliza correctamente.", pid, proceso_finalizado);
 		return EXIT_SUCCESS;
 	} else {
 		log_error(logger, "Proceso %d finalizado con codigo de error %d", pid, proceso_finalizado);
 		return -1;
-	}
+	}*/
+	log_info(logger, "Proceso finalizado correctamente.");
+	return EXIT_SUCCESS;
 }

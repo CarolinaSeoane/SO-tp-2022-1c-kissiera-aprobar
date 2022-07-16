@@ -113,13 +113,12 @@ void* atender_pedidos_swap() {
                 char* archivo_a_eliminar = get_file_name(pedido->pid);
                 log_info(logger, "SWAP recibe ELIMINAR ARCHIVO para proceso %d", pedido->pid);
                 if (remove(archivo_a_eliminar) == 0) {
-                    log_info(logger, "El archivo %s ha sido eliminado", archivo_a_eliminar);
+                    log_info(logger, "Archivo %s del proceso %d eliminado con exito\n", archivo_a_eliminar, pedido->pid);
                 } else {
                     log_error(logger, "Error al eliminar el archivo %s", archivo_a_eliminar);
                 }
 
                 free(archivo_a_eliminar);
-                log_info(logger, "Archivo del proceso %d eliminado con exito\n", pedido->pid);
 
                 break;
 

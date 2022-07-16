@@ -51,7 +51,6 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 	bool cpu_ocupada = hay_un_proceso_ejecutando;
 	pthread_mutex_unlock(&mutex_vg_ex);
 
-
 	if(cpu_ocupada) {
 		
 		pthread_mutex_lock(&mutexExe);
@@ -77,7 +76,7 @@ void pasar_de_exec_a_exit(int pid, int pc) {
 			sem_post(&(proceso_exec->puedo_finalizar));	
 			sem_post(&sem_grado_multiprogramacion);
 		} else {
-			log_error(logger, "Error grave de planificacion");
+			log_error(logger, "Error de planificacion");
 		}
 	}
 
@@ -241,7 +240,7 @@ void pasar_de_exec_a_bloqueado(int pid, int pc, int tiempo_bloqueo) {
 
 	} else {
 		pthread_mutex_unlock(&mutexExe);
-		log_error(logger, "Error grave de planificacion\n");
+		log_error(logger, "Error de planificacion\n");
 	}
 }
 
@@ -259,7 +258,6 @@ void* pasar_de_ready_a_exec_SRT() {
 			PCB* pcb = list_get_max_priority(cola_ready);
 
 			bool tienen_mismo_pid(void* elemento) {
-				log_info(logger, "Buscando pid %d", pcb->pid);
 				return pcb->pid == ((PCB*) elemento)->pid;
 			}
 
@@ -346,7 +344,6 @@ void* pasar_de_bloqueado_a_bloqueado_susp() {
 		pthread_mutex_unlock(&mutexProcesosQueSeVanASuspender);
 
 		bool tienen_mismo_pid(void* elemento) {
-			log_info(logger, "Buscando pid %d", pcb->pid);
 			return pcb->pid == ((PCB*) elemento)->pid;
 		}
 
@@ -453,7 +450,6 @@ void* ejecutar_IO() {
 			// Se pudo haber suspendido mientras hacia IO
 
 			bool tienen_mismo_pid(void* elemento) {
-				//log_info(logger, "Buscando pid %d", pcb->pid);
 				return pcb->pid == ((PCB*) elemento)->pid;
 			}
 
